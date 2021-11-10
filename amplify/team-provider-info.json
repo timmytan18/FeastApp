@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-feast-dev-55014-authRole",
+      "UnauthRoleArn": "arn:aws:iam::359525902473:role/amplify-feast-dev-55014-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::359525902473:role/amplify-feast-dev-55014-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-feast-dev-55014-deployment",
+      "UnauthRoleName": "amplify-feast-dev-55014-unauthRole",
+      "StackName": "amplify-feast-dev-55014",
+      "StackId": "arn:aws:cloudformation:us-east-1:359525902473:stack/amplify-feast-dev-55014/e1fd1750-edf6-11eb-90d6-122a8762896b",
+      "AmplifyAppId": "d2sk4o7on6em58"
+    },
+    "categories": {
+      "auth": {
+        "feast997731cc": {}
+      }
+    }
+  }
+}
