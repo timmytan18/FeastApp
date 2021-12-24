@@ -1,19 +1,19 @@
 {
   "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-feast-dev-55014-authRole",
-      "UnauthRoleArn": "arn:aws:iam::359525902473:role/amplify-feast-dev-55014-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::359525902473:role/amplify-feast-dev-55014-authRole",
-      "Region": "us-east-1",
-      "DeploymentBucketName": "amplify-feast-dev-55014-deployment",
-      "UnauthRoleName": "amplify-feast-dev-55014-unauthRole",
-      "StackName": "amplify-feast-dev-55014",
-      "StackId": "arn:aws:cloudformation:us-east-1:359525902473:stack/amplify-feast-dev-55014/e1fd1750-edf6-11eb-90d6-122a8762896b",
-      "AmplifyAppId": "d2sk4o7on6em58"
+      "AuthRoleName": "amplify-feastapp-dev-171846-authRole",
+      "UnauthRoleArn": "arn:aws:iam::884733755105:role/amplify-feastapp-dev-171846-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::884733755105:role/amplify-feastapp-dev-171846-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-feastapp-dev-171846-deployment",
+      "UnauthRoleName": "amplify-feastapp-dev-171846-unauthRole",
+      "StackName": "amplify-feastapp-dev-171846",
+      "StackId": "arn:aws:cloudformation:us-east-2:884733755105:stack/amplify-feastapp-dev-171846/4d46ac70-643e-11ec-a698-06d0177a8552",
+      "AmplifyAppId": "d2qvzrvf15vi1t"
     },
     "categories": {
       "auth": {
-        "feast997731cc": {}
+        "feastapp79137d31": {}
       }
     }
   }

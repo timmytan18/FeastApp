@@ -9,8 +9,7 @@ import { colors, sizes, wp, hp } from '../../constants/theme';
 
 const NameForm = ({ navigation }) => {
 
-    const [firstName, changeFirstName] = useState('');
-    const [lastName, changeLastName] = useState('');
+    const [name, changeName] = useState('');
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -35,15 +34,15 @@ const NameForm = ({ navigation }) => {
                     <Text style={styles.subHeaderText}>
                         What's your name?
                     </Text>
-                    <NameInput onChangeFirst={changeFirstName} onChangeLast={changeLastName} firstValue={firstName} lastValue={lastName} />
+                    <NameInput onChange={changeName} value={name} />
                 </View>
                 <View style={styles.buttonContainer}>
                     <BigButton
                         gradient='purple'
-                        text='Confirm'
-                        disabled={firstName === '' || lastName === '' || error != null}
+                        text='Next'
+                        disabled={name === '' || error != null}
                         error={error}
-                        pressed={() => navigation.navigate('Register', { firstName: firstName, lastName: lastName })}
+                        pressed={() => navigation.navigate('Register', { name: name })}
                     />
                 </View>
             </SafeAreaView>

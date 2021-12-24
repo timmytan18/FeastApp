@@ -9,8 +9,7 @@ import { colors, sizes, wp, hp } from '../../constants/theme';
 
 const Register = ({ navigation, route }) => {
 
-    const firstName = route.params.firstName;
-    const lastName = route.params.lastName;
+    const name = route.params.name;
 
     const [phone, changePhone] = useState('');
     const [password, changePassword] = useState('');
@@ -40,8 +39,7 @@ const Register = ({ navigation, route }) => {
                 password: password,
                 attributes: {
                     phone_number: `+1${phoneCopy}`,
-                    'custom:first_name': firstName,
-                    'custom:last_name': lastName
+                    name: name,
                 }
             });
             console.log(user)

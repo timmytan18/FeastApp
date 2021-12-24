@@ -85,7 +85,7 @@ const FollowsList = ({ navigation, route }) => {
     //         currentUser.PK = currentPK;
     //         currentUser.SK = currentSK;
     //         currentUser.picture = currentProfilePic;
-    //         currentUser.displayName = `${currentUser.firstname} ${currentUser.lastname}`;
+    //         currentUser.displayName = `${currentUser.name}`;
 
     //         if (type != 'Following') {
     //             const followSK = `#FOLLOWER#${uid}`;
@@ -128,7 +128,7 @@ const FollowsList = ({ navigation, route }) => {
                     style={{ marginHorizontal: sizes.margin }}
                 />
                 <View style={styles.infoContainer}>
-                    <Text style={styles.userNameText}>{item.firstname} {item.lastname}</Text>
+                    <Text style={styles.userNameText}>{item.name}</Text>
                 </View>
             </TouchableOpacity>
         );

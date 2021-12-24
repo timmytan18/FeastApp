@@ -1,6 +1,6 @@
 {
   "auth": {
-    "feast997731cc": {
+    "feastapp79137d31": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],

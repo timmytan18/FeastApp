@@ -302,8 +302,7 @@ const styles = StyleSheet.create({
         paddingTop: wp(2)
     },
     topProfileContainer: {
-        height: '80%',
-        width: wp(100),
+        width: '100%',
         backgroundColor: 'white',
         borderBottomLeftRadius: wp(4),
         borderBottomRightRadius: wp(4),

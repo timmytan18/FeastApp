@@ -92,40 +92,25 @@ const ConfirmPasswordInput = ({ onChange, setConfirmPasswordInput, checkMatch, v
     );
 }
 
-const NameInput = ({ onChangeFirst, onChangeLast, firstValue, lastValue }) => {
-
-    const lastNameInput = useRef(null);
+const NameInput = ({ onChange, value }) => {
 
     return (
         <View>
             <View style={styles.inputContainer}>
                 <TextInput
-                    style={[styles.textInput, { flex: null, width: wp(48) - (sizes.margin), marginLeft: 1 }]}
-                    onChangeText={text => onChangeFirst(text)}
-                    placeholder='First name'
-                    value={firstValue ? firstValue : null}
+                    style={[styles.textInput, { flex: null, width: wp(94) - (sizes.margin), marginLeft: 5 }]}
+                    onChangeText={text => onChange(text)}
+                    placeholder='Full name'
+                    value={value ? value : null}
                     placeholderTextColor={`${colors.tertiary}70`}
                     clearButtonMode='while-editing'
                     textContentType='givenName'
                     autoFocus={true}
                     autoCompleteType='name'
-                    onSubmitEditing={() => lastNameInput.current && lastNameInput.current.focus()}
-                />
-                <TextInput
-                    ref={lastNameInput}
-                    style={[styles.textInput, { flex: null, width: wp(48) - (sizes.margin), marginLeft: sizes.margin }]}
-                    onChangeText={text => onChangeLast(text)}
-                    placeholder='Last name'
-                    value={lastValue ? lastValue : null}
-                    placeholderTextColor={`${colors.tertiary}70`}
-                    clearButtonMode='while-editing'
-                    textContentType='familyName'
-                    autoCompleteType='name'
                 />
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Line length={wp(48) - (sizes.margin)} color={colors.tertiary} />
-                <Line length={wp(48) - (sizes.margin)} color={colors.tertiary} />
+            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                <Line length={wp(94) - (sizes.margin)} color={colors.tertiary} />
             </View>
         </View>
     );

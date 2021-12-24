@@ -20,7 +20,7 @@ const FollowButton = (props) => {
 const FollowButtonInner = ({ client, currentUser, myUser }) => {
 
     // Destructure current user (profile user is viewing) object
-    const { PK, SK, uid, firstname, lastname, identityId } = currentUser;
+    const { PK, SK, uid, name, username, identityId } = currentUser;
     let picture = null;
     if (currentUser.picture) {
         picture = currentUser.picture
@@ -33,8 +33,7 @@ const FollowButtonInner = ({ client, currentUser, myUser }) => {
     const follower = {
         PK: myPK,
         SK: mySK,
-        firstname: myUser.firstname,
-        lastname: myUser.lastname,
+        name: myUser.name,
         identityId: myUser.identityId,
         followedSK: SK,
         uid: myID
@@ -53,7 +52,7 @@ const FollowButtonInner = ({ client, currentUser, myUser }) => {
         // const mutation = currFollow ? deleteFeastItem : createFeastItem;
         // const input = currFollow ?
         //     { PK: PK, SK: `#FOLLOWER#${myID}` } :
-        //     { PK: PK, SK: `#FOLLOWER#${myID}`, GSI1: 'USER#', firstname, lastname, ...(picture && { picture }), identityId, uid, follower };
+        //     { PK: PK, SK: `#FOLLOWER#${myID}`, GSI1: 'USER#', name, username, ...(picture && { picture }), identityId, uid, follower };
         // console.log(input)
         // try {
         //     await API.graphql(graphqlOperation(

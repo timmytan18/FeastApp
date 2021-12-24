@@ -34,6 +34,7 @@ const Home = ({ navigation }) => {
             }
 
             const { coords } = await Location.getCurrentPositionAsync({});
+            console.log(coords);
 
             dispatch({
                 type: 'SET_LOCATION', payload: {
@@ -44,6 +45,8 @@ const Home = ({ navigation }) => {
 
         })();
     }, [])
+
+    console.log(state.location)
 
     if (!state.location) {
         return (null);

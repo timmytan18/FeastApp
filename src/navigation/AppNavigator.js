@@ -20,7 +20,7 @@ import Settings from '../screens/Profile/Settings';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
 // import { DiscoverIcon, DiscoverFilledIcon } from './icons/Discover';
-// import NewPostIcon from './icons/NewPost';
+import NewPostIcon from './icons/NewPost';
 // import { GroupsIcon, GroupsFilledIcon } from './icons/Groups';
 import ProfileIcon from './icons/Profile';
 import Logo from '../screens/components/util/icons/Logo';
@@ -48,15 +48,15 @@ function HomeStackScreen() {
                     headerTitle: () => (
                         <Logo style={{ marginBottom: wp(2) }} />
                     ),
-                    headerLeft: () => (
-                        // <LinearGradient
-                        //     colors={gradients.orange.colors}
-                        //     start={gradients.orange.start}
-                        //     end={gradients.orange.end}
-                        // >
-                        <Text style={styles.leftHeader}>Feed</Text>
-                        // </LinearGradient>
-                    ),
+                    // headerLeft: () => (
+                    //     <LinearGradient
+                    //         colors={gradients.orange.colors}
+                    //         start={gradients.orange.start}
+                    //         end={gradients.orange.end}
+                    //     >
+                    //     <Text style={styles.leftHeader}>Feed</Text>
+                    //     </LinearGradient>
+                    // ),
                     headerRightContainerStyle: { paddingRight: sizes.margin }
                 }}
             />
@@ -347,6 +347,8 @@ export default function AppNavigator() {
             return null;
         }
 
+        const NEW_POST_INDEX = 1;
+
         return (
             <SafeAreaView style={styles.tabBar}>
                 {state.routes.map((route, index) => {
@@ -367,9 +369,9 @@ export default function AppNavigator() {
                             canPreventDefault: true,
                         });
 
-                        if (!isFocused && !event.defaultPrevented && index != 2) {
+                        if (!isFocused && !event.defaultPrevented && index != NEW_POST_INDEX) {
                             navigation.navigate(route.name);
-                        } else if (index == 2) {
+                        } else if (index == NEW_POST_INDEX) {
                             navigation.navigate('NewPostModal', {
                                 screen: 'NewPost'
                             })
@@ -379,14 +381,21 @@ export default function AppNavigator() {
                     let icon;
 
                     if (index == 0) {
+                        // icon = isFocused
+                        //     ? <TabIcon icon={<DiscoverFilledIcon />} />
+                        //     : <TabIcon icon={<DiscoverIcon />} />
                         icon = isFocused
-                            ? <TabIcon icon={<HomeFilledIcon />} />
-                            : <TabIcon icon={<HomeIcon />} />
+                              ? <TabIcon icon={<HomeFilledIcon />} />
+                              : <TabIcon icon={<HomeIcon />} />
                     } else if (index == 1) {
                         icon = <TabIcon icon={<NewPostIcon />} />
                     } else if (index == 2) {
                         icon = <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />
                     }
+                    // if (index == 0) {
+                    //   icon = isFocused
+                    //       ? <TabIcon icon={<HomeFilledIcon />} />
+                    //       : <TabIcon icon={<HomeIcon />} />
                     // } else if (index == 1) {
                     //     icon = isFocused
                     //         ? <TabIcon icon={<DiscoverFilledIcon />} />
@@ -402,7 +411,7 @@ export default function AppNavigator() {
                     // }
 
                     return (
-                        <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8}>
+                        <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8} key={index}>
                             {icon}
                         </TouchableOpacity>
                     );

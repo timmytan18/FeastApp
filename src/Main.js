@@ -86,11 +86,10 @@ const Main = () => {
             // Fetch user from DynamoDB
             const cognitoUser = await Auth.currentAuthenticatedUser();
             console.log(cognitoUser)
-            const firstname = cognitoUser.attributes['custom:first_name'].replace(/\s+/g, '');;
-            const lastname = cognitoUser.attributes['custom:last_name'].replace(/\s+/g, '');;
+            const name = cognitoUser.attributes.name.replace(/\s+/g, '');;
             const id = cognitoUser.attributes.sub;
             const pk = `USER#${id}`;
-            const sk = `#PROFILE#${firstname.toLowerCase()}${lastname.toLowerCase()}#${id}`;
+            const sk = `#PROFILE#${name.toLowerCase()}#${id}`;
             console.log(pk)
             console.log(sk)
             // let dynamoUser;
@@ -106,9 +105,10 @@ const Main = () => {
             // if (!identityId) {
             //     identityId = await updateIdentityId(PK, SK)
             // }
-            // const user = { PK, SK, email, picture, uid, streamToken, firstname, lastname, identityId };
-            const user = { pk, sk, id, firstname, lastname };
-            // user.displayName = `${firstname} ${lastname}`;
+            // const user = { PK, SK, email, picture, uid, streamToken, name, username, identityId };
+            // const user = { pk, sk, id, name, username };
+            const user = { pk, sk, id, name };
+            // user.displayName = `${name}`;
 
             // let pfpError = false;
             // if (picture) {

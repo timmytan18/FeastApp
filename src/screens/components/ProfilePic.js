@@ -23,14 +23,14 @@ const ProfilePic = ({ uid, extUrl, size, style }) => {
             style,
             { height: size, width: size, borderRadius: size/2 }
         ]}>
-            <Image
+            {/* <Image
                 source={{ uri: url }}
                 resizeMode='cover'
                 style={[
                     styles.iconImage,
                     { position: 'absolute', zIndex: 2, height: size, width: size, borderRadius: size/2 }
                 ]}
-            />
+            /> */}
             {extUrl && url != extUrl && <Image
                 source={{ uri: extUrl }}
                 resizeMode='cover'
