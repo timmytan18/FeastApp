@@ -13,7 +13,9 @@ const App = () => {
         'Book': require('./assets/Jost/Book.otf'),
         'BookItalic': require('./assets/Jost/BookItalic.otf'),
         'Medium': require('./assets/Jost/Medium.otf'),
+        'MediumItalic': require('./assets/Jost/MediumItalic.otf'),
         'Semi': require('./assets/Jost/Semi.otf'),
+        'SemiItalic': require('./assets/Jost/SemiItalic.otf'),
         'Bold': require('./assets/Jost/Bold.otf'),
         'BoldItalic': require('./assets/Jost/BoldItalic.otf'),
     });

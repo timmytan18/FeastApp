@@ -19,7 +19,6 @@ const ProfilePic = ({ uid, extUrl, size, style }) => {
 
     return (
         <View style={[
-            styles.iconContainer,
             style,
             { height: size, width: size, borderRadius: size/2 }
         ]}>
@@ -47,9 +46,6 @@ const ProfilePic = ({ uid, extUrl, size, style }) => {
 }
 
 const styles = StyleSheet.create({
-    iconContainer: {
-        backgroundColor: colors.gray
-    },
     iconImage: {
         flex: 1
     },

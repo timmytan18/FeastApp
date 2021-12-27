@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList } from 'react-native';
 // import { API, graphqlOperation, Storage } from 'aws-amplify';
-// import { getNumFollows } from '../../api/graphql/queries';
+import { API, graphqlOperation } from 'aws-amplify';
+import { getNumFollows } from '../../api/graphql/queries';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-community/masked-view';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
 import ProfilePic from '../components/ProfilePic';
@@ -16,7 +19,7 @@ import Heart from '../components/util/icons/Heart';
 import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
-import Instagram from '../components/util/icons/Instagram';
+// import Instagram from '../components/util/icons/Instagram';
 import BackArrow from '../components/util/icons/BackArrow';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { colors, gradients, sizes, wp, hp, shadows } from '../../constants/theme';
@@ -35,31 +38,36 @@ const Profile = ({ navigation, route }) => {
     const onTab = !(route && route.params && route.params.user);
     const isMe = !(!onTab && route.params.user.PK != state.user.PK);
     const user = isMe ? state.user : route.params.user;
+    console.log(user)
 
     const [numFollows, setNumFollows] = useState([0, 0]);
 
-    // async function getNumberFollows() {
-    //     let num = [1, 1];
-    //     try {
-    //         let res = await API.graphql(graphqlOperation(
-    //             getNumFollows,
-    //             { PK: user.PK, SK: user.SK }
-    //         ));
-    //         res = res.data.getFeastItem;
-    //         num = [res.numFollowers, res.numFollowing]            
-    //     } catch (err) {
-    //         console.log(err)
-    //     }
-    //     return num;
-    // }
+    // Fetch number of followers and following using getNumFollows query
+    async function getNumberFollows() {
+        let num = [0, 0];
+        try {
+            console.log(user.PK, user.SK)
+            let res = await API.graphql(graphqlOperation(
+                getNumFollows,
+                { PK: user.PK, SK: user.SK }
+            ));
+            console.log(res)
+            res = res.data.getFeastItem;
+            num = [res.numFollowers, res.numFollowing]            
+        } catch (err) {
+            console.log(err)
+        }
+        return num;
+    }
 
-    // useEffect(() => {
-    //     (async () => {
-    //         const num = await getNumberFollows();
-    //         setNumFollows(num)
-    //         setRefreshing(false)
-    //     })();
-    // }, [numRefresh.current])
+    useEffect(() => {
+        (async () => {
+            const num = await getNumberFollows();
+            console.log("num followers/following:", num)
+            setNumFollows(num)
+            setRefreshing(false)
+        })();
+    }, [numRefresh.current])
 
     if (isLoading) {
         return <CenterSpinner />
@@ -98,9 +106,20 @@ const Profile = ({ navigation, route }) => {
                                     pressed={() => navigation.goBack()}
                                 />
                             </View>}
-                            <Text style={styles.headerTitle}>
-                                {user.displayName}
-                            </Text>
+                            <MaskedView
+                              maskElement={
+                                <Text style={styles.headerTitle}>
+                                    {user.name}
+                                </Text>
+                              }
+                            >
+                              <LinearGradient
+                                colors={gradients.orange.colors}
+                                start={gradients.orange.start}
+                                end={gradients.orange.end}
+                                style={{ width: wp(30), height: hp(3.7) }}
+                              />
+                            </MaskedView>
                         </View>
                         <TouchableOpacity
                             style={styles.moreButton}
@@ -167,9 +186,9 @@ const Profile = ({ navigation, route }) => {
                                             myUser={state.user}
                                         />
                                     }
-                                    <TouchableOpacity style={styles.socialContainer} onPress={() => link('INSTAGRAM', user.instagram)}>
+                                    {/* <TouchableOpacity style={styles.socialContainer} onPress={() => link('INSTAGRAM', user.instagram)}>
                                         <Instagram />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity> */}
                                 </View>
                             </View>
                         </View>
@@ -178,7 +197,8 @@ const Profile = ({ navigation, route }) => {
                                 Animated.spring(position, {
                                     toValue: 0,
                                     speed: 40,
-                                    bounciness: 2
+                                    bounciness: 2,
+                                    useNativeDriver: true
                                 }).start()
                             }}>
                                 <View style={styles.tabIcon}><Utensils /></View>
@@ -188,7 +208,8 @@ const Profile = ({ navigation, route }) => {
                                 Animated.spring(position, {
                                     toValue: 1,
                                     speed: 40,
-                                    bounciness: 2
+                                    bounciness: 2,
+                                    useNativeDriver: true
                                 }).start()
                             }}>
                                 <View style={styles.tabIcon}><MapMarker /></View>
@@ -213,7 +234,7 @@ const Profile = ({ navigation, route }) => {
     })
 
     // placeholders
-    user.instagram = 'tim0_otan'
+    // user.instagram = 'tim0_otan'
 
     const ratings = 4.5;
     const photo = 'https://s3-media0.fl.yelpcdn.com/bphoto/a2hkhqRpe2tWE2_Gb9ZhyA/o.jpg';
@@ -255,7 +276,7 @@ const Profile = ({ navigation, route }) => {
             <View style={styles.bottomContainer}>
                 <TouchableOpacity onPress={() => getUserExample()}>
                     <Text style={styles.userText}>
-                        {user.displayName}
+                        {user.name}
                     </Text>
                 </TouchableOpacity>
                 <View style={[styles.userPicture, { backgroundColor: colors.gray }]}>
@@ -314,15 +335,15 @@ const styles = StyleSheet.create({
         flex: 0.3,
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: hp(1.4)
+        paddingBottom: hp(1.5)
     },
     userPicture: {
         marginBottom: hp(1.1)
     },
     locationText: {
         fontFamily: 'Medium',
-        fontSize: sizes.b2,
-        color: colors.primary
+        fontSize: sizes.b3,
+        color: colors.tertiary
     },
     infoContainer: {
         flex: 0.7,
@@ -356,14 +377,16 @@ const styles = StyleSheet.create({
         width: wp(68),
         paddingHorizontal: wp(3),
         flexDirection: 'row',
+        justifyContent: 'center',
         paddingTop: wp(3) + hp(0.2)
     },
     editContainer: {
         width: '73%',
-        height: hp(3) + wp(5),
+        height: hp(3) + wp(4),
         borderRadius: wp(2),
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        marginRight: wp(2)
     },
     editText: {
         fontFamily: 'Medium',

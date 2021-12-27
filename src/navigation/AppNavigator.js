@@ -22,7 +22,7 @@ import { HomeIcon, HomeFilledIcon } from './icons/Home';
 // import { DiscoverIcon, DiscoverFilledIcon } from './icons/Discover';
 import NewPostIcon from './icons/NewPost';
 // import { GroupsIcon, GroupsFilledIcon } from './icons/Groups';
-import ProfileIcon from './icons/Profile';
+import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import Logo from '../screens/components/util/icons/Logo';
 // import BackArrow from '../screens/components/util/icons/BackArrow';
 // import SearchButton from '../screens/components/util/SearchButton';
@@ -390,7 +390,9 @@ export default function AppNavigator() {
                     } else if (index == 1) {
                         icon = <TabIcon icon={<NewPostIcon />} />
                     } else if (index == 2) {
-                        icon = <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />
+                        icon = isFocused
+                              ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
+                              : <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />
                     }
                     // if (index == 0) {
                     //   icon = isFocused
