@@ -23,6 +23,15 @@ const NameForm = ({ navigation }) => {
         }
     }, [])
 
+    function onChangeName(name) {
+        changeName(name.replace(/[^a-zA-Z ]/g,"").replace(/\s\s+/g, " ")) // remove non-letters and repeating spaces
+    }
+
+    const onSubmit = () => {
+      const nameTrimmed = name.trim(); // remove leading and trailing spaces
+      navigation.navigate('Register', { name: nameTrimmed })
+    }
+
     return (
         <DismissKeyboardView style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
@@ -34,7 +43,7 @@ const NameForm = ({ navigation }) => {
                     <Text style={styles.subHeaderText}>
                         What's your name?
                     </Text>
-                    <NameInput onChange={changeName} value={name} />
+                    <NameInput onChange={onChangeName} value={name} />
                 </View>
                 <View style={styles.buttonContainer}>
                     <BigButton
@@ -42,7 +51,7 @@ const NameForm = ({ navigation }) => {
                         text='Next'
                         disabled={name === '' || error != null}
                         error={error}
-                        pressed={() => navigation.navigate('Register', { name: name })}
+                        pressed={onSubmit}
                     />
                 </View>
             </SafeAreaView>

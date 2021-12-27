@@ -86,12 +86,14 @@ const Main = () => {
             // Fetch user from DynamoDB
             const cognitoUser = await Auth.currentAuthenticatedUser();
             console.log(cognitoUser)
-            const name = cognitoUser.attributes.name.replace(/\s+/g, '');;
-            const id = cognitoUser.attributes.sub;
-            const pk = `USER#${id}`;
-            const sk = `#PROFILE#${name.toLowerCase()}#${id}`;
-            console.log(pk)
-            console.log(sk)
+            const name = cognitoUser.attributes.name;
+            const uid = cognitoUser.attributes.sub;
+            const PK = `USER#${uid}`;
+            const name_SK = name.toLowerCase().replace(/\s+/g, '');
+            const SK = `#PROFILE#${name_SK}#${uid}`;
+            console.log('PK', PK)
+            console.log('SK', SK)
+
             // let dynamoUser;
             // try {
             //     dynamoUser = await API.graphql(graphqlOperation(getFeastItem, { PK: pk, SK: sk }));
@@ -105,9 +107,9 @@ const Main = () => {
             // if (!identityId) {
             //     identityId = await updateIdentityId(PK, SK)
             // }
-            // const user = { PK, SK, email, picture, uid, streamToken, name, username, identityId };
-            // const user = { pk, sk, id, name, username };
-            const user = { pk, sk, id, name };
+            // const user = { PK, SK, email, picture, uid, streamToken, name, identityId };
+            // const user = { pk, sk, id, name };
+            const user = { PK, SK, uid, name };
             // user.displayName = `${name}`;
 
             // let pfpError = false;

@@ -27,7 +27,7 @@ const Verification = ({ navigation, route }) => {
     async function resendConfirmationCode() {
         setError(null)
         try {
-            await Auth.resendSignUp(route.params.phone);
+            await Auth.resendSignUp(`+1${route.params.phone}`);
             console.log('code resent succesfully');
         } catch (err) {
             console.log('error resending code: ', err);

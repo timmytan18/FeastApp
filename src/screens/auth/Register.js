@@ -10,6 +10,7 @@ import { colors, sizes, wp, hp } from '../../constants/theme';
 const Register = ({ navigation, route }) => {
 
     const name = route.params.name;
+    console.log('name: ', name);
 
     const [phone, changePhone] = useState('');
     const [password, changePassword] = useState('');
@@ -59,7 +60,7 @@ const Register = ({ navigation, route }) => {
     }
 
     function checkInvalidInput() {
-        return (phone.length < 10 || password === '' || confirmPassword === '' || password !== confirmPassword || error != null)
+        return (phone.length != 10 || isNaN(phone) || password === '' || confirmPassword === '' || password !== confirmPassword || error != null)
     }
 
     return (
@@ -71,7 +72,7 @@ const Register = ({ navigation, route }) => {
                         Register
                     </Text>
                     <PhoneInput onChange={changePhone} passwordInput={passwordInput} checkValidNumber={() => {
-                        if (phone.length < 10) {
+                        if (phone.length != 10 || isNaN(phone)) {
                             setError("Invalid phone number")
                         } else {
                             setError(null)

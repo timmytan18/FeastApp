@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: colors.primary,
-    fontFamily: 'BoldItalic',
+    fontFamily: 'SemiItalic',
     fontSize: wp(11),
     letterSpacing: 0.8,
     alignSelf: 'center',
