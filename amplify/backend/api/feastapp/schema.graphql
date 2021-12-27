@@ -1,0 +1,97 @@
+type FeastItem @model
+  @key(fields: ["PK", "SK"])
+  @key(name: "ByGSI1", fields:["GSI1","SK"], queryField: "itemsByGSI1")
+  @key(name: "ByGSI2", fields:["GSI2","SK"], queryField: "itemsByGSI2")
+  @key(name: "ByLSI1", fields:["PK","LSI1"], queryField: "itemsByLSI1")
+  @key(name: "ByLSI2", fields:["PK","LSI2"], queryField: "itemsByLSI2")
+  @key(name: "ByLSI3", fields:["PK","LSI3"], queryField: "itemsByLSI3")
+  @key(name: "ByLSI4", fields:["PK","LSI4"], queryField: "itemsByLSI4")
+  @key(name: "ByLSI5", fields:["PK","LSI5"], queryField: "itemsByLSI5")
+{
+  PK: String!
+  SK: String!
+  GSI1: String
+  GSI2: String
+  LSI1: String
+  LSI2: String
+  LSI3: String
+  LSI4: Int
+  LSI5: Int
+  name: String
+  uid: String
+  identityId: String
+  phone: String
+  picture: String
+  city: String
+  numFollowers: Int
+  numFollowing: Int
+  follower: Follower
+  placeId: String
+  grid: String
+  coordinates: Coordinate
+  placeType: String
+  placeInfo: PlaceInfo
+  imgUrl: String
+  rating: Rating
+  review: String
+  updatedAt: String
+}
+
+type Follower {
+  PK: String
+  SK: String
+  name: String
+  uid: String
+  identityId: String
+  followedSK: String
+  picture: String
+}
+
+type PlaceInfo {
+  name: String
+  priceLvl: String
+  delivery: AWSJSON
+  displayPhone: String
+  address: Address
+  placeUrl: String
+  coordinates: Coordinate
+  description: String
+  menuUrl: String
+  imgUrl: String
+  phone: String
+  yelpAlias: String
+  categories: AWSJSON
+}
+
+type Address {
+  addressRaw: String
+  address1: String
+  city: String
+  zip: String
+  state: String
+  country: String
+}
+
+type Coordinate {
+  latitude: Float
+  longitude: Float
+}
+
+type Rating {
+  overall: Float!
+  taste: Float!
+  value: Float!
+  service: Float!
+  atmosphere: Float!
+}
+
+type Mutation {
+  incrementFeastItem(input: IncrementFeastItemInput!): FeastItem
+}
+
+input IncrementFeastItemInput {
+  PK: String!
+  SK: String!
+  numFollowers: Int
+  numFollowing: Int
+}
