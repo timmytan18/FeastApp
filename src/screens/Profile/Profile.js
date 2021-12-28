@@ -134,6 +134,7 @@ const Profile = ({ navigation, route }) => {
                                 <ProfilePic
                                     uid={user.uid}
                                     extUrl={user.picture}
+                                    isMe={isMe}
                                     size={wp(19)}
                                     style={styles.userPicture}
                                 />
@@ -280,7 +281,11 @@ const Profile = ({ navigation, route }) => {
                     </Text>
                 </TouchableOpacity>
                 <View style={[styles.userPicture, { backgroundColor: colors.gray }]}>
-                    {examplePic && <Image resizeMode='cover' style={styles.userPicture} source={{ uri: examplePic }} />}
+                    {examplePic && 
+                      <Image resizeMode='cover' style={styles.userPicture}
+                        source={{ uri: examplePic, cache: 'force-cache' }} 
+                      />
+                    }
                 </View>
             </View>
         </SafeAreaView>

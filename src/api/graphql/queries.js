@@ -29,19 +29,36 @@
 //   }
 // `;
 
-// export const getUser = /* GraphQL */ `
-//   query GetFeastItem($PK: String!, $SK: String!) {
-//     getFeastItem(PK: $PK, SK: $SK) {
-//       firstname
-//       lastname
-//       picture
-//       streamToken
-//       uid
-//       identityId
-//       city
-//     }
-//   }
-// `;
+export const getUserProfile = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+        uid
+        name
+        picture
+        identityId
+        city
+      }
+      nextToken
+    }
+  }
+`;
 
 export const getIsFollowing = /* GraphQL */ `
   query GetFeastItem($PK: String!, $SK: String!) {

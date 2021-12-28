@@ -85,7 +85,7 @@ const FollowsList = ({ navigation, route }) => {
     //         currentUser.PK = currentPK;
     //         currentUser.SK = currentSK;
     //         currentUser.picture = currentProfilePic;
-    //         currentUser.displayName = `${currentUser.name}`;
+    //         currentUser.name = `${currentUser.name}`;
 
     //         if (type != 'Following') {
     //             const followSK = `#FOLLOWER#${uid}`;

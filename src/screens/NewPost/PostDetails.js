@@ -48,7 +48,7 @@
 //                 <View style={styles.postHeader}>
 //                     <Image style={styles.profilePic} source={{ uri: state.user.picture }} resizeMode='contain' />
 //                     <View style={styles.headerTextContainer}>
-//                         <Text style={styles.nameText}>{state.user.displayName}</Text>
+//                         <Text style={styles.nameText}>{state.user.name}</Text>
 //                         <View style={styles.locationContainer}>
 //                             <MapMarker size={wp(4.8)} color={colors.accent} />
 //                             <Text style={styles.locationText}>{business.restInfo.name}</Text>

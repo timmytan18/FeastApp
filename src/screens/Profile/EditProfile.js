@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { Storage } from 'aws-amplify';
 import Modal from 'react-native-modal';
 import * as ImagePicker from 'expo-image-picker';
-// import updateProfilePic from '../../api/functions/S3Storage';
+import updateProfilePic from '../../api/functions/S3Storage';
 import { colors, gradients, sizes, wp, hp, shadows } from '../../constants/theme';
 
 const EditProfile = ({ editPressed, setEditPressed, user }) => {
 
     const [photo, setPhoto] = useState(user.picture ? user.picture : null);
+    const [error, setError] = useState(null);
 
     const choosePhoto = async () => {
         if (Platform.OS !== 'web') {
-            const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
                 alert('Sorry, we need camera roll permissions to make this work!');
             }
         }
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
+            aspect: [1, 1],
+            quality: 0,
         });
 
         if (!result.cancelled) {
@@ -31,39 +33,47 @@ const EditProfile = ({ editPressed, setEditPressed, user }) => {
     async function saveEdits() {
         if (user.picture != photo) {
             // Store new user profile photo in S3
-            // await updateProfilePic(user.PK, user.SK, user.uid, photo)
+            await updateProfilePic(user.PK, user.SK, user.uid, photo)
 
-            // let picture;
-            // try {
-            //     picture = await Storage.get('profile_pic.jpeg', { 
-            //         level: 'protected',
-            //         identityId: user.identityId
-            //     })
-            // } catch (err) {
-            //     console.log(err)
-            // }
-
-            // console.log(picture)
+            let picture;
+            try {
+                picture = await Storage.get('profile_pic.jpeg', { 
+                    level: 'protected',
+                    identityId: user.identityId
+                })
+            } catch (err) {
+                setError('Error saving profile picture')
+                console.log(err)
+            }
+            
+            console.log(picture)
         }
+        hideModal()
     }
 
+    const hideModal = () => { 
+        setError(null);
+        setEditPressed(false);
+    }
+    console.log(photo)
     return (
         <Modal
             isVisible={editPressed}
             backdropOpacity={0.5}
             backdropTransitionOutTiming={0}
             swipeDirection="down"
-            onSwipeComplete={() => setEditPressed(false)}
-            onBackdropPress={() => setEditPressed(false)}
+            onSwipeComplete={hideModal}
+            onBackdropPress={hideModal}
             style={{ margin: 0, justifyContent: 'flex-end' }}
         >
             <View style={styles.container}>
+                <View style={styles.topRectangle} />
                 <View style={styles.pfpContainer}>
                     <View style={[styles.userPicture, { backgroundColor: colors.gray }]}>
                         {photo && <Image style={styles.userPicture} source={{ uri: photo }} />}
                     </View>
                     <TouchableOpacity onPress={choosePhoto}>
-                        <Text style={styles.changePfpText}>Change Photo</Text>
+                        <Text style={styles.changePfpText}>Change Profile Photo</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{ flex: 0.5 }}>
@@ -72,7 +82,7 @@ const EditProfile = ({ editPressed, setEditPressed, user }) => {
                 <View style={styles.actionsContainer}>
                     <TouchableOpacity activeOpacity={0.7}
                         style={[styles.actionButton, { backgroundColor: colors.white }]}
-                        onPress={() => setEditPressed(false)}
+                        onPress={hideModal}
                     >
                         <Text style={[styles.actionText, { color: colors.black }]}>Cancel</Text>
                     </TouchableOpacity>
@@ -82,6 +92,9 @@ const EditProfile = ({ editPressed, setEditPressed, user }) => {
                     >
                         <Text style={[styles.actionText, { color: colors.white }]}>Save</Text>
                     </TouchableOpacity>
+                </View>
+                <View style={{ flex: 0.1 }}>
+                    {error && <Text style={styles.errorText}>{error}</Text>}
                 </View>
             </View>
         </Modal>
@@ -98,9 +111,16 @@ const styles = StyleSheet.create({
         borderTopRightRadius: wp(4),
         backgroundColor: 'white',
     },
+    topRectangle: {
+        alignSelf: 'center',
+        width: wp(10),
+        height: wp(1.2),
+        marginVertical: hp(2),
+        borderRadius: wp(0.6),
+        backgroundColor: colors.black,
+    },
     pfpContainer: {
-        paddingTop: wp(3),
-        marginLeft: wp(1),
+        paddingTop: wp(1),
         flex: 0.3,
         alignItems: 'center',
         justifyContent: 'flex-end',
@@ -113,8 +133,8 @@ const styles = StyleSheet.create({
         marginBottom: hp(2)
     },
     changePfpText: {
-        fontFamily: 'Semi',
-        fontSize: sizes.h4,
+        fontFamily: 'Medium',
+        fontSize: sizes.b1,
         color: colors.accent,
     },
     actionsContainer: {
@@ -133,6 +153,14 @@ const styles = StyleSheet.create({
     actionText: {
         fontFamily: 'Medium',
         fontSize: sizes.h4
+    },
+    errorText: {
+      alignSelf: 'center',
+      marginTop: hp(2),
+      color: 'red',
+      fontFamily: 'Book',
+      fontSize: sizes.b2,
+      textAlign: 'center'
     }
 });
 

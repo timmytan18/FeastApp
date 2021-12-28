@@ -46,8 +46,6 @@ const Home = ({ navigation }) => {
         })();
     }, [])
 
-    console.log(state.location)
-
     if (!state.location) {
         return (null);
     }
