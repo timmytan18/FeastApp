@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useRef, useState, useEffect } from 'react';
 import { Image, Text, StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
@@ -319,28 +319,58 @@ const NewPostTransition = {
 export default function AppNavigator() {
 
     const [state, dispatch] = useContext(Context);
+    console.log('App navigator state: ', state);
+
+    // Use useState hook to force update
+    const [reload, setReload] = useState(false);
 
     const Tab = createBottomTabNavigator();
-    const TabScreenRef = useRef(
-        function TabScreen() {
-            return (
-                <Tab.Navigator
-                    tabBar={props => <MyTabBar {...props} picture={state.user.picture} />}
-                    tabBarOptions={{
-                        showLabel: false
-                    }}
-                >
-                    <Tab.Screen name="Home" component={HomeStackScreen} />
-                    {/* <Tab.Screen name="Discover" component={DiscoverStackScreen} /> */}
-                    <Tab.Screen name="NewPost" component={NewPostStackScreen} />
-                    {/* <Tab.Screen name="Groups" component={GroupsStackScreen} /> */}
-                    <Tab.Screen name="Profile" component={ProfileStackScreen} />
-                </Tab.Navigator>
-            );
-        }
-    );
 
-    function MyTabBar({ state, descriptors, navigation, picture }) {
+    // Use useRef hook to store TabNavigator
+    const TabScreenRef = useRef(
+      function TabScreen() {
+          return (
+              <Tab.Navigator
+                  tabBar={props => <MyTabBar {...props} picture={state.user.picture} />}
+                  tabBarOptions={{
+                      showLabel: false
+                  }}
+              >
+                  <Tab.Screen name="Home" component={HomeStackScreen} />
+                  {/* <Tab.Screen name="Discover" component={DiscoverStackScreen} /> */}
+                  <Tab.Screen name="NewPost" component={NewPostStackScreen} />
+                  {/* <Tab.Screen name="Groups" component={GroupsStackScreen} /> */}
+                  <Tab.Screen name="Profile" component={ProfileStackScreen} />
+              </Tab.Navigator>
+          );
+    });
+
+    // Jank way to update the profile picture in the tab bar if changed
+    // Reassign TabScreenRef to a new TabNavigator to change profile picture
+    useEffect(() => {
+        TabScreenRef.current = 
+            (function TabScreen() {
+              return (
+                  <Tab.Navigator
+                      tabBar={props => <MyTabBar {...props} picture={state.user.picture} />}
+                      tabBarOptions={{
+                          showLabel: false
+                      }}
+                  >
+                      <Tab.Screen name="Home" component={HomeStackScreen} />
+                      {/* <Tab.Screen name="Discover" component={DiscoverStackScreen} /> */}
+                      <Tab.Screen name="NewPost" component={NewPostStackScreen} />
+                      {/* <Tab.Screen name="Groups" component={GroupsStackScreen} /> */}
+                      <Tab.Screen name="Profile" component={ProfileStackScreen} />
+                  </Tab.Navigator>
+              );
+          })
+        // Force update through reload useState
+        setReload(!reload);
+    }, [state.user.picture])
+
+    const MyTabBar = ({ state, descriptors, navigation, picture }) => {
+
         const focusedOptions = descriptors[state.routes[state.index].key].options;
 
         if (focusedOptions.tabBarVisible === false) {

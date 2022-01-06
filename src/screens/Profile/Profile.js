@@ -262,7 +262,7 @@ const Profile = ({ navigation, route }) => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
             <MoreView items={moreItems} morePressed={morePressed} setMorePressed={setMorePressed} />
-            <EditProfile editPressed={editPressed} setEditPressed={setEditPressed} user={user} />
+            <EditProfile editPressed={editPressed} setEditPressed={setEditPressed} user={user} dispatch={dispatch} />
             <SectionList
                 sections={data}
                 keyExtractor={(item, index) => item.businessName + index}

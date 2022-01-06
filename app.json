@@ -16,16 +16,21 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ttan18.feast"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png"
-      }
+      },
+      "package": "com.ttan18.feast"
     },
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "scheme": "feast"
+    "scheme": "feast",
+    "plugins": [
+      "react-native-compressor"
+    ]
   }
 }

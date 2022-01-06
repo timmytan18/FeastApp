@@ -3,14 +3,16 @@ import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { Storage } from 'aws-amplify';
 import Modal from 'react-native-modal';
 import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';
 import updateProfilePic from '../../api/functions/S3Storage';
 import { colors, gradients, sizes, wp, hp, shadows } from '../../constants/theme';
 
-const EditProfile = ({ editPressed, setEditPressed, user }) => {
+const EditProfile = ({ editPressed, setEditPressed, user, dispatch }) => {
 
     const [photo, setPhoto] = useState(user.picture ? user.picture : null);
     const [error, setError] = useState(null);
 
+    // Open camera roll to choose a photo
     const choosePhoto = async () => {
         if (Platform.OS !== 'web') {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -22,16 +24,29 @@ const EditProfile = ({ editPressed, setEditPressed, user }) => {
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
-            quality: 0,
+            quality: 1,
         });
 
         if (!result.cancelled) {
-            setPhoto(result.uri);
+            resize(result);
         }
     }
 
+    // Resize and compress photo
+    async function resize(image) {
+        const manipResult = await manipulateAsync(
+          image.localUri || image.uri,
+          [
+            { resize: { height: 200, width: 200 } },
+          ],
+          { compress: 0.5 }
+        );
+        setPhoto(manipResult.uri);
+    };
+
     async function saveEdits() {
         if (user.picture != photo) {
+
             // Store new user profile photo in S3
             await updateProfilePic(user.PK, user.SK, user.uid, photo)
 
@@ -46,13 +61,15 @@ const EditProfile = ({ editPressed, setEditPressed, user }) => {
                 console.log(err)
             }
             
-            console.log(picture)
+            // Update user profile picture in local state
+            dispatch({ type: 'SET_USER', payload: { ...user, picture: photo } })
         }
         hideModal()
     }
 
     const hideModal = () => { 
         setError(null);
+        setPhoto(user.picture ? user.picture : null);
         setEditPressed(false);
     }
     console.log(photo)
