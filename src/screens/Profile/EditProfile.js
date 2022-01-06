@@ -47,7 +47,7 @@ const EditProfile = ({ editPressed, setEditPressed, user, dispatch }) => {
     async function saveEdits() {
         if (user.picture != photo) {
 
-            // Store new user profile photo in S3
+            // Store new user profile photo in S3 and DynamoDB
             await updateProfilePic(user.PK, user.SK, user.uid, photo)
 
             let picture;

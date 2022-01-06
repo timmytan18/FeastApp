@@ -335,12 +335,12 @@ const styles = StyleSheet.create({
         flexDirection: 'column'
     },
     pfpContainer: {
-        paddingTop: wp(3),
+        paddingTop: wp(6),
+        paddingBottom: hp(1.5),
         marginLeft: wp(1),
         flex: 0.3,
         alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingBottom: hp(1.5)
+        justifyContent: 'flex-end'
     },
     userPicture: {
         marginBottom: hp(1.1)
@@ -354,8 +354,7 @@ const styles = StyleSheet.create({
         flex: 0.7,
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: hp(1.4) + 0.3 * sizes.b2,
-        marginRight: wp(1),
+        paddingBottom: hp(1.4) + 0.35 * sizes.b2,
     },
     followContainer: {
         flexDirection: 'row',
@@ -387,7 +386,7 @@ const styles = StyleSheet.create({
     },
     editContainer: {
         width: '73%',
-        height: hp(3) + wp(4),
+        height: hp(3) + wp(3.6),
         borderRadius: wp(2),
         alignItems: 'center',
         justifyContent: 'center',
@@ -395,7 +394,7 @@ const styles = StyleSheet.create({
     },
     editText: {
         fontFamily: 'Medium',
-        fontSize: sizes.b1,
+        fontSize: sizes.b2,
         paddingTop: wp(0.3)
     },
     socialContainer: {
@@ -404,7 +403,7 @@ const styles = StyleSheet.create({
         marginLeft: wp(2.5)
     },
     tabContainer: {
-        flex: 0.3,
+        marginTop: hp(1.5),
         marginHorizontal: wp(6),
         flexDirection: 'row',
     },

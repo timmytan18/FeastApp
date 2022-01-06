@@ -1,5 +1,5 @@
 import awsmobile from '../../aws-exports';
-import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
+import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { updateFeastItem } from '../graphql/mutations';
 
 const { aws_user_files_s3_bucket: bucket } = awsmobile;
