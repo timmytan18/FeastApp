@@ -5,6 +5,7 @@ import Modal from 'react-native-modal';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';
 import updateProfilePic from '../../api/functions/S3Storage';
+import ProfilePic from '../components/ProfilePic';
 import { colors, gradients, sizes, wp, hp, shadows } from '../../constants/theme';
 
 const EditProfile = ({ editPressed, setEditPressed, user, dispatch }) => {
@@ -72,7 +73,7 @@ const EditProfile = ({ editPressed, setEditPressed, user, dispatch }) => {
         setPhoto(user.picture ? user.picture : null);
         setEditPressed(false);
     }
-    console.log(photo)
+
     return (
         <Modal
             isVisible={editPressed}
@@ -86,8 +87,13 @@ const EditProfile = ({ editPressed, setEditPressed, user, dispatch }) => {
             <View style={styles.container}>
                 <View style={styles.topRectangle} />
                 <View style={styles.pfpContainer}>
-                    <View style={[styles.userPicture, { backgroundColor: colors.gray }]}>
-                        {photo && <Image style={styles.userPicture} source={{ uri: photo }} />}
+                    <View style={[styles.userPicture]}>
+                        <ProfilePic
+                            extUrl={photo}
+                            isMe={true}
+                            size={styles.userPicture.width}
+                            style={styles.userPicture}
+                        />
                     </View>
                     <TouchableOpacity onPress={choosePhoto}>
                         <Text style={styles.changePfpText}>Change Profile Photo</Text>

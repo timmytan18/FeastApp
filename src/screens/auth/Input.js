@@ -132,7 +132,7 @@ const VerificationInput = ({ onChange, passwordInput }) => {
                     clearButtonMode='while-editing'
                     textContentType='oneTimeCode'
                     autoFocus={true}
-                    autoCompleteType='email'
+                    keyboardType='number-pad'
                     onSubmitEditing={() => {
                         if (passwordInput) { passwordInput.focus() }
                     }}

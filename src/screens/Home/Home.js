@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Image, ImageBackground, Modal
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
 import { Auth } from 'aws-amplify';
+import MapView from 'react-native-maps';
 // import { useHeaderHeight } from '@react-navigation/stack';
 // import { StreamApp, FlatFeed, Activity, Card, LikeButton, StatusUpdateForm, updateStyle } from 'expo-activity-feed';
 // import { useScrollToTop } from '@react-navigation/native';
@@ -11,7 +12,7 @@ import { Auth } from 'aws-amplify';
 // import { LinearGradient } from 'expo-linear-gradient';
 // import Stars from 'react-native-stars';
 // import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
-// import SearchButton from '../components/util/SearchButton';
+import SearchButton from '../components/util/SearchButton';
 // import Ratings from '../components/Ratings';
 // import MyCarousel from '../Carousel';
 // import Lightbox from '../components/Lightbox';
@@ -19,7 +20,7 @@ import { Auth } from 'aws-amplify';
 // import YumButton from '../components/util/YumButton';
 // import Line from '../components/util/Line';
 import { Context } from '../../Store';
-// import { sizes, colors, hp, wp } from '../../constants/theme';
+import { sizes, colors, hp, wp } from '../../constants/theme';
 
 const Home = ({ navigation }) => {
 
@@ -52,13 +53,35 @@ const Home = ({ navigation }) => {
 
     SplashScreen.hideAsync();
 
+    const { latitude, longitude } = state.location;
+
+    const region = {
+        latitude: latitude,
+        longitude: longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+    };
+
+    const markers = [{ latlng: { latitude, longitude } }];
+
     return (
         <View style={styles.container}>
-            <Text>Hello World!</Text>
-            <Button
-                title="Logout"
-                onPress={() => Auth.signOut()}
-            />
+            <MapView style={styles.map} region={region}>
+                {markers.map((marker, index) => (
+                    <MapView.Marker
+                      key={index}
+                      coordinate={marker.latlng}
+                    />
+                ))}
+            </MapView>
+            <View style={styles.searchBtnContainer}>
+            <SearchButton
+                  color={colors.black}
+                  size={wp(5.7)}
+                  style={{ flex: 1 }}
+                  pressed={() => navigation.navigate('SearchUsers')}
+              />
+            </View>
         </View>
     );
 }
@@ -69,6 +92,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center'
     },
+    map: {
+      width: '100%',
+      height: '100%'
+    },
+    searchBtnContainer: {
+        position: 'absolute',
+        top: hp(8),
+        right: wp(9),
+        width: wp(12),
+        height: wp(12),
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: wp(6),
+        backgroundColor: 'white'
+    }
 });
 
 export default Home;

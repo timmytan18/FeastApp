@@ -1,33 +1,33 @@
-// export const searchUsers = /* GraphQL */ `
-//   query ItemsByGsi1(
-//     $GSI1: String
-//     $SK: ModelStringKeyConditionInput
-//     $sortDirection: ModelSortDirection
-//     $filter: ModelFeastItemFilterInput
-//     $limit: Int
-//     $nextToken: String
-//   ) {
-//     itemsByGSI1(
-//       GSI1: $GSI1
-//       SK: $SK
-//       sortDirection: $sortDirection
-//       filter: $filter
-//       limit: $limit
-//       nextToken: $nextToken
-//     ) {
-//       items {
-//         PK
-//         SK
-//         firstname
-//         lastname
-//         picture
-//         identityId
-//         city
-//       }
-//       nextToken
-//     }
-//   }
-// `;
+export const searchUsers = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+        name
+        uid
+        picture
+        identityId
+        city
+      }
+      nextToken
+    }
+  }
+`;
 
 export const getUserProfile = /* GraphQL */ `
   query ListFeastItems(

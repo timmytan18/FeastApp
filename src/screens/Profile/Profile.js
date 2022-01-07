@@ -76,12 +76,12 @@ const Profile = ({ navigation, route }) => {
     const moreItems = [
         {
             onPress: () => navigation.navigate('RestaurantList', { type: 'favorites' }),
-            icon: <HeartEyes size={wp(7)} />,
+            icon: <HeartEyes size={wp(6)} />,
             label: 'My Favorites'
         },
         {
             onPress: () => navigation.navigate('RestaurantList', { type: 'likes' }),
-            icon: <Heart />,
+            icon: <Heart size={wp(6)} />,
             label: 'My Likes'
         },
         {
@@ -117,7 +117,7 @@ const Profile = ({ navigation, route }) => {
                                 colors={gradients.orange.colors}
                                 start={gradients.orange.start}
                                 end={gradients.orange.end}
-                                style={{ width: wp(30), height: hp(3.7) }}
+                                style={{ width: user.name.length * wp(5), height: hp(3.78) }}
                               />
                             </MaskedView>
                         </View>
@@ -185,6 +185,8 @@ const Profile = ({ navigation, route }) => {
                                         <FollowButton
                                             currentUser={user}
                                             myUser={state.user}
+                                            containerStyle={styles.editContainer}
+                                            textStyle={styles.editText}
                                         />
                                     }
                                     {/* <TouchableOpacity style={styles.socialContainer} onPress={() => link('INSTAGRAM', user.instagram)}>
@@ -310,6 +312,7 @@ const styles = StyleSheet.create({
     },
     headerTitleContainer: {
         flexDirection: 'row',
+        flex: 1,
         alignItems: 'flex-end'
     },
     headerTitle: {
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
         paddingLeft: wp(5)
     },
     backArrowContainer: {
-        paddingBottom: wp(2),
+        paddingBottom: wp(0.9),
         marginLeft: sizes.margin
     },
     moreButton: {

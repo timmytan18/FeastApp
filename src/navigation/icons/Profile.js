@@ -5,10 +5,12 @@ import {
 	widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 
+const SIZE = wp(6.8);
+
 const ProfileIcon = (props) => {
 	const { size } = props;
 	return (
-		<Svg width={size ? size : wp(6.4)} height={size ? size : wp(6.4)} viewBox="0 0 20 20" {...props}>
+		<Svg width={size ? size : SIZE} height={size ? size : SIZE} viewBox="0 0 20 20" {...props}>
 			<G fill="none" fillRule="evenodd">
 				<Path d="M10 6c-1.178 0-2 .822-2 2s.822 2 2 2 2-.822 2-2-.822-2-2-2z" />
 				<Path d="M10 12c-2.28 0-4-1.72-4-4 0-2.28 1.72-4 4-4 2.28 0 4 1.72 4 4 0 2.28-1.72 4-4 4z" />
@@ -30,7 +32,7 @@ const ProfileIcon = (props) => {
 const ProfileFilledIcon = (props) => {
 	const { size } = props;
 	return (
-		<Svg width={size ? size : wp(6.4)} height={size ? size : wp(6.4)} viewBox="0 0 38 38" {...props}>
+		<Svg width={size ? size : SIZE} height={size ? size : SIZE} viewBox="0 0 38 38" {...props}>
 			<G fill="none" fillRule="evenodd">
 				<Path d="M19 11.4c-2.238 0-3.8 1.562-3.8 3.8 0 2.238 1.562 3.8 3.8 3.8 2.238 0 3.8-1.562 3.8-3.8 0-2.238-1.562-3.8-3.8-3.8Z" />
 				<Path d="M19 22.8c-4.332 0-7.6-3.268-7.6-7.6s3.268-7.6 7.6-7.6 7.6 3.268 7.6 7.6-3.268 7.6-7.6 7.6Z" />

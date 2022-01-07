@@ -60,7 +60,7 @@ const Register = ({ navigation, route }) => {
     }
 
     function checkInvalidInput() {
-        return (phone.length != 10 || isNaN(phone) || password === '' || confirmPassword === '' || password !== confirmPassword || error != null)
+        return (phone.length < 10 || password === '' || confirmPassword === '' || password !== confirmPassword || error != null)
     }
 
     return (
@@ -72,7 +72,7 @@ const Register = ({ navigation, route }) => {
                         Register
                     </Text>
                     <PhoneInput onChange={changePhone} passwordInput={passwordInput} checkValidNumber={() => {
-                        if (phone.length != 10 || isNaN(phone)) {
+                        if (phone.length < 10) {
                             setError("Invalid phone number")
                         } else {
                             setError(null)

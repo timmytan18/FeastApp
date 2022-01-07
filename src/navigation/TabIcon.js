@@ -3,7 +3,7 @@ import { View, Image, StyleSheet } from 'react-native';
 import { colors, wp } from '../constants/theme';
 
 const TabIcon = ({ icon, image, focused, size }) => {
-    const width = size ? size : wp(6.7);
+    const width = size ? size : wp(7.2);
     const imageStyle = focused ?
         styles.imageFocused :
         [styles.image, { width: width, height: width }];
@@ -18,7 +18,7 @@ const TabIcon = ({ icon, image, focused, size }) => {
                 />
                 : icon
             }
-            {focused && <View style={[styles.image, styles.circleBorder]} />}
+            {focused && <View style={[styles.image, image ? styles.circleBorder : styles.noImageFocused ]} />}
         </View>
     );
 }
@@ -30,19 +30,22 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     image: {
-        width: wp(6.7),
-        height: wp(6.7),
-        borderRadius: wp(3.35)
+        width: wp(7.2),
+        height: wp(7.2),
+        borderRadius: wp(3.6)
     },
     imageFocused: {
-        width: wp(5),
-        height: wp(5),
-        borderRadius: wp(2.5)
+        width: wp(5.7),
+        height: wp(5.7),
+        borderRadius: wp(2.85)
     },
     circleBorder: {
         position: 'absolute',
-        borderWidth: 1,
+        borderWidth: 1.15,
         borderColor: colors.black,
+    },
+    noImageFocused: {
+        position: 'absolute',
     }
 });
 

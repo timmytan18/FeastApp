@@ -1,22 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
-import { StreamApp } from 'expo-activity-feed';
 import Yum from './icons/Yum';
 import YumNoFill from './icons/YumNoFill';
 import { colors, shadows, sizes, wp, hp } from '../../../constants/theme';
 
-
-const YumButton = (props) => {
-    return (
-        <StreamApp.Consumer>
-          {(appCtx) => {
-            return <YumButtonInner {...props} {...appCtx} />;
-          }}
-        </StreamApp.Consumer>
-      );
-}
-
-const YumButtonInner = ({ client, activityId, reacts }) => {
+const YumButton = ({ client, activityId, reacts }) => {
 
     const [pressed, setPressed] = useState(false);
     const reactionId = useRef(null);

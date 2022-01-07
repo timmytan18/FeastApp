@@ -32,13 +32,14 @@ const MoreView = ({ morePressed, setMorePressed, items }) => {
             onBackdropPress={() => setMorePressed(false)}
             style={{ margin: 0, justifyContent: 'flex-end' }}
         >
-            <View style={[styles.moreContainer, { height: items.length * styles.moreItem.height }]}>
+            <View style={[styles.moreContainer, { height: items.length * styles.moreItem.height + hp(3.5) }]}>
                 <FlatList
                     data={items}
                     renderItem={({ item }) => <MoreItem item={item} />}
                     keyExtractor={item => item.label}
                     showsVerticalScrollIndicator={false}
                 />
+                <View style={styles.bottomMargin} />
             </View>
         </Modal>
     );
@@ -50,10 +51,10 @@ const styles = StyleSheet.create({
         alignContent: 'center',
         borderTopLeftRadius: wp(4),
         borderTopRightRadius: wp(4),
-        backgroundColor: 'white',
+        backgroundColor: 'white'
     },
     moreItem: {
-        height: hp(9),
+        height: hp(8),
         width: '100%',
         alignContent: 'center',
         alignItems: 'center',
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
         color: colors.black,
         paddingLeft: wp(5),
         paddingTop: wp(0.5)
-    }
+    },
 });
 
 export default MoreView;

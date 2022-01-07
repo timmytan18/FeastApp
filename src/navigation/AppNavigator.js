@@ -5,7 +5,7 @@ import { createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import Home from '../screens/Home/Home';
-// import SearchUsers from '../screens/Home/SearchUsers';
+import SearchUsers from '../screens/Home/SearchUsers.js';
 // import Discover from '../screens/Discover/Discover';
 import NewPost from '../screens/NewPost/NewPost';
 // import Groups from '../screens/Groups/Groups';
@@ -24,7 +24,7 @@ import NewPostIcon from './icons/NewPost';
 // import { GroupsIcon, GroupsFilledIcon } from './icons/Groups';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import Logo from '../screens/components/util/icons/Logo';
-// import BackArrow from '../screens/components/util/icons/BackArrow';
+import BackArrow from '../screens/components/util/icons/BackArrow';
 // import SearchButton from '../screens/components/util/SearchButton';
 // import gql from 'graphql-tag';
 // import { listRestaurants } from '../graphql/queries';
@@ -44,23 +44,24 @@ function HomeStackScreen() {
             <HomeStack.Screen
                 name="Home"
                 component={Home}
-                options={{
-                    headerTitle: () => (
-                        <Logo style={{ marginBottom: wp(2) }} />
-                    ),
-                    // headerLeft: () => (
-                    //     <LinearGradient
-                    //         colors={gradients.orange.colors}
-                    //         start={gradients.orange.start}
-                    //         end={gradients.orange.end}
-                    //     >
-                    //     <Text style={styles.leftHeader}>Feed</Text>
-                    //     </LinearGradient>
-                    // ),
-                    headerRightContainerStyle: { paddingRight: sizes.margin }
-                }}
+                options={{ headerShown: false }}
+                // options={{
+                //     headerTitle: () => (
+                //         <Logo style={{ marginBottom: wp(2) }} />
+                //     ),
+                //     headerLeft: () => (
+                //         <LinearGradient
+                //             colors={gradients.orange.colors}
+                //             start={gradients.orange.start}
+                //             end={gradients.orange.end}
+                //         >
+                //         <Text style={styles.leftHeader}>Feed</Text>
+                //         </LinearGradient>
+                //     ),
+                //     headerRightContainerStyle: { paddingRight: sizes.margin }
+                // }}
             />
-            {/* <HomeStack.Screen
+            <HomeStack.Screen
                 name="SearchUsers"
                 component={SearchUsers}
                 options={{ headerShown: false }}
@@ -70,7 +71,7 @@ function HomeStackScreen() {
                 component={Profile}
                 options={{ headerShown: false }}
             />
-            <ProfileStack.Screen
+            {/* <ProfileStack.Screen
                 name="FollowsList"
                 component={FollowsList}
                 options={{
@@ -186,7 +187,7 @@ function ProfileStackScreen() {
                     ),
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
-            />
+            /> */}
             <ProfileStack.Screen
                 name="Settings"
                 component={Settings}
@@ -203,7 +204,7 @@ function ProfileStackScreen() {
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
             />
-            <ProfileStack.Screen
+            {/* <ProfileStack.Screen
                 name="FollowsList"
                 component={FollowsList}
                 options={{
@@ -345,7 +346,7 @@ export default function AppNavigator() {
           );
     });
 
-    // Jank way to update the profile picture in the tab bar if changed
+    // Hacky way to update the profile picture in the tab bar if changed
     // Reassign TabScreenRef to a new TabNavigator to change profile picture
     useEffect(() => {
         TabScreenRef.current = 
