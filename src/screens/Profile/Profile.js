@@ -170,7 +170,7 @@ const Profile = ({ navigation, route }) => {
                                         style={styles.followButton}
                                     >
                                         <Text style={styles.followCountText}>13</Text>
-                                        <Text style={styles.followText}>Restaurants</Text>
+                                        <Text style={styles.followText}>Reviews</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <View style={styles.actionsContainer}>

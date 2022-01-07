@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, Alert } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
-// import { createFeastItem, deleteFeastItem, incrementFeastItem } from '../../api/graphql/mutations';
+import { createFeastItem, deleteFeastItem, incrementFeastItem } from '../../api/graphql/mutations';
+import TwoButtonAlert from './util/TwoButtonAlert';
 import { colors, gradients, shadows, sizes, wp, hp } from '../../constants/theme';
 
 const FollowButton = ({ currentUser, myUser, containerStyle, textStyle }) => {
@@ -32,69 +33,72 @@ const FollowButton = ({ currentUser, myUser, containerStyle, textStyle }) => {
     
     const [following, setFollowing] = useState(currentUser.following);
 
+		const changeFollowingConfirmation = () => {
+				if (following) {
+						TwoButtonAlert({ 
+							title: `Unfollow ${currentUser.name}?`,
+							yesButton: 'Confirm', 
+							pressed: changeFollowing
+						})
+				} else {
+						changeFollowing()
+				}
+		}
+
     const changeFollowing = async () => {
 
-        // // Add following/unfollowing to dynamo
-        // const currFollow = following;
-        // setFollowing(!currFollow)
-        // const mutation = currFollow ? deleteFeastItem : createFeastItem;
-        // const input = currFollow ?
-        //     { PK: PK, SK: `#FOLLOWER#${myID}` } :
-        //     { PK: PK, SK: `#FOLLOWER#${myID}`, GSI1: 'USER#', name, username, ...(picture && { picture }), identityId, uid, follower };
-        // console.log(input)
-        // try {
-        //     await API.graphql(graphqlOperation(
-        //         mutation,
-        //         { input: input }
-        //     ));
-        // } catch (err) {
-        //     setFollowing(currFollow)
-        //     console.log(err)
-        //     Alert.alert(
-        //         "Error",
-        //         `Could not ${currFollow ? 'unfollow' : 'follow'}`,
-        //         [{ text: "OK" }],
-        //         { cancelable: false }
-        //     );
-        //     return
-        // }
+        // Add following/unfollowing to dynamo
+        const currFollow = following;
+        setFollowing(!currFollow)
+        const mutation = currFollow ? deleteFeastItem : createFeastItem;
+        const input = currFollow ?
+            { PK: PK, SK: `#FOLLOWER#${myID}` } :
+            { PK: PK, SK: `#FOLLOWER#${myID}`, GSI1: 'USER#', name, username, ...(picture && { picture }), identityId, uid, follower };
+        console.log(input)
+        try {
+            await API.graphql(graphqlOperation(
+                mutation,
+                { input: input }
+            ));
+        } catch (err) {
+            setFollowing(currFollow)
+            console.log(err)
+            Alert.alert(
+                "Error",
+                `Could not ${currFollow ? 'unfollow' : 'follow'}`,
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+            return
+        }
 
-        // // Increment/decrement follower and following counts
-        // const one = currFollow ? -1 : 1;
-        // console.log('UPDATING FOLLOWS')
-        // console.log(PK)
-        // console.log(SK)
-        // console.log(one)
-        // console.log(myPK)
-        // console.log(mySK)
-        // try {
-        //     await API.graphql(graphqlOperation(
-        //         incrementFeastItem,
-        //         { input: { PK: PK, SK: SK, numFollowers: one } }
-        //     ));
-        //     await API.graphql(graphqlOperation(
-        //         incrementFeastItem,
-        //         { input: { PK: myPK, SK: mySK, numFollowing: one } }
-        //     ));
-        // } catch(err) {
-        //     console.log(err)
-        // }
-
-        // // Add following to Stream
-        // const myTimeline = client.feed('timeline', myID)
-        // const userFeed = uid;
-        // if (currFollow) { // unfollow
-        //     await myTimeline.unfollow('user', userFeed);
-        // } else{
-        //     await myTimeline.follow('user', userFeed);
-        // }
+        // Increment/decrement follower and following counts
+        const one = currFollow ? -1 : 1;
+        console.log('UPDATING FOLLOWS')
+        console.log(PK)
+        console.log(SK)
+        console.log(one)
+        console.log(myPK)
+        console.log(mySK)
+        try {
+            await API.graphql(graphqlOperation(
+                incrementFeastItem,
+                { input: { PK: PK, SK: SK, numFollowers: one } }
+            ));
+            await API.graphql(graphqlOperation(
+                incrementFeastItem,
+                { input: { PK: myPK, SK: mySK, numFollowing: one } }
+            ));
+        } catch(err) {
+            console.log(err)
+        }
     }
 
     return (
       <View style={containerStyle}>
         {!following && 
             <TouchableOpacity
-                onPress={changeFollowing}
+                onPress={changeFollowingConfirmation}
                 activeOpacity={0.6}
                 style={{ width: '100%', height: '100%' }}
             >
@@ -109,7 +113,7 @@ const FollowButton = ({ currentUser, myUser, containerStyle, textStyle }) => {
             </TouchableOpacity>}
         {following && <TouchableOpacity
             style={[containerStyle, { backgroundColor: colors.gray3, width: '100%' }]}
-            onPress={changeFollowing}
+            onPress={changeFollowingConfirmation}
             activeOpacity={0.6}
           >
             <Text style={[textStyle, { color: colors.black }]}>Following</Text>

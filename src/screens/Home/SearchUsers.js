@@ -114,7 +114,7 @@ const SearchUsers = ({ navigation }) => {
                     getIsFollowing,
                     { PK: currentPK, SK: followSK }
                 ));
-                currentUser.following = following.data.getFeastItem ? true : false;;
+                currentUser.following = following.data.getFeastItem ? true : false;
             }
 
             navigation.push('Profile', { user: currentUser })
