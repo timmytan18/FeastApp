@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Animated, Image, ImageBackground, ScrollView, Keyboard } from 'react-native';
-import { Context } from '../../Store';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Animated, Image, ImageBackground, ScrollView, Keyboard, Alert } from 'react-native';
+import { API, graphqlOperation } from 'aws-amplify';
+import { createFeastItem, deleteFeastItem, incrementFeastItem } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
 import NextArrow from '../components/util/icons/NextArrow';
 import BackArrow from '../components/util/icons/BackArrow';
 import RatingsInput from '../components/RatingsInput';
 import { RATING_CATEGORIES } from '../../constants/constants';
+import { Context } from '../../Store';
 import { colors, gradients, shadows, sizes, header, wp, hp } from '../../constants/theme';
 
 const PostDetails= ({ navigation, route }) => {
@@ -54,10 +56,42 @@ const PostDetails= ({ navigation, route }) => {
         })
     }
 
-    function share() {
+    // Share user review for this place
+    async function share() {
+        const { id, name, location } = business;
+        const PK = state.user.PK;
+        const SK = `#PLACE#${id}`;
+        const userReview = reviewRef.current;
+        const userRatings = ratings.current;
+        const input = { 
+          PK, SK,
+          placeId: id,
+          name,
+          coordinates: { latitude: location.lat, longitude: location.lng },
+          review: userReview,
+          rating: userRatings
+        };
+        try {
+            await API.graphql(graphqlOperation(
+                createFeastItem,
+                { input: input }
+            ));
+        } catch (err) {
+            console.log(err)
+            Alert.alert(
+                "Error",
+                'Could not share your review. Please try again.',
+                [{ text: "OK" }],
+                { cancelable: false }
+            );
+            return
+        }
+        // Clear and reset review and ratings
+        dispatch({ 
+            type: 'SET_REVIEW_RATINGS', 
+            payload: { review: '', ratings: Object.assign({}, RATING_CATEGORIES) } 
+        })
         navigation.navigate('Home')
-        console.log(reviewRef.current)
-        console.log(ratings.current)
     }
 
     function changeRatings(value, type) {

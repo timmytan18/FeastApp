@@ -141,6 +141,47 @@ export const getNumFollows = /* GraphQL */ `
   }
 `;
 
+export const getUserProfileReviews = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+        name
+        placeId
+        coordinates {
+          latitude
+          longitude
+        }
+        review
+        rating {
+          overall
+          food
+          value
+          service
+          ambience
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
+
 // export const getBusinessExists = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String

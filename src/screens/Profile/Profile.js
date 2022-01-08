@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList } from 'react-native';
 // import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { API, graphqlOperation } from 'aws-amplify';
-import { getNumFollows } from '../../api/graphql/queries';
+import { getNumFollows, getUserProfileReviews } from '../../api/graphql/queries';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
@@ -38,20 +38,18 @@ const Profile = ({ navigation, route }) => {
     const onTab = !(route && route.params && route.params.user);
     const isMe = !(!onTab && route.params.user.PK != state.user.PK);
     const user = isMe ? state.user : route.params.user;
-    console.log(user)
 
     const [numFollows, setNumFollows] = useState([0, 0]);
+    const [reviews, setReviews] = useState([]);
 
     // Fetch number of followers and following using getNumFollows query
     async function getNumberFollows() {
         let num = [0, 0];
         try {
-            console.log(user.PK, user.SK)
             let res = await API.graphql(graphqlOperation(
                 getNumFollows,
                 { PK: user.PK, SK: user.SK }
             ));
-            console.log(res)
             res = res.data.getFeastItem;
             num = [res.numFollowers, res.numFollowing]            
         } catch (err) {
@@ -60,11 +58,33 @@ const Profile = ({ navigation, route }) => {
         return num;
     }
 
+    async function getUserReviews() {
+        const PK = user.PK;
+        const SK = '#PLACE#';
+        let userReviews;
+        try {
+            userReviews = await API.graphql(graphqlOperation(
+                getUserProfileReviews,
+                { PK: PK, SK: { beginsWith: SK }, limit: 50 }
+            ));
+            console.log(userReviews)
+            userReviews = userReviews.data.listFeastItems.items;
+        } catch (err){
+            console.log(err)
+        }
+        return userReviews;
+    }
+
     useEffect(() => {
         (async () => {
             const num = await getNumberFollows();
-            console.log("num followers/following:", num)
             setNumFollows(num)
+            setRefreshing(false)
+        })();
+        (async () => {
+            const userReviews = await getUserReviews();
+            console.log('User Reviews: ', userReviews)
+            setReviews(userReviews)
             setRefreshing(false)
         })();
     }, [numRefresh.current])
@@ -225,7 +245,21 @@ const Profile = ({ navigation, route }) => {
     }
 
     const renderItem = (item) => {
-        return <View style={{ backgroundColor: 'red' }} />
+        return (
+            <View>
+                <Text style={styles.userText}>
+                    {item.name}
+                </Text>
+                <Text style={styles.userText}>
+                    {item.review}
+                </Text>
+                <Text style={styles.userText}>
+                    Overall: {item.rating.overall} Food: {item.rating.overall} Value: {item.rating.value} Service: {item.rating.service} Ambience: {item.rating.ambience}
+                </Text>
+                <Text style={styles.userText}>
+                </Text>
+            </View>
+        );
     }
 
 
@@ -239,25 +273,11 @@ const Profile = ({ navigation, route }) => {
     // placeholders
     // user.instagram = 'tim0_otan'
 
-    const ratings = 4.5;
-    const photo = 'https://s3-media0.fl.yelpcdn.com/bphoto/a2hkhqRpe2tWE2_Gb9ZhyA/o.jpg';
-    const businessName = 'Pho King Midtown';
-    const post = { ratings, photo, businessName }
-    const data = [{ title: 'profile', data: [post, post, post, post, post] }]
-
-    async function getUserExample() {
-        let picture;
-        try {
-            picture = await Storage.get('profile_pic.jpeg', { 
-                level: 'protected',
-                identityId: 'us-east-1:aa1501cc-1832-499b-910e-5939a9657ba8'
-            })
-        } catch (err) {
-            console.log(err)
-        }
-        setExamplePic(picture)
-        console.log(picture)
-    }
+    // const ratings = 4.5;
+    // const photo = 'https://s3-media0.fl.yelpcdn.com/bphoto/a2hkhqRpe2tWE2_Gb9ZhyA/o.jpg';
+    // const businessName = 'Pho King Midtown';
+    // const post = { ratings, photo, businessName }
+    const data = [{ title: 'profile', data: reviews }]
 
     const [examplePic, setExamplePic] = useState(null);
 
@@ -267,7 +287,7 @@ const Profile = ({ navigation, route }) => {
             <EditProfile editPressed={editPressed} setEditPressed={setEditPressed} user={user} dispatch={dispatch} />
             <SectionList
                 sections={data}
-                keyExtractor={(item, index) => item.businessName + index}
+                keyExtractor={(item, index) => index}
                 renderItem={({ item }) => renderItem(item)}
                 renderSectionHeader={renderTopContainer}
                 refreshing={refreshing}
@@ -276,12 +296,7 @@ const Profile = ({ navigation, route }) => {
                     setRefreshing(true)
                 }}
             />
-            <View style={styles.bottomContainer}>
-                <TouchableOpacity onPress={() => getUserExample()}>
-                    <Text style={styles.userText}>
-                        {user.name}
-                    </Text>
-                </TouchableOpacity>
+            <View style={styles.bottomContainer}>    
                 <View style={[styles.userPicture, { backgroundColor: colors.gray }]}>
                     {examplePic && 
                       <Image resizeMode='cover' style={styles.userPicture}
@@ -303,7 +318,7 @@ const styles = StyleSheet.create({
     bottomContainer: {
         flex: 0.62,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
     },
     headerContainer: {
         flexDirection: 'row',
