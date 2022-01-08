@@ -13,6 +13,12 @@ const Reducer = (state, action) => {
                     latitude: action.payload.latitude
                 }
             }
+        case 'SET_REVIEW_RATINGS':
+            return {
+                ...state,
+                review: action.payload.review,
+                ratings: action.payload.ratings
+            }
         default:
             return state;
     }

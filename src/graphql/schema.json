@@ -1305,7 +1305,7 @@
           "isDeprecated" : false,
           "deprecationReason" : null
         }, {
-          "name" : "taste",
+          "name" : "food",
           "description" : null,
           "args" : [ ],
           "type" : {
@@ -1350,7 +1350,7 @@
           "isDeprecated" : false,
           "deprecationReason" : null
         }, {
-          "name" : "atmosphere",
+          "name" : "ambience",
           "description" : null,
           "args" : [ ],
           "type" : {
@@ -2946,7 +2946,7 @@
           },
           "defaultValue" : null
         }, {
-          "name" : "taste",
+          "name" : "food",
           "description" : null,
           "type" : {
             "kind" : "NON_NULL",
@@ -2985,7 +2985,7 @@
           },
           "defaultValue" : null
         }, {
-          "name" : "atmosphere",
+          "name" : "ambience",
           "description" : null,
           "type" : {
             "kind" : "NON_NULL",

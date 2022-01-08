@@ -65,10 +65,10 @@ export const getFeastItem = /* GraphQL */ `
       imgUrl
       rating {
         overall
-        taste
+        food
         value
         service
-        atmosphere
+        ambience
       }
       review
       updatedAt
@@ -143,10 +143,10 @@ export const listFeastItems = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -223,10 +223,10 @@ export const itemsByGSI1 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -303,10 +303,10 @@ export const itemsByGSI2 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -383,10 +383,10 @@ export const itemsByLSI1 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -463,10 +463,10 @@ export const itemsByLSI2 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -543,10 +543,10 @@ export const itemsByLSI3 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -623,10 +623,10 @@ export const itemsByLSI4 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt
@@ -703,10 +703,10 @@ export const itemsByLSI5 = /* GraphQL */ `
         imgUrl
         rating {
           overall
-          taste
+          food
           value
           service
-          atmosphere
+          ambience
         }
         review
         updatedAt

@@ -308,12 +308,13 @@ const styles = StyleSheet.create({
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        paddingTop: wp(1)
     },
     headerTitleContainer: {
         flexDirection: 'row',
         flex: 1,
-        alignItems: 'flex-end'
+        alignItems: 'flex-end',
     },
     headerTitle: {
         fontFamily: 'Semi',
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
     moreButton: {
         alignSelf: 'center',
         paddingRight: wp(5),
-        paddingTop: wp(2)
+        paddingTop: wp(1)
     },
     topProfileContainer: {
         width: '100%',

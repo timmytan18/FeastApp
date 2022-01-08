@@ -16,7 +16,7 @@ import FollowsList from '../screens/Profile/FollowsList';
 // import RestaurantList from '../screens/components/RestaurantList';
 import Settings from '../screens/Profile/Settings';
 // import UploadImages from '../screens/NewPost/UploadImages';
-// import PostDetails from '../screens/NewPost/PostDetails';
+import PostDetails from '../screens/NewPost/PostDetails';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
 // import { DiscoverIcon, DiscoverFilledIcon } from './icons/Discover';
@@ -107,7 +107,7 @@ function NewPostStackScreen() {
     return (
         <NewPostStack.Navigator
             screenOptions={{
-                title: <Text style={header.title}>New Post</Text>
+                title: <Text style={header.title}>New Review</Text>
             }}
         >
             <NewPostStack.Screen
@@ -128,7 +128,7 @@ function NewPostStackScreen() {
                     ),
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
-            />
+            /> */}
             <NewPostStack.Screen
                 name="PostDetails"
                 component={PostDetails}
@@ -143,7 +143,7 @@ function NewPostStackScreen() {
                     ),
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
-            /> */}
+            />
         </NewPostStack.Navigator>
     );
 }

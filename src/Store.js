@@ -1,8 +1,11 @@
 import React, { createContext, useReducer } from 'react';
-import Reducer from './Reducer'
+import Reducer from './Reducer';
+import { RATING_CATEGORIES } from './constants/constants';
 
 const initialState = {
     user: null,
+    review: null,
+    ratings: Object.assign({}, RATING_CATEGORIES),
     location: null,
     restaurants: [],
     headerHeight: null,

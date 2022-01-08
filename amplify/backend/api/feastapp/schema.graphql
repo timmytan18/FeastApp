@@ -79,10 +79,10 @@ type Coordinate {
 
 type Rating {
   overall: Float!
-  taste: Float!
+  food: Float!
   value: Float!
   service: Float!
-  atmosphere: Float!
+  ambience: Float!
 }
 
 type Mutation {

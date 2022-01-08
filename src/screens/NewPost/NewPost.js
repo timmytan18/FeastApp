@@ -12,6 +12,7 @@ import SearchBox from '../components/SearchBox';
 import NextArrow from '../components/util/icons/NextArrow';
 import MapMarker from '../components/util/icons/MapMarker';
 import Car from '../components/util/icons/Car';
+import { RATING_CATEGORIES } from '../../constants/constants';
 import { colors, gradients, shadows, sizes, header, wp, hp } from '../../constants/theme';
 
 
@@ -49,7 +50,13 @@ const NewPost = ({ navigation }) => {
     useEffect(() => {
         navigation.setOptions({
             headerLeft: () => (
-                <TouchableOpacity style={styles.cancelButtonContainer} onPress={() => navigation.goBack()}>
+                <TouchableOpacity
+                  style={styles.cancelButtonContainer}
+                  onPress={() => {
+                      clearReview()
+                      navigation.goBack()
+                  }}
+                >
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
             ),
@@ -68,16 +75,35 @@ const NewPost = ({ navigation }) => {
         getNearby()
     }, [])
 
-    function businessChosen() {
-        if (selectedData.current) {
-            navigation.navigate('UploadImages', {
-                    business: selectedData.current,
-                    currLat: latitude.current,
-                    currLng: longitude.current
-                }
-            )
-        }
+    // Delete and reset current stored review and ratings
+    function clearReview() {
+        dispatch({ 
+            type: 'SET_REVIEW_RATINGS',
+            payload: { review: null, ratings: Object.assign({}, RATING_CATEGORIES) } 
+        })
     }
+
+    // function businessChosen() {
+    //     if (selectedData.current) {
+    //         navigation.navigate('UploadImages', {
+    //                 business: selectedData.current,
+    //                 currLat: latitude.current,
+    //                 currLng: longitude.current
+    //             }
+    //         )
+    //     }
+    // }
+
+    function businessChosen() {
+      if (selectedData.current) {
+          navigation.navigate('PostDetails', {
+                  business: selectedData.current,
+                  // currLat: latitude.current,
+                  // currLng: longitude.current
+              }
+          )
+      }
+  }
 
     async function updateCurrentLocation() {
         const { coords } = await Location.getCurrentPositionAsync({});

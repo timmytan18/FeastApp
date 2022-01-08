@@ -65,10 +65,10 @@ export const incrementFeastItem = /* GraphQL */ `
       imgUrl
       rating {
         overall
-        taste
+        food
         value
         service
-        atmosphere
+        ambience
       }
       review
       updatedAt
@@ -143,10 +143,10 @@ export const createFeastItem = /* GraphQL */ `
       imgUrl
       rating {
         overall
-        taste
+        food
         value
         service
-        atmosphere
+        ambience
       }
       review
       updatedAt
@@ -221,10 +221,10 @@ export const updateFeastItem = /* GraphQL */ `
       imgUrl
       rating {
         overall
-        taste
+        food
         value
         service
-        atmosphere
+        ambience
       }
       review
       updatedAt
@@ -299,10 +299,10 @@ export const deleteFeastItem = /* GraphQL */ `
       imgUrl
       rating {
         overall
-        taste
+        food
         value
         service
-        atmosphere
+        ambience
       }
       review
       updatedAt
