@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Animated, Image, ImageBackground, ScrollView, Keyboard } from 'react-native';
 import { Context } from '../../Store';
-import DismissKeyboardView from '../components/util/DismissKeyboard';
 import MapMarker from '../components/util/icons/MapMarker';
 import NextArrow from '../components/util/icons/NextArrow';
 import BackArrow from '../components/util/icons/BackArrow';
 import RatingsInput from '../components/RatingsInput';
+import { RATING_CATEGORIES } from '../../constants/constants';
 import { colors, gradients, shadows, sizes, header, wp, hp } from '../../constants/theme';
 
 const PostDetails= ({ navigation, route }) => {
@@ -20,6 +20,18 @@ const PostDetails= ({ navigation, route }) => {
     
     useEffect(() => {
         navigation.setOptions({
+            headerLeft: ({ onPress }) => (
+                <BackArrow
+                    color={colors.black}
+                    size={wp(6.2)}
+                    style={{ flex: 1 }}
+                    pressed={() => {
+                        saveReview()
+                        navigation.goBack()
+                    }}
+                />
+            ),
+            headerLeftContainerStyle: { paddingLeft: sizes.margin },
             headerRight: () => {
                 return (
                     <TouchableOpacity
@@ -31,25 +43,28 @@ const PostDetails= ({ navigation, route }) => {
                 );
             },
         })
-        return () => {
-            console.log('unmounting', reviewRef.current, ratings.current)
-            dispatch({ 
-                type: 'SET_REVIEW_RATINGS', 
-                payload: { review: reviewRef.current, ratings: ratings.current } 
-            })
-        }
     }, [])
+
+    // Save current review and ratings
+    function saveReview() {
+        console.log('unmounting', reviewRef.current, ratings.current)
+        dispatch({ 
+            type: 'SET_REVIEW_RATINGS', 
+            payload: { review: reviewRef.current, ratings: ratings.current } 
+        })
+    }
+
+    function share() {
+        navigation.navigate('Home')
+        console.log(reviewRef.current)
+        console.log(ratings.current)
+    }
 
     function changeRatings(value, type) {
         if (ratings.current[type] != value) {
             ratings.current[type] = value;
         }
     }
-
-    function share() {
-      navigation.navigate('Home')
-      console.log(ratings.current)
-  }
 
     return (
         <SafeAreaView style={styles.container}>

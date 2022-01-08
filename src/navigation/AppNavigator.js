@@ -132,17 +132,6 @@ function NewPostStackScreen() {
             <NewPostStack.Screen
                 name="PostDetails"
                 component={PostDetails}
-                options={{
-                    headerLeft: ({ onPress }) => (
-                        <BackArrow
-                            color={colors.black}
-                            size={wp(6.2)}
-                            style={{ flex: 1 }}
-                            pressed={onPress}
-                        />
-                    ),
-                    headerLeftContainerStyle: { paddingLeft: sizes.margin }
-                }}
             />
         </NewPostStack.Navigator>
     );
