@@ -11,7 +11,7 @@ import NewPost from '../screens/NewPost/NewPost';
 // import Groups from '../screens/Groups/Groups';
 // import Group from '../screens/Groups/Group';
 import Profile from '../screens/Profile/Profile';
-// import FollowsList from '../screens/Profile/FollowsList';
+import FollowsList from '../screens/Profile/FollowsList';
 // import DetailCard from '../screens/components/DetailCard';
 // import RestaurantList from '../screens/components/RestaurantList';
 import Settings from '../screens/Profile/Settings';
@@ -71,7 +71,7 @@ function HomeStackScreen() {
                 component={Profile}
                 options={{ headerShown: false }}
             />
-            {/* <ProfileStack.Screen
+            <ProfileStack.Screen
                 name="FollowsList"
                 component={FollowsList}
                 options={{
@@ -85,7 +85,7 @@ function HomeStackScreen() {
                     ),
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
-            /> */}
+            />
         </HomeStack.Navigator>
     );
 }
@@ -204,7 +204,7 @@ function ProfileStackScreen() {
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
             />
-            {/* <ProfileStack.Screen
+            <ProfileStack.Screen
                 name="FollowsList"
                 component={FollowsList}
                 options={{
@@ -218,7 +218,7 @@ function ProfileStackScreen() {
                     ),
                     headerLeftContainerStyle: { paddingLeft: sizes.margin }
                 }}
-            /> */}
+            />
         </ProfileStack.Navigator>
     );
 }

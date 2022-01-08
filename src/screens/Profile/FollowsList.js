@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard } from 'react-native';
 import { API, graphqlOperation, Storage } from 'aws-amplify';
-import { getUser, getFollowers, getFollowing, getIsFollowing } from '../../api/graphql/queries';
+import { getUserProfile, getFollowers, getFollowing, getIsFollowing } from '../../api/graphql/queries';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { colors, gradients, sizes, wp, hp, shadows, header } from '../../constants/theme';
@@ -18,92 +18,64 @@ const FollowsList = ({ navigation, route }) => {
         })
     }, [])
     
-    // useEffect(() => {
-        
-    //     // function getProfilePictures(item) {
-    //     //     if (type == 'Followers') {
-    //     //         item = item.follower;
-    //     //     }
-    //     //     return new Promise((resolve, reject) => {
-    //     //         if (item.picture) {
-    //     //             resolve(item)
-    //     //         } else {
-    //     //             Storage.get('profile_pic.jpeg', { level: 'protected', identityId: item.identityId })
-    //     //                 .then(url => {
-    //     //                     item.picture = url;
-    //     //                     resolve(item)
-    //     //                 })
-    //     //                 .catch(err => {
-    //     //                     console.log(err)
-    //     //                     reject()
-    //     //                 });
-    //     //         }
-    //     //     });
-    //     // }
+    useEffect(() => {
+        (async () => {
+            let dynamoUsers;
+            if (type == 'Followers') {
+                try {
+                    dynamoUsers = await API.graphql(graphqlOperation(
+                        getFollowers,
+                        { PK: PK, SK: { beginsWith: '#FOLLOWER#' }, limit: 50 }
+                    ));
+                    dynamoUsers = dynamoUsers.data.listFeastItems.items;
+                } catch (err){
+                    console.log(err)
+                }
+            } else if (type == 'Following') {
+                try {
+                    dynamoUsers = await API.graphql(graphqlOperation(
+                        getFollowing,
+                        { GSI1: 'USER#', SK: { beginsWith: `#FOLLOWER#${uid}` }, limit: 50 }
+                    ));
+                    dynamoUsers = dynamoUsers.data.itemsByGSI1.items;
+                } catch (err){
+                    console.log(err)
+                }
+            }
+            console.log(dynamoUsers)
+            setUsersList(dynamoUsers)        
+        })();
+    }, [])
 
-    //     (async () => {
-    //         let dynamoUsers;
-    //         if (type == 'Followers') {
-    //             try {
-    //                 dynamoUsers = await API.graphql(graphqlOperation(
-    //                     getFollowers,
-    //                     { PK: PK, SK: { beginsWith: '#FOLLOWER#' }, limit: 50 }
-    //                 ));
-    //                 dynamoUsers = dynamoUsers.data.listFeastItems.items;
-    //             } catch (err){
-    //                 console.log(err)
-    //             }
-    //         } else if (type == 'Following') {
-    //             try {
-    //                 dynamoUsers = await API.graphql(graphqlOperation(
-    //                     getFollowing,
-    //                     { GSI1: 'USER#', SK: { beginsWith: `#FOLLOWER#${uid}` }, limit: 50 }
-    //                 ));
-    //                 dynamoUsers = dynamoUsers.data.itemsByGSI1.items;
-    //             } catch (err){
-    //                 console.log(err)
-    //             }
-    //         }
-    //         console.log(dynamoUsers)
-    //         setUsersList(dynamoUsers)
-    //         // Promise.all(dynamoUsers.map(getProfilePictures)).then((users) => {
-    //         //     console.log(users)
-    //         //     setUsersList(users)
-    //         // });          
-    //     })();
-    // }, [])
+    const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
+        let currentUser;
+        try {
+            currentUser = await API.graphql(graphqlOperation(
+              getUserProfile, { PK: currentPK, SK: { beginsWith: currentSK } }
+            ));
 
-    // const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
-    //     let currentUser;
-    //     try {
-    //         currentUser = await API.graphql(graphqlOperation(
-    //             getUser,
-    //             { PK: currentPK, SK: currentSK }
-    //         ));
+            currentUser = currentUser.data.listFeastItems.items[0];
+            currentUser.PK = currentPK;
+            currentUser.SK = currentSK;
+            currentUser.picture = currentProfilePic;
 
-    //         currentUser = currentUser.data.getFeastItem;
-    //         currentUser.PK = currentPK;
-    //         currentUser.SK = currentSK;
-    //         currentUser.picture = currentProfilePic;
-    //         currentUser.name = `${currentUser.name}`;
-
-    //         if (type != 'Following') {
-    //             const followSK = `#FOLLOWER#${uid}`;
-    //             let following = await API.graphql(graphqlOperation(
-    //                 getIsFollowing,
-    //                 { PK: currentPK, SK: followSK }
-    //             ));
-    //             following = following.data.getFeastItem ? true : false;
-    //             currentUser.following = following;
-    //         } else {
-    //             currentUser.following = true;
-    //         }
-    //         navigation.push('Profile', { user: currentUser })
+            if (type != 'Following') {
+                const followSK = `#FOLLOWER#${uid}`;
+                let following = await API.graphql(graphqlOperation(
+                    getIsFollowing,
+                    { PK: currentPK, SK: followSK }
+                ));
+                following = following.data.getFeastItem ? true : false;
+                currentUser.following = following;
+            } else {
+                currentUser.following = true;
+            }
+            navigation.push('Profile', { user: currentUser })
             
-    //     } catch (err) {
-    //         console.log(err)
-    //     }
-    // }
+        } catch (err) {
+            console.log(err)
+        }
+    }
 
     const renderUserItem = ({ item }) => {
 
@@ -120,6 +92,8 @@ const FollowsList = ({ navigation, route }) => {
                 style={styles.userItemContainer}
                 activeOpacity={0.5}
                 onPress={() => fetchCurrentUser(item.PK, item.SK, item.picture)}
+                key={item.PK}
+                id={item.PK}
             >
                 <ProfilePic
                     uid={item.uid}
@@ -143,7 +117,7 @@ const FollowsList = ({ navigation, route }) => {
                     data={usersList}
                     extraData={usersList}
                     renderItem={renderUserItem}
-                    keyExtractor={item => {type == 'Following' ? item.PK : item.follower.PK }}
+                    keyExtractor={(item, index) => type == 'Following' ? item.PK : item.follower.PK}
                     showsVerticalScrollIndicator={true}
                     onScrollBeginDrag={Keyboard.dismiss}
                     keyboardShouldPersistTaps='handled'

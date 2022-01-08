@@ -119,8 +119,7 @@ export const getFollowing = /* GraphQL */ `
       items {
         PK
         SK
-        firstname
-        lastname
+        name
         identityId
         picture
         uid
