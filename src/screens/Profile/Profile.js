@@ -58,6 +58,7 @@ const Profile = ({ navigation, route }) => {
         return num;
     }
 
+    // Fetch reviews for current user using getUserProfileReviews query
     async function getUserReviews() {
         const PK = user.PK;
         const SK = '#PLACE#';
@@ -189,7 +190,7 @@ const Profile = ({ navigation, route }) => {
                                     <TouchableOpacity
                                         style={styles.followButton}
                                     >
-                                        <Text style={styles.followCountText}>13</Text>
+                                        <Text style={styles.followCountText}>{reviews.length}</Text>
                                         <Text style={styles.followText}>Reviews</Text>
                                     </TouchableOpacity>
                                 </View>
