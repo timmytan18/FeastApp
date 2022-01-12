@@ -17,8 +17,22 @@ import {
   colors, sizes, wp, hp,
 } from '../../constants/theme';
 
+const propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      business: PropTypes.shape({
+        id: PropTypes.string,
+        name: PropTypes.string,
+        location: PropTypes.shape({
+          lat: PropTypes.number,
+          lng: PropTypes.number,
+        }),
+      }),
+    }),
+  }).isRequired,
+};
+
 const PostDetails = ({ navigation, route }) => {
-  // const { business, picture, menuItem } = route.params;
   const { business } = route.params;
   const [state, dispatch] = useContext(Context);
 
@@ -29,7 +43,6 @@ const PostDetails = ({ navigation, route }) => {
   useEffect(() => {
     // Save current review and ratings
     function saveReview() {
-      console.log('unmounting', reviewRef.current, ratings.current);
       dispatch({
         type: 'SET_REVIEW_RATINGS',
         payload: { review: reviewRef.current, ratings: ratings.current },
@@ -145,20 +158,7 @@ const PostDetails = ({ navigation, route }) => {
   );
 };
 
-PostDetails.propTypes = {
-  route: PropTypes.shape({
-    params: PropTypes.shape({
-      business: PropTypes.shape({
-        id: PropTypes.string,
-        name: PropTypes.string,
-        location: PropTypes.shape({
-          lat: PropTypes.number,
-          lng: PropTypes.number,
-        }),
-      }),
-    }),
-  }).isRequired,
-};
+PostDetails.propTypes = propTypes;
 
 const styles = StyleSheet.create({
   container: {

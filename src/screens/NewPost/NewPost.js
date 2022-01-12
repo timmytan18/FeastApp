@@ -5,9 +5,9 @@ import {
   StyleSheet, Text, View, TouchableOpacity, FlatList, Image, Keyboard,
 } from 'react-native';
 import * as Location from 'expo-location';
-import { BallIndicator } from 'react-native-indicators';
+// import { BallIndicator } from 'react-native-indicators';
 import { LinearGradient } from 'expo-linear-gradient';
-import { coordinateDistance } from '../../api/functions/CoordinateDistance';
+import coordinateDistance from '../../api/functions/CoordinateDistance';
 import filterFSItems from '../../api/functions/FilterFSItems';
 import config from '../../config';
 import { Context } from '../../Store';
@@ -21,23 +21,39 @@ import {
   colors, gradients, shadows, sizes, wp,
 } from '../../constants/theme';
 
-const NewPost = ({ navigation }) => {
-  const CLIENT_ID = config.FOURSQUARE_CLIENT_ID;
-  const CLIENT_SECRET = config.FOURSQUARE_CLIENT_SECRET;
-  const FS_VERSION = '20201216';
+const FS_API_KEY = config.FOURSQUARE_API_KEY;
+const FS_GET_OPTIONS = {
+  method: 'GET',
+  headers: {
+    Accept: 'application/json',
+    Authorization: FS_API_KEY,
+  },
+};
+const FS_CATEGORY_ID = '13000';
+const FS_ITEM_LIMIT = 50;
+const FS_SEARCH_RADIUS = 10000; // 50000 meter ~= 30 mile radius
+// const FS_SEARCH_RADIUS = 50000; // 50000 meter ~= 30 mile radius
+const FS_DEFAULT_CATEGORY_ICON = {
+  prefix: 'https://ss3.4sqi.net/img/categories_v2/food/default_',
+  suffix: '.png',
+};
 
+const NewPost = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
   const latitude = useRef(state.location.latitude);
   const longitude = useRef(state.location.longitude);
 
   const [loading, setLoading] = useState(true);
-  const [restaurantList, setRestaurantList] = useState([]);
-  const nearbyRestaurants = useRef(null);
+  const [placeList, setPlaceList] = useState([]);
+  const nearbyPlaces = useRef([]);
   const [selected, setSelected] = useState(null);
   const selectedData = useRef(null);
   const isSearch = useRef(false);
+  // const [smallLoading, setSmallLoading] = useState(false);
 
+  // Set up navigation and header options
   useEffect(() => {
+    // Navigate to next screen
     function businessChosen() {
       if (selectedData.current) {
         navigation.navigate('PostDetails', {
@@ -46,61 +62,6 @@ const NewPost = ({ navigation }) => {
           // currLng: longitude.current
         });
       }
-    }
-
-    const headerRight = () => (
-      <TouchableOpacity style={styles.nextButtonContainer} onPress={() => businessChosen()}>
-        <Text style={styles.nextButtonText}>Next</Text>
-        <NextArrow />
-      </TouchableOpacity>
-    );
-
-    navigation.setOptions({
-      headerRight,
-    });
-  }, [navigation, selected]);
-
-  async function filterSetResults(results) {
-    const items = await filterFSItems(results);
-    setLoading(false);
-    setRestaurantList(items);
-  }
-
-  useEffect(() => {
-    // Get current user location
-    async function updateCurrentLocation() {
-      const { coords } = await Location.getCurrentPositionAsync({});
-      dispatch({
-        type: 'SET_LOCATION',
-        payload: {
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        },
-      });
-      // latitude.current = coords.latitude;
-      // longitude.current = coords.longitude;
-      latitude.current = '33.96389';
-      longitude.current = '-84.13485';
-      // latitude.current = '33.80';
-      // longitude.current = '-84.36';
-    }
-
-    // Fetch POIs from Foursquare
-    async function getNearby() {
-      await updateCurrentLocation();
-      const lat = latitude.current;
-      const lng = longitude.current;
-
-      const url = `https://api.foursquare.com/v2/venues/search?ll=${lat},${lng}
-        &limit=50&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&v=${FS_VERSION}`;
-      // let url = `https://api.foursquare.com/v2/venues/explore?ll=${lat},${lng}
-      //   &limit=50&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&v=${FS_VERSION}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      isSearch.current = false;
-
-      filterSetResults(data.response.venues);
     }
 
     // Delete and reset current stored review and ratings
@@ -125,8 +86,9 @@ const NewPost = ({ navigation }) => {
 
     const headerRight = () => (
       <TouchableOpacity
-        disabled
-        style={[styles.nextButtonContainer, { opacity: 0.5 }]}
+        disabled={!selected}
+        onPress={() => businessChosen()}
+        style={[styles.nextButtonContainer, { opacity: selected ? 1 : 0.5 }]}
       >
         <Text style={styles.nextButtonText}>Next</Text>
         <NextArrow />
@@ -137,43 +99,110 @@ const NewPost = ({ navigation }) => {
       headerLeft,
       headerRight,
     });
-    getNearby();
-  }, [CLIENT_ID, CLIENT_SECRET, dispatch, navigation]);
+  }, [dispatch, navigation, selected]);
 
-  const searchRestaurant = async (query) => {
+  // Filter POIs by category and remove duplicates
+  async function filterSetResults(results) {
+    const items = await filterFSItems({ results });
+    console.log('Filtered items', items);
+    setLoading(false);
+    setPlaceList(items || []);
+    return items || [];
+
+    // setLoading(false);
+    // setPlaceList(results || []);
+    // return results || [];
+  }
+
+  // Set up location and loading nearby POIs
+  useEffect(() => {
+    // Get current user location
+    async function updateCurrentLocation() {
+      const { coords } = await Location.getCurrentPositionAsync({});
+      dispatch({
+        type: 'SET_LOCATION',
+        payload: {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        },
+      });
+      latitude.current = coords.latitude;
+      longitude.current = coords.longitude;
+      // latitude.current = '33.96389';
+      // longitude.current = '-84.13485';
+      // latitude.current = '33.80';
+      // longitude.current = '-84.36';
+    }
+
+    // Fetch nearby POIs from Foursquare
+    (async function getNearby() {
+      try {
+        await updateCurrentLocation();
+      } catch (err) {
+        console.log('Error updating current location', err);
+      }
+
+      const lat = latitude.current;
+      const lng = longitude.current;
+      const url = `https://api.foursquare.com/v3/places/nearby?ll=${lat},${lng}&limit=${FS_ITEM_LIMIT}&categories=${FS_CATEGORY_ID}`;
+      try {
+        const res = await fetch(url, FS_GET_OPTIONS);
+        const data = await res.json();
+        console.log('Returned FS data', data);
+        nearbyPlaces.current = await filterSetResults(data.results);
+      } catch (err) {
+        console.log('Error fetching and filtering nearby FS POIs', err);
+      }
+
+      isSearch.current = false;
+    }());
+  }, [dispatch, navigation]);
+
+  // Search for nearby POIs using query string
+  const searchPlace = async (queryInput) => {
+    const query = queryInput ? queryInput.replace(/\s+/g, '%20') : '';
     setLoading(true);
     setSelected(null);
     if (query === '') {
       isSearch.current = false;
-      setRestaurantList(nearbyRestaurants.current);
+      setPlaceList(nearbyPlaces.current);
       setLoading(false);
     } else {
       const lat = latitude.current;
       const lng = longitude.current;
-      const radius = 50000; // 50000 meter ~= 30 mile radius
 
-      const url = `https://api.foursquare.com/v2/venues/search?ll=${lat},${lng}
-        &query=${query}&radius=${radius}&limit=50&client_id=${CLIENT_ID}
-        &client_secret=${CLIENT_SECRET}&v=${FS_VERSION}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      isSearch.current = true;
-      filterSetResults(data.response.venues);
+      const url = `https://api.foursquare.com/v3/places/search?ll=${lat},${lng}&query=${query}&categories=${FS_CATEGORY_ID}&radius=${FS_SEARCH_RADIUS}&limit=${FS_ITEM_LIMIT}`;
+      try {
+        const res = await fetch(url, FS_GET_OPTIONS);
+        const data = await res.json();
+        console.log('Returned FS data', data);
+        isSearch.current = true;
+        filterSetResults(data.results);
+      } catch (err) {
+        console.log('Error fetching and filtering searched FS POIs', err);
+      }
     }
   };
 
   const renderItem = ({ item }) => {
-    const { lat, lng } = item.location;
+    // Calcuate distance between item coordinates and user location
+    const { latitude: lat, longitude: lng } = item.geocodes && item.geocodes.main
+      ? item.geocodes.main : { latitude: latitude.current, longitude: longitude.current };
     const distance = coordinateDistance(latitude.current, longitude.current, lat, lng);
-    let loc = item.location;
-    loc = isSearch.current
-      ? loc.formattedAddress[0].concat(' ', loc.formattedAddress[1])
-      : loc.city;
+    // Get city and address
+    const city = item.location && item.location.locality ? item.location.locality : '';
+    const address = item.location && item.location.address ? item.location.address : '';
+    let loc = city;
+    if (address) {
+      loc = `${address}, ${city}`;
+    }
 
-    const { prefix, suffix } = item.categories[0].icon;
+    const { prefix, suffix } = item.categories.length
+      ? item.categories[0].icon : FS_DEFAULT_CATEGORY_ICON;
+    // const { prefix, suffix } = item.categories.length
+    //   ? item.categories[item.categories.length - 1].icon : FS_DEFAULT_CATEGORY_ICON;
 
-    if (item.id === selected) {
+    if (item.fsq_id === selected) {
       return (
         <TouchableOpacity
           style={styles.itemContainer}
@@ -223,7 +252,7 @@ const NewPost = ({ navigation }) => {
         style={styles.itemContainer}
         activeOpacity={0.8}
         onPress={() => {
-          setSelected(item.id);
+          setSelected(item.fsq_id);
           selectedData.current = item;
         }}
       >
@@ -261,7 +290,7 @@ const NewPost = ({ navigation }) => {
       <View style={styles.container}>
         <View style={styles.searchBoxContainer}>
           <SearchBox
-            completeSearch={searchRestaurant}
+            completeSearch={searchPlace}
             placeholder="Search for a restaurant/business"
             autofocus={false}
           />
@@ -273,7 +302,7 @@ const NewPost = ({ navigation }) => {
             </View>
             <Text style={styles.locationTitleText}>Food nearby</Text>
           </View>
-          {restaurantList.length > 0
+          {placeList.length > 0
             && (
               <Text style={styles.loadingText}>
                 {loading ? 'Retrieving nearby restaurants...' : 'Select a restaurant'}
@@ -285,32 +314,32 @@ const NewPost = ({ navigation }) => {
             colors={['transparent', 'rgba(0,0,0,0.32)']}
             style={styles.fade}
           />
-          {loading
+          {/* {loading
             && (
               <BallIndicator
                 style={{ alignSelf: 'flex-start', marginTop: wp(8) }}
                 color={colors.tertiary}
               />
-            )}
-          {!loading && restaurantList.length > 0
+            )} */}
+          {!loading && placeList.length > 0
             && (
               <FlatList
                 style={styles.listContainer}
                 contentContainerStyle={{ paddingBottom: wp(18) }}
-                data={restaurantList}
-                extraData={restaurantList}
+                data={placeList}
+                extraData={placeList}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.fsq_id}
                 showsVerticalScrollIndicator={false}
                 onScrollBeginDrag={Keyboard.dismiss}
-                ListFooterComponent={(
-                  <View style={styles.smallLoader}>
-                    <BallIndicator color={colors.tertiary} size={20} />
-                  </View>
-                )}
+              // ListFooterComponent={smallLoading && (
+              //   <View style={styles.smallLoader}>
+              //     <BallIndicator color={colors.tertiary} size={20} />
+              //   </View>
+              // )}
               />
             )}
-          {!loading && restaurantList.length === 0
+          {!loading && placeList.length === 0
             && (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsText}>

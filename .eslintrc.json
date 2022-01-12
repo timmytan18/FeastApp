@@ -27,6 +27,9 @@
     "react/function-component-definition": "off",
 
     // Allow use of ., ", >, } in text
-    "react/no-unescaped-entities": "off"
+    "react/no-unescaped-entities": "off",
+
+    // Allow use of continue statements
+    "no-continue": "off"
   }
 }
