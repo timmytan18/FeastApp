@@ -5,7 +5,7 @@ import {
   StyleSheet, Text, View, TouchableOpacity, FlatList, Image, Keyboard,
 } from 'react-native';
 import * as Location from 'expo-location';
-// import { BallIndicator } from 'react-native-indicators';
+import { BallIndicator } from 'react-native-indicators';
 import { LinearGradient } from 'expo-linear-gradient';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import filterFSItems from '../../api/functions/FilterFSItems';
@@ -31,8 +31,7 @@ const FS_GET_OPTIONS = {
 };
 const FS_CATEGORY_ID = '13000';
 const FS_ITEM_LIMIT = 50;
-const FS_SEARCH_RADIUS = 10000; // 50000 meter ~= 30 mile radius
-// const FS_SEARCH_RADIUS = 50000; // 50000 meter ~= 30 mile radius
+const FS_SEARCH_RADIUS = 50000; // 50000 meter ~= 30 mile radius
 const FS_DEFAULT_CATEGORY_ICON = {
   prefix: 'https://ss3.4sqi.net/img/categories_v2/food/default_',
   suffix: '.png',
@@ -148,7 +147,6 @@ const NewPost = ({ navigation }) => {
       try {
         const res = await fetch(url, FS_GET_OPTIONS);
         const data = await res.json();
-        console.log('Returned FS data', data);
         nearbyPlaces.current = await filterSetResults(data.results);
       } catch (err) {
         console.log('Error fetching and filtering nearby FS POIs', err);
@@ -175,7 +173,6 @@ const NewPost = ({ navigation }) => {
       try {
         const res = await fetch(url, FS_GET_OPTIONS);
         const data = await res.json();
-        console.log('Returned FS data', data);
         isSearch.current = true;
         filterSetResults(data.results);
       } catch (err) {
@@ -314,13 +311,13 @@ const NewPost = ({ navigation }) => {
             colors={['transparent', 'rgba(0,0,0,0.32)']}
             style={styles.fade}
           />
-          {/* {loading
+          {loading
             && (
               <BallIndicator
                 style={{ alignSelf: 'flex-start', marginTop: wp(8) }}
                 color={colors.tertiary}
               />
-            )} */}
+            )}
           {!loading && placeList.length > 0
             && (
               <FlatList

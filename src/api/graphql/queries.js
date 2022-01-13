@@ -181,31 +181,30 @@ export const getUserProfileReviews = /* GraphQL */ `
   }
 `;
 
-
-// export const getBusinessExists = /* GraphQL */ `
-//   query ListFeastItems(
-//     $PK: String
-//     $SK: ModelStringKeyConditionInput
-//     $filter: ModelFeastItemFilterInput
-//     $limit: Int
-//     $nextToken: String
-//     $sortDirection: ModelSortDirection
-//   ) {
-//     listFeastItems(
-//       PK: $PK
-//       SK: $SK
-//       filter: $filter
-//       limit: $limit
-//       nextToken: $nextToken
-//       sortDirection: $sortDirection
-//     ) {
-//       items {
-//         PK
-//       }
-//       nextToken
-//     }
-//   }
-// `;
+export const getPlaceExists = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+      }
+      nextToken
+    }
+  }
+`;
 
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
@@ -263,7 +262,6 @@ export const getUserProfileReviews = /* GraphQL */ `
 //     }
 //   }
 // `;
-
 
 // export const getBusinessCountInGrid = /* GraphQL */ `
 //   query GetFeastItem($PK: String!, $SK: String!) {

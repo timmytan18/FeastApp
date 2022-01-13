@@ -6,7 +6,8 @@ import {
   Image, ScrollView, Keyboard, Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { API, graphqlOperation } from 'aws-amplify';
+import { Auth, API, graphqlOperation } from 'aws-amplify';
+import { getPlaceExists } from '../../api/graphql/queries';
 import { createFeastItem } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
 import BackArrow from '../components/util/icons/BackArrow';
@@ -17,16 +18,31 @@ import {
   colors, sizes, wp, hp,
 } from '../../constants/theme';
 
+const Category = PropTypes.shape({
+  id: PropTypes.number,
+  name: PropTypes.string,
+});
+
 const propTypes = {
   route: PropTypes.shape({
     params: PropTypes.shape({
       business: PropTypes.shape({
-        id: PropTypes.string,
-        name: PropTypes.string,
-        location: PropTypes.shape({
-          lat: PropTypes.number,
-          lng: PropTypes.number,
+        categories: PropTypes.arrayOf(Category),
+        fsq_id: PropTypes.string,
+        geocodes: PropTypes.shape({
+          main: PropTypes.shape({
+            latitude: PropTypes.number,
+            longitude: PropTypes.number,
+          }),
         }),
+        location: PropTypes.shape({
+          locality: PropTypes.string, // city
+          region: PropTypes.string, // state
+          country: PropTypes.string,
+          address: PropTypes.string,
+          postcode: PropTypes.string,
+        }),
+        name: PropTypes.string,
       }),
     }),
   }).isRequired,
@@ -49,19 +65,91 @@ const PostDetails = ({ navigation, route }) => {
       });
     }
 
+    // Destructure place attributes
+    const {
+      fsq_id: placeId,
+      name,
+      location: {
+        locality: city,
+        region, // state
+        country,
+        address,
+        postcode,
+      },
+      geocodes: {
+        main: {
+          latitude: placeLat,
+          longitude: placeLng,
+        },
+      },
+      categories,
+    } = business;
+
+    // // TODO: GET GEOHASH FROM BUSINESS COORDINATES
+    // const { currLat, currLng } = route.params;
+    // const {
+    //   address, city, region, postalCode, cc, lat, lng,
+    // } = location;
+    // const { latitude, longitude } = lat && lng ? gridLocator(lat, lng) : gridLocator(currLat, currLng);
+    // const grid = `GRID#${latitude}#${longitude}`;
+
+    const placePK = `PLACE#${placeId}`;
+    // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
+    const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
+    const placeSK = `#INFO#${strippedName}`;
+
+    async function createPlaceItem() {
+      const cognitoUser = await Auth.currentAuthenticatedUser();
+      const token = cognitoUser.signInUserSession.idToken.jwtToken;
+      const category = categories[0].name;
+      const data = {
+        placeId, name, address, city, region, zip: postcode, country, category,
+      };
+      console.log(JSON.stringify(data));
+
+      // try {
+      //   await fetch('https://u1hvq6emd0.execute-api.us-east-1.amazonaws.com/dev/scrape-business', {
+      //     method: 'PUT',
+      //     headers: {
+      //       Authorization: token,
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify(data),
+      //   });
+      // } catch (e) {
+      //   console.log('Could not run scraper', e);
+      // }
+    }
+
+    (async () => {
+      try {
+        const res = await API.graphql(graphqlOperation(
+          getPlaceExists,
+          { PK: placePK, SK: { beginsWith: placeSK }, limit: 10 },
+        ));
+        console.log(res);
+        if (!res.data.listFeastItems.items.length) {
+          createPlaceItem();
+        } else {
+          console.log('Place already in DB');
+        }
+      } catch (e) {
+        console.log('Fetch Dynamo place data error', e);
+      }
+    })();
+
     // Share user review for this place
     async function share() {
-      const { id, name, location } = business;
-      const { PK } = state.user;
-      const SK = `#PLACE#${id}`;
+      const { PK: userPK } = state.user;
+      const userPlaceSK = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRatings = ratings.current;
       const input = {
-        PK,
-        SK,
-        placeId: id,
+        userPK,
+        userPlaceSK,
+        placeId,
         name,
-        coordinates: { latitude: location.lat, longitude: location.lng },
+        coordinates: { latitude: placeLat, longitude: placeLng },
         review: userReview,
         rating: userRatings,
       };

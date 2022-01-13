@@ -1,11 +1,42 @@
-// import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 // import { API, graphqlOperation } from 'aws-amplify';
 // import { getBusinessExists } from '../graphql/queries';
 import FSCATEGORIES from '../../constants/FSCategories';
 // import coordinateDistance from './CoordinateDistance';
 // import config from '../../config';
 
-export default async function filterFSItems({ results }) {
+const Category = PropTypes.shape({
+  id: PropTypes.number,
+  name: PropTypes.string,
+  icon: PropTypes.shape({
+    prefix: PropTypes.string,
+    suffix: PropTypes.string,
+  }),
+});
+
+const PlaceItem = PropTypes.shape({
+  categories: PropTypes.arrayOf(Category),
+  distance: PropTypes.number,
+  fsq_id: PropTypes.string,
+  geocodes: PropTypes.shape({
+    main: PropTypes.shape({
+      latitude: PropTypes.number,
+      longitude: PropTypes.number,
+    }),
+  }),
+  location: PropTypes.shape({
+    locality: PropTypes.string, // city
+    address: PropTypes.string,
+    postcode: PropTypes.string,
+  }),
+  name: PropTypes.string,
+});
+
+const propTypes = {
+  results: PropTypes.arrayOf(PlaceItem).isRequired,
+};
+
+async function filterFSItems({ results }) {
   // Filter out places that aren't in dining and drinking categories and null items
   const items = [];
   results.forEach((item) => {
@@ -20,6 +51,10 @@ export default async function filterFSItems({ results }) {
   });
   return items;
 }
+
+filterFSItems.propTypes = propTypes;
+
+export default filterFSItems;
 
 // function compareTwoStrings(first, second, isAddress) {
 //   if (!first || !second) return 0;
