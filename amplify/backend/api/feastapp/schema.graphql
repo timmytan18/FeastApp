@@ -27,7 +27,7 @@ type FeastItem
   numFollowing: Int
   follower: Follower
   placeId: String
-  grid: String
+  geo: String
   coordinates: Coordinate
   placeType: String
   placeInfo: PlaceInfo

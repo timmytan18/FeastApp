@@ -31,7 +31,7 @@ export const incrementFeastItem = /* GraphQL */ `
         picture
       }
       placeId
-      grid
+      geo
       coordinates {
         latitude
         longitude
@@ -109,7 +109,7 @@ export const createFeastItem = /* GraphQL */ `
         picture
       }
       placeId
-      grid
+      geo
       coordinates {
         latitude
         longitude
@@ -187,7 +187,7 @@ export const updateFeastItem = /* GraphQL */ `
         picture
       }
       placeId
-      grid
+      geo
       coordinates {
         latitude
         longitude
@@ -265,7 +265,7 @@ export const deleteFeastItem = /* GraphQL */ `
         picture
       }
       placeId
-      grid
+      geo
       coordinates {
         latitude
         longitude
