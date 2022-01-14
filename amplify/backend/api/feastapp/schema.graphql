@@ -1,13 +1,13 @@
-type FeastItem @model
+type FeastItem
+  @model
   @key(fields: ["PK", "SK"])
-  @key(name: "ByGSI1", fields:["GSI1","SK"], queryField: "itemsByGSI1")
-  @key(name: "ByGSI2", fields:["GSI2","SK"], queryField: "itemsByGSI2")
-  @key(name: "ByLSI1", fields:["PK","LSI1"], queryField: "itemsByLSI1")
-  @key(name: "ByLSI2", fields:["PK","LSI2"], queryField: "itemsByLSI2")
-  @key(name: "ByLSI3", fields:["PK","LSI3"], queryField: "itemsByLSI3")
-  @key(name: "ByLSI4", fields:["PK","LSI4"], queryField: "itemsByLSI4")
-  @key(name: "ByLSI5", fields:["PK","LSI5"], queryField: "itemsByLSI5")
-{
+  @key(name: "ByGSI1", fields: ["GSI1", "SK"], queryField: "itemsByGSI1")
+  @key(name: "ByGSI2", fields: ["GSI2", "SK"], queryField: "itemsByGSI2")
+  @key(name: "ByLSI1", fields: ["PK", "LSI1"], queryField: "itemsByLSI1")
+  @key(name: "ByLSI2", fields: ["PK", "LSI2"], queryField: "itemsByLSI2")
+  @key(name: "ByLSI3", fields: ["PK", "LSI3"], queryField: "itemsByLSI3")
+  @key(name: "ByLSI4", fields: ["PK", "LSI4"], queryField: "itemsByLSI4")
+  @key(name: "ByLSI5", fields: ["PK", "LSI5"], queryField: "itemsByLSI5") {
   PK: String!
   SK: String!
   GSI1: String
@@ -50,7 +50,7 @@ type Follower {
 type PlaceInfo {
   name: String
   priceLvl: String
-  delivery: AWSJSON
+  orderUrl: String
   displayPhone: String
   address: Address
   placeUrl: String
