@@ -40,7 +40,7 @@ export const onCreateFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw
@@ -115,7 +115,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw
@@ -190,7 +190,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw

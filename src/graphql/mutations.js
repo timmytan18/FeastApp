@@ -40,7 +40,7 @@ export const incrementFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw
@@ -118,7 +118,7 @@ export const createFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw
@@ -196,7 +196,7 @@ export const updateFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw
@@ -274,7 +274,7 @@ export const deleteFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw

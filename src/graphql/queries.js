@@ -40,7 +40,7 @@ export const getFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        delivery
+        orderUrl
         displayPhone
         address {
           addressRaw
@@ -130,7 +130,7 @@ export const listFeastItems = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -210,7 +210,7 @@ export const itemsByGSI1 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -290,7 +290,7 @@ export const itemsByGSI2 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -370,7 +370,7 @@ export const itemsByLSI1 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -450,7 +450,7 @@ export const itemsByLSI2 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -530,7 +530,7 @@ export const itemsByLSI3 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -610,7 +610,7 @@ export const itemsByLSI4 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
@@ -690,7 +690,7 @@ export const itemsByLSI5 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          delivery
+          orderUrl
           displayPhone
           placeUrl
           description
