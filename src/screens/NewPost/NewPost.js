@@ -21,6 +21,9 @@ import {
   colors, gradients, shadows, sizes, wp,
 } from '../../constants/theme';
 
+// Tests
+import scrapeTest from './ScrapeTest';
+
 const FS_API_KEY = config.FOURSQUARE_API_KEY;
 const FS_GET_OPTIONS = {
   method: 'GET',
@@ -30,8 +33,10 @@ const FS_GET_OPTIONS = {
   },
 };
 const FS_CATEGORY_ID = '13000';
-const FS_ITEM_LIMIT = 50;
-const FS_SEARCH_RADIUS = 50000; // 50000 meter ~= 30 mile radius
+// const FS_ITEM_LIMIT = 50;
+// const FS_SEARCH_RADIUS = 50000; // 50000 meter ~= 30 mile radius
+const FS_ITEM_LIMIT = 20;
+const FS_SEARCH_RADIUS = 10000;
 const FS_DEFAULT_CATEGORY_ICON = {
   prefix: 'https://ss3.4sqi.net/img/categories_v2/food/default_',
   suffix: '.png',
@@ -57,6 +62,7 @@ const NewPost = ({ navigation }) => {
       if (selectedData.current) {
         navigation.navigate('PostDetails', {
           business: selectedData.current,
+          businesses: placeList,
           // currLat: latitude.current,
           // currLng: longitude.current
         });
@@ -98,7 +104,7 @@ const NewPost = ({ navigation }) => {
       headerLeft,
       headerRight,
     });
-  }, [dispatch, navigation, selected]);
+  }, [dispatch, navigation, placeList, selected]);
 
   // Filter POIs by category and remove duplicates
   async function filterSetResults(results) {
@@ -107,10 +113,6 @@ const NewPost = ({ navigation }) => {
     setLoading(false);
     setPlaceList(items || []);
     return items || [];
-
-    // setLoading(false);
-    // setPlaceList(results || []);
-    // return results || [];
   }
 
   // Set up location and loading nearby POIs
@@ -168,13 +170,15 @@ const NewPost = ({ navigation }) => {
     } else {
       const lat = latitude.current;
       const lng = longitude.current;
-
       const url = `https://api.foursquare.com/v3/places/search?ll=${lat},${lng}&query=${query}&categories=${FS_CATEGORY_ID}&radius=${FS_SEARCH_RADIUS}&limit=${FS_ITEM_LIMIT}`;
+      console.log(url);
       try {
         const res = await fetch(url, FS_GET_OPTIONS);
         const data = await res.json();
         isSearch.current = true;
-        filterSetResults(data.results);
+        const searchResults = await filterSetResults(data.results);
+        // Run scraper test
+        // scrapeTest({ places: searchResults });
       } catch (err) {
         console.log('Error fetching and filtering searched FS POIs', err);
       }
@@ -194,6 +198,7 @@ const NewPost = ({ navigation }) => {
       loc = `${address}, ${city}`;
     }
 
+    // Use first icon from category array
     const { prefix, suffix } = item.categories.length
       ? item.categories[0].icon : FS_DEFAULT_CATEGORY_ICON;
     // const { prefix, suffix } = item.categories.length

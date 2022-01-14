@@ -6,6 +6,7 @@ import {
   Image, ScrollView, Keyboard, Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import geohash from 'ngeohash';
 import { Auth, API, graphqlOperation } from 'aws-amplify';
 import { getPlaceExists } from '../../api/graphql/queries';
 import { createFeastItem } from '../../api/graphql/mutations';
@@ -23,11 +24,17 @@ const Category = PropTypes.shape({
   name: PropTypes.string,
 });
 
+const Chain = PropTypes.shape({
+  id: PropTypes.string,
+  name: PropTypes.string,
+});
+
 const propTypes = {
   route: PropTypes.shape({
     params: PropTypes.shape({
       business: PropTypes.shape({
         categories: PropTypes.arrayOf(Category),
+        chains: PropTypes.arrayOf(Chain),
         fsq_id: PropTypes.string,
         geocodes: PropTypes.shape({
           main: PropTypes.shape({
@@ -48,13 +55,17 @@ const propTypes = {
   }).isRequired,
 };
 
+const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws.com/dev/scraper';
+
 const PostDetails = ({ navigation, route }) => {
-  const { business } = route.params;
+  const { business, businesses } = route.params;
   const [state, dispatch] = useContext(Context);
 
   const [review, setReview] = useState(state.review);
   const reviewRef = useRef(state.review);
   const ratings = useRef(state.ratings);
+
+  const placeExists = useRef(false);
 
   useEffect(() => {
     // Save current review and ratings
@@ -83,55 +94,63 @@ const PostDetails = ({ navigation, route }) => {
         },
       },
       categories,
+      chains,
     } = business;
-
-    // // TODO: GET GEOHASH FROM BUSINESS COORDINATES
-    // const { currLat, currLng } = route.params;
-    // const {
-    //   address, city, region, postalCode, cc, lat, lng,
-    // } = location;
-    // const { latitude, longitude } = lat && lng ? gridLocator(lat, lng) : gridLocator(currLat, currLng);
-    // const grid = `GRID#${latitude}#${longitude}`;
 
     const placePK = `PLACE#${placeId}`;
     // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
     const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
     const placeSK = `#INFO#${strippedName}`;
+    const hash = geohash.encode(placeLat, placeLng);
 
+    // Send place data to API Gateway for lambda function to scrape
+    // TODO: decide whether to run after user selects place or after user submits review
     async function createPlaceItem() {
       const cognitoUser = await Auth.currentAuthenticatedUser();
       const token = cognitoUser.signInUserSession.idToken.jwtToken;
       const category = categories[0].name;
       const data = {
-        placeId, name, address, city, region, zip: postcode, country, category,
+        placeId,
+        geohash: hash,
+        strippedName,
+        name,
+        address,
+        city,
+        region,
+        zip: postcode,
+        country,
+        category,
+        chain: chains.length ? chains[0].name : '',
       };
       console.log(JSON.stringify(data));
 
-      // try {
-      //   await fetch('https://u1hvq6emd0.execute-api.us-east-1.amazonaws.com/dev/scrape-business', {
-      //     method: 'PUT',
-      //     headers: {
-      //       Authorization: token,
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify(data),
-      //   });
-      // } catch (e) {
-      //   console.log('Could not run scraper', e);
-      // }
+      try {
+        await fetch(API_GATEWAY_ENDPOINT, {
+          method: 'PUT',
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      } catch (e) {
+        console.log('Could not run scraper', e);
+      }
     }
 
+    // Check if place exists in DynamoDB
     (async () => {
       try {
         const res = await API.graphql(graphqlOperation(
           getPlaceExists,
           { PK: placePK, SK: { beginsWith: placeSK }, limit: 10 },
         ));
-        console.log(res);
         if (!res.data.listFeastItems.items.length) {
-          createPlaceItem();
+          // Scrape data if place does not exist
+          // createPlaceItem();
         } else {
           console.log('Place already in DB');
+          placeExists.current = true;
         }
       } catch (e) {
         console.log('Fetch Dynamo place data error', e);
@@ -140,16 +159,21 @@ const PostDetails = ({ navigation, route }) => {
 
     // Share user review for this place
     async function share() {
+      // Scrape data if place does not exist
+      if (!placeExists.current) {
+        createPlaceItem();
+      }
+
       const { PK: userPK } = state.user;
       const userPlaceSK = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRatings = ratings.current;
       const input = {
-        userPK,
-        userPlaceSK,
+        PK: userPK,
+        SK: userPlaceSK,
         placeId,
         name,
-        coordinates: { latitude: placeLat, longitude: placeLng },
+        geo: hash,
         review: userReview,
         rating: userRatings,
       };
