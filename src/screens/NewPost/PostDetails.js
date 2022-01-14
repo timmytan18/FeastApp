@@ -166,11 +166,15 @@ const PostDetails = ({ navigation, route }) => {
 
       const { PK: userPK } = state.user;
       const userPlaceSK = `#PLACE#${placeId}`;
+      const GSI2 = 'PLACE#USER#';
+      const LSI1 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRatings = ratings.current;
       const input = {
         PK: userPK,
         SK: userPlaceSK,
+        GSI2,
+        LSI1,
         placeId,
         name,
         geo: hash,
@@ -302,11 +306,12 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     justifyContent: 'space-between',
+    marginTop: wp(1.3),
+    marginBottom: wp(0.7),
   },
   nameText: {
     fontFamily: 'Medium',
     fontSize: sizes.h4,
-    lineHeight: wp(7),
     color: colors.black,
     paddingLeft: wp(3),
   },
