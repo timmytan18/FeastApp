@@ -165,7 +165,7 @@ const PostDetails = ({ navigation, route }) => {
       }
 
       const { PK: userPK } = state.user;
-      const userPlaceSK = `#PLACE#${placeId}`;
+      const userPlaceSK = `#PLACE#${hash}`;
       const GSI2 = 'PLACE#USER#';
       const LSI1 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
