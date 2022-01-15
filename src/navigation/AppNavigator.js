@@ -293,138 +293,110 @@ const NewPostTransition = {
   }),
 };
 
+const MyTabBar = ({
+  state, descriptors, navigation, picture,
+}) => {
+  const focusedOptions = descriptors[state.routes[state.index].key].options;
+
+  if (focusedOptions.tabBarVisible === false) {
+    return null;
+  }
+
+  const NEW_POST_INDEX = 1;
+
+  return (
+    <SafeAreaView style={styles.tabBar}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const label = options.tabBarLabel !== undefined
+          ? options.tabBarLabel
+          : options.title !== undefined
+            ? options.title
+            : route.name;
+
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented && index !== NEW_POST_INDEX) {
+            navigation.navigate(route.name);
+          } else if (index === NEW_POST_INDEX) {
+            navigation.navigate('NewPostModal', {
+              screen: 'NewPost',
+            });
+          }
+        };
+
+        let icon;
+
+        if (index === 0) {
+          // icon = isFocused
+          //     ? <TabIcon icon={<DiscoverFilledIcon />} />
+          //     : <TabIcon icon={<DiscoverIcon />} />
+          icon = isFocused
+            ? <TabIcon icon={<HomeFilledIcon />} />
+            : <TabIcon icon={<HomeIcon />} />;
+        } else if (index === 1) {
+          icon = <TabIcon icon={<NewPostIcon />} />;
+        } else if (index === 2) {
+          icon = isFocused
+            ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
+            : <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />;
+        }
+        // if (index === 0) {
+        //   icon = isFocused
+        //       ? <TabIcon icon={<HomeFilledIcon />} />
+        //       : <TabIcon icon={<HomeIcon />} />
+        // } else if (index === 1) {
+        //     icon = isFocused
+        //         ? <TabIcon icon={<DiscoverFilledIcon />} />
+        //         : <TabIcon icon={<DiscoverIcon />} />
+        // } else if (index === 2) {
+        //     icon = <TabIcon icon={<NewPostIcon />} />
+        // } else if (index === 3) {
+        //     icon = isFocused
+        //         ? <TabIcon icon={<GroupsFilledIcon />} />
+        //         : <TabIcon icon={<GroupsIcon />} />
+        // } else if (index === 4) {
+        //     icon = <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />
+        // }
+
+        return (
+          <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8} key={index}>
+            {icon}
+          </TouchableOpacity>
+        );
+      })}
+    </SafeAreaView>
+  );
+};
+
+const TabNavigator = ({ picture }) => {
+  const Tab = createBottomTabNavigator();
+  return (
+    <Tab.Navigator
+      tabBar={(props) => MyTabBar({ ...props, picture })}
+      tabBarOptions={{
+        showLabel: false,
+      }}
+    >
+      <Tab.Screen name="Home" component={HomeStackScreen} />
+      <Tab.Screen name="NewPost" component={NewPostStackScreen} />
+      <Tab.Screen name="Profile" component={ProfileStackScreen} />
+    </Tab.Navigator>
+  );
+};
+
+// const TabBar = <MyTabBar {...props} picture={state.user.picture} />;
+
 export default function AppNavigator() {
   const [state, dispatch] = useContext(Context);
   console.log('App navigator state: ', state);
-
-  // Use useState hook to force update
-  const [reload, setReload] = useState(false);
-
-  const Tab = createBottomTabNavigator();
-
-  // Use useRef hook to store TabNavigator
-  const TabScreenRef = useRef(
-    () => (
-      <Tab.Navigator
-        tabBar={(props) => <MyTabBar {...props} picture={state.user.picture} />}
-        tabBarOptions={{
-          showLabel: false,
-        }}
-      >
-        <Tab.Screen name="Home" component={HomeStackScreen} />
-        {/* <Tab.Screen name="Discover" component={DiscoverStackScreen} /> */}
-        <Tab.Screen name="NewPost" component={NewPostStackScreen} />
-        {/* <Tab.Screen name="Groups" component={GroupsStackScreen} /> */}
-        <Tab.Screen name="Profile" component={ProfileStackScreen} />
-      </Tab.Navigator>
-    ),
-  );
-
-  // Hacky way to update the profile picture in the tab bar if changed
-  // Reassign TabScreenRef to a new TabNavigator to change profile picture
-  useEffect(() => {
-    TabScreenRef.current = (function TabScreen() {
-      return (
-        <Tab.Navigator
-          tabBar={(props) => <MyTabBar {...props} picture={state.user.picture} />}
-          tabBarOptions={{
-            showLabel: false,
-          }}
-        >
-          <Tab.Screen name="Home" component={HomeStackScreen} />
-          {/* <Tab.Screen name="Discover" component={DiscoverStackScreen} /> */}
-          <Tab.Screen name="NewPost" component={NewPostStackScreen} />
-          {/* <Tab.Screen name="Groups" component={GroupsStackScreen} /> */}
-          <Tab.Screen name="Profile" component={ProfileStackScreen} />
-        </Tab.Navigator>
-      );
-    });
-    // Force update through reload useState
-    setReload(!reload);
-  }, [state.user.picture]);
-
-  function MyTabBar({
-    state, descriptors, navigation, picture,
-  }) {
-    const focusedOptions = descriptors[state.routes[state.index].key].options;
-
-    if (focusedOptions.tabBarVisible === false) {
-      return null;
-    }
-
-    const NEW_POST_INDEX = 1;
-
-    return (
-      <SafeAreaView style={styles.tabBar}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-              ? options.title
-              : route.name;
-
-          const isFocused = state.index === index;
-
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-
-            if (!isFocused && !event.defaultPrevented && index != NEW_POST_INDEX) {
-              navigation.navigate(route.name);
-            } else if (index == NEW_POST_INDEX) {
-              navigation.navigate('NewPostModal', {
-                screen: 'NewPost',
-              });
-            }
-          };
-
-          let icon;
-
-          if (index == 0) {
-            // icon = isFocused
-            //     ? <TabIcon icon={<DiscoverFilledIcon />} />
-            //     : <TabIcon icon={<DiscoverIcon />} />
-            icon = isFocused
-              ? <TabIcon icon={<HomeFilledIcon />} />
-              : <TabIcon icon={<HomeIcon />} />;
-          } else if (index == 1) {
-            icon = <TabIcon icon={<NewPostIcon />} />;
-          } else if (index == 2) {
-            icon = isFocused
-              ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
-              : <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />;
-          }
-          // if (index == 0) {
-          //   icon = isFocused
-          //       ? <TabIcon icon={<HomeFilledIcon />} />
-          //       : <TabIcon icon={<HomeIcon />} />
-          // } else if (index == 1) {
-          //     icon = isFocused
-          //         ? <TabIcon icon={<DiscoverFilledIcon />} />
-          //         : <TabIcon icon={<DiscoverIcon />} />
-          // } else if (index == 2) {
-          //     icon = <TabIcon icon={<NewPostIcon />} />
-          // } else if (index == 3) {
-          //     icon = isFocused
-          //         ? <TabIcon icon={<GroupsFilledIcon />} />
-          //         : <TabIcon icon={<GroupsIcon />} />
-          // } else if (index == 4) {
-          //     icon = <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />
-          // }
-
-          return (
-            <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8} key={index}>
-              {icon}
-            </TouchableOpacity>
-          );
-        })}
-      </SafeAreaView>
-    );
-  }
 
   const RootStack = createStackNavigator();
 
@@ -432,10 +404,11 @@ export default function AppNavigator() {
     <NavigationContainer>
       <RootStack.Navigator>
         <RootStack.Screen
-          name="Main"
-          component={TabScreenRef.current}
+          name="Home"
           options={{ headerShown: false }}
-        />
+        >
+          {() => <TabNavigator picture={state.user.picture} />}
+        </RootStack.Screen>
         {/* <RootStack.Screen
                 name="CardModal"
                 component={ModalStackScreen}
