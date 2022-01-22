@@ -31,7 +31,7 @@ type FeastItem
   coordinates: Coordinate
   placeType: String
   placeInfo: PlaceInfo
-  imgUrl: String
+  placeUserInfo: PlaceUserInfo
   rating: Rating
   review: String
   updatedAt: String
@@ -83,6 +83,12 @@ type Rating {
   value: Float!
   service: Float!
   ambience: Float!
+}
+
+type PlaceUserInfo {
+  uid: String
+  name: String
+  picture: String
 }
 
 type Mutation {

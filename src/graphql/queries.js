@@ -62,7 +62,11 @@ export const getFeastItem = /* GraphQL */ `
         yelpAlias
         categories
       }
-      imgUrl
+      placeUserInfo {
+        uid
+        name
+        picture
+      }
       rating {
         overall
         food
@@ -140,7 +144,11 @@ export const listFeastItems = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -220,7 +228,11 @@ export const itemsByGSI1 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -300,7 +312,11 @@ export const itemsByGSI2 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -380,7 +396,11 @@ export const itemsByLSI1 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -460,7 +480,11 @@ export const itemsByLSI2 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -540,7 +564,11 @@ export const itemsByLSI3 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -620,7 +648,11 @@ export const itemsByLSI4 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food
@@ -700,7 +732,11 @@ export const itemsByLSI5 = /* GraphQL */ `
           yelpAlias
           categories
         }
-        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
         rating {
           overall
           food

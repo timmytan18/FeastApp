@@ -62,7 +62,11 @@ export const onCreateFeastItem = /* GraphQL */ `
         yelpAlias
         categories
       }
-      imgUrl
+      placeUserInfo {
+        uid
+        name
+        picture
+      }
       rating {
         overall
         food
@@ -137,7 +141,11 @@ export const onUpdateFeastItem = /* GraphQL */ `
         yelpAlias
         categories
       }
-      imgUrl
+      placeUserInfo {
+        uid
+        name
+        picture
+      }
       rating {
         overall
         food
@@ -212,7 +220,11 @@ export const onDeleteFeastItem = /* GraphQL */ `
         yelpAlias
         categories
       }
-      imgUrl
+      placeUserInfo {
+        uid
+        name
+        picture
+      }
       rating {
         overall
         food
