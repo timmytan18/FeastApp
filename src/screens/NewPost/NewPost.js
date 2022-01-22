@@ -129,10 +129,10 @@ const NewPost = ({ navigation }) => {
       });
       latitude.current = coords.latitude;
       longitude.current = coords.longitude;
-      // latitude.current = '33.96389';
+      // latitude.current = '33.774193'; // Paloma
+      // longitude.current = '-84.405873';
+      // latitude.current = '33.96389'; // Duluth
       // longitude.current = '-84.13485';
-      // latitude.current = '33.80';
-      // longitude.current = '-84.36';
     }
 
     // Fetch nearby POIs from Foursquare

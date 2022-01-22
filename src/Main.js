@@ -6,7 +6,7 @@ import Amplify, {
 } from 'aws-amplify';
 import awsconfig from './aws-exports';
 
-import { getUserProfile } from './api/graphql/queries';
+import { getUserProfileQuery } from './api/functions/queryFunctions';
 import { updateFeastItem } from './api/graphql/mutations';
 
 import AppNavigator from './navigation/AppNavigator';
@@ -57,19 +57,13 @@ const Main = () => {
       const sk = '#PROFILE#';
 
       // Fetch user profile from DynamoDB
-      let dynamoUser;
-      try {
-        dynamoUser = await API.graphql(
-          graphqlOperation(getUserProfile, { PK: pk, SK: { beginsWith: sk } }),
-        );
-      } catch (err) {
-        console.log(err);
-      }
+      const dynamoUser = await getUserProfileQuery({ PK: pk, SK: sk });
 
       // identityId (S3), city, picture can be null
       const {
-        PK, SK, uid, name, identityId, city, picture,
-      } = dynamoUser.data.listFeastItems.items[0];
+        PK, SK, uid, name, city, picture,
+      } = dynamoUser;
+      let { identityId } = dynamoUser;
       if (!identityId) {
         identityId = await updateIdentityId(PK, SK);
       }
@@ -97,7 +91,7 @@ const Main = () => {
     }
 
     getUser().catch((e) => noUser(e));
-  }, []);
+  }, [dispatch]);
 
   if (!state.user) {
     return (null);

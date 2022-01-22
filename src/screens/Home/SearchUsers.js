@@ -6,11 +6,12 @@ import {
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
 import { Context } from '../../Store';
-import { searchUsers, getUserProfile, getIsFollowing } from '../../api/graphql/queries';
+import { getUserProfileQuery, searchQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
+import { SEARCH_TYPES } from '../../constants/constants';
 import {
   colors, sizes, wp, hp, shadows,
 } from '../../constants/theme';
@@ -76,26 +77,12 @@ const SearchUsers = ({ navigation }) => {
   const searchForUser = async (query) => {
     if (query) {
       setLoading(true);
-      // Query dynamo for users by name or city
-      const SK = `${searchByName ? '#PROFILE#' : '#CITY#'}${query.replace(/\s+/g, '').toLowerCase()}`;
-
-      let dynamoUsers;
-      try {
-        dynamoUsers = await API.graphql(graphqlOperation(
-          searchUsers,
-          { GSI1: 'USER#', SK: { beginsWith: SK }, limit: 50 },
-        ));
-        dynamoUsers = dynamoUsers.data.itemsByGSI1.items;
-      } catch (err) {
-        console.log(err);
-      }
-
-      setUsersList(dynamoUsers);
+      const name = query.replace(/\s+/g, '').toLowerCase();
+      const itemList = await searchQuery({
+        name, type: searchByName ? SEARCH_TYPES.NAME : SEARCH_TYPES.PLACE,
+      });
+      setUsersList(itemList);
       setLoading(false);
-      // Promise.all(dynamoUsers.map(getProfilePictures)).then((users) => {
-      //     setUsersList(users)
-      //     setLoading(false)
-      // });
     } else {
       setUsersList(users);
     }
@@ -103,23 +90,16 @@ const SearchUsers = ({ navigation }) => {
 
   const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
     console.log(currentPK, currentSK, currentProfilePic);
-    let currentUser;
     try {
-      currentUser = await API.graphql(
-        graphqlOperation(getUserProfile, { PK: currentPK, SK: { beginsWith: currentSK } }),
-      );
-      currentUser = currentUser.data.listFeastItems.items[0];
+      const currentUser = await getUserProfileQuery({ PK: currentPK, SK: currentSK });
       currentUser.PK = currentPK;
       currentUser.SK = currentSK;
       currentUser.picture = currentProfilePic;
 
+      // Check if I am following the current user
       if (currentPK !== PK) {
-        const followSK = `#FOLLOWER#${ID}`;
-        const following = await API.graphql(graphqlOperation(
-          getIsFollowing,
-          { PK: currentPK, SK: followSK },
-        ));
-        currentUser.following = !!following.data.getFeastItem;
+        currentUser.following = await getIsFollowingQuery({ currentPK, myUID: ID });
+        console.log(currentUser.following);
       }
 
       navigation.push('Profile', { user: currentUser });
@@ -161,7 +141,7 @@ const SearchUsers = ({ navigation }) => {
             <View style={{ flex: 1, paddingHorizontal: sizes.margin }}>
               <SearchBox
                 completeSearch={searchForUser}
-                placeholder={searchByName ? 'Search for a user' : 'Search for a place'}
+                placeholder={searchByName ? 'Search for a user' : 'Search for a business'}
                 autofocus
               />
             </View>
@@ -202,7 +182,7 @@ const SearchUsers = ({ navigation }) => {
                 }).start();
               }}
             >
-              <Text style={styles.tabText}>Place</Text>
+              <Text style={styles.tabText}>Business</Text>
             </TouchableOpacity>
           </View>
         </View>

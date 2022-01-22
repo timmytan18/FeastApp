@@ -141,7 +141,7 @@ export const getNumFollows = /* GraphQL */ `
   }
 `;
 
-export const getUserProfileReviews = /* GraphQL */ `
+export const getUserReviews = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
     $SK: ModelStringKeyConditionInput
@@ -163,10 +163,7 @@ export const getUserProfileReviews = /* GraphQL */ `
         SK
         name
         placeId
-        coordinates {
-          latitude
-          longitude
-        }
+        geo
         review
         rating {
           overall
@@ -181,7 +178,49 @@ export const getUserProfileReviews = /* GraphQL */ `
   }
 `;
 
-export const getPlaceExists = /* GraphQL */ `
+export const getUserReviewsWithUserInfo = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+        name
+        placeId
+        geo
+        review
+        rating {
+          overall
+          food
+          value
+          service
+          ambience
+        }
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getPlaceInDB = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
     $SK: ModelStringKeyConditionInput

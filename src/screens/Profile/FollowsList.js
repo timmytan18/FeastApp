@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard,
 } from 'react-native';
-import { API, graphqlOperation, Storage } from 'aws-amplify';
+import { API, graphqlOperation } from 'aws-amplify';
 import {
-  getUserProfile, getFollowers, getFollowing, getIsFollowing,
-} from '../../api/graphql/queries';
+  getUserProfileQuery, getFollowingQuery, getIsFollowingQuery, getFollowersQuery,
+} from '../../api/functions/queryFunctions';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
 import {
-  colors, gradients, sizes, wp, hp, shadows, header,
+  colors, sizes, wp, header,
 } from '../../constants/theme';
 
 const FollowsList = ({ navigation, route }) => {
@@ -27,51 +27,24 @@ const FollowsList = ({ navigation, route }) => {
     (async () => {
       let dynamoUsers;
       if (type === 'Followers') {
-        try {
-          dynamoUsers = await API.graphql(graphqlOperation(
-            getFollowers,
-            { PK, SK: { beginsWith: '#FOLLOWER#' }, limit: 50 },
-          ));
-          dynamoUsers = dynamoUsers.data.listFeastItems.items;
-        } catch (err) {
-          console.log(err);
-        }
+        dynamoUsers = await getFollowersQuery({ PK });
       } else if (type === 'Following') {
-        try {
-          dynamoUsers = await API.graphql(graphqlOperation(
-            getFollowing,
-            { GSI1: 'USER#', SK: { beginsWith: `#FOLLOWER#${uid}` }, limit: 50 },
-          ));
-          dynamoUsers = dynamoUsers.data.itemsByGSI1.items;
-        } catch (err) {
-          console.log(err);
-        }
+        dynamoUsers = await getFollowingQuery({ uid });
       }
       console.log(dynamoUsers);
       setUsersList(dynamoUsers);
     })();
-  }, []);
+  }, [PK, type, uid]);
 
   const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
-    let currentUser;
     try {
-      currentUser = await API.graphql(
-        graphqlOperation(getUserProfile, { PK: currentPK, SK: { beginsWith: currentSK } }),
-      );
-
-      currentUser = currentUser.data.listFeastItems.items[0];
+      const currentUser = await getUserProfileQuery({ PK: currentPK, SK: currentSK });
       currentUser.PK = currentPK;
       currentUser.SK = currentSK;
       currentUser.picture = currentProfilePic;
 
-      if (type != 'Following') {
-        const followSK = `#FOLLOWER#${uid}`;
-        let following = await API.graphql(graphqlOperation(
-          getIsFollowing,
-          { PK: currentPK, SK: followSK },
-        ));
-        following = !!following.data.getFeastItem;
-        currentUser.following = following;
+      if (type !== 'Following') {
+        currentUser.following = await getIsFollowingQuery({ currentPK, myUID: uid });
       } else {
         currentUser.following = true;
       }
@@ -121,7 +94,7 @@ const FollowsList = ({ navigation, route }) => {
             data={usersList}
             extraData={usersList}
             renderItem={renderUserItem}
-            keyExtractor={(item, index) => (type === 'Following' ? item.PK : item.follower.PK)}
+            keyExtractor={(item) => (type === 'Following' ? item.PK : item.follower.PK)}
             showsVerticalScrollIndicator
             onScrollBeginDrag={Keyboard.dismiss}
             keyboardShouldPersistTaps="handled"
@@ -147,7 +120,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'flex-start',
   },
   userNameText: {

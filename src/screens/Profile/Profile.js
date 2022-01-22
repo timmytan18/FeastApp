@@ -9,11 +9,11 @@ import { API, graphqlOperation } from 'aws-amplify';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
-import { getNumFollows, getUserProfileReviews } from '../../api/graphql/queries';
+import { getUserReviewsQuery, getNumFollowsQuery } from '../../api/functions/queryFunctions';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
 import ProfilePic from '../components/ProfilePic';
-import { link } from '../components/OpenLink';
+// import { link } from '../components/OpenLink';
 import MoreView from '../components/MoreView';
 import FollowButton from '../components/FollowButton';
 import More from '../components/util/icons/More';
@@ -47,48 +47,16 @@ const Profile = ({ navigation, route }) => {
   const [numFollows, setNumFollows] = useState([0, 0]);
   const [reviews, setReviews] = useState([]);
 
-  // Fetch number of followers and following using getNumFollows query
-  async function getNumberFollows() {
-    let num = [0, 0];
-    try {
-      let res = await API.graphql(graphqlOperation(
-        getNumFollows,
-        { PK: user.PK, SK: user.SK },
-      ));
-      res = res.data.getFeastItem;
-      num = [res.numFollowers, res.numFollowing];
-    } catch (err) {
-      console.log(err);
-    }
-    return num;
-  }
-
-  // Fetch reviews for current user using getUserProfileReviews query
-  async function getUserReviews() {
-    const { PK } = user;
-    const SK = '#PLACE#';
-    let userReviews;
-    try {
-      userReviews = await API.graphql(graphqlOperation(
-        getUserProfileReviews,
-        { PK, SK: { beginsWith: SK }, limit: 50 },
-      ));
-      console.log(userReviews);
-      userReviews = userReviews.data.listFeastItems.items;
-    } catch (err) {
-      console.log(err);
-    }
-    return userReviews;
-  }
-
   useEffect(() => {
+    // Get number of followers and following
     (async () => {
-      const num = await getNumberFollows();
+      const num = await getNumFollowsQuery({ PK: user.PK, SK: user.SK });
       setNumFollows(num);
       setRefreshing(false);
     })();
+    // Get reviews for current user
     (async () => {
-      const userReviews = await getUserReviews();
+      const userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
       console.log('User Reviews: ', userReviews);
       setReviews(userReviews);
       setRefreshing(false);
@@ -152,7 +120,11 @@ const Profile = ({ navigation, route }) => {
             style={styles.moreButton}
             onPress={() => setMorePressed(true)}
           >
-            {isMe ? <More /> : <View style={{ paddingTop: 3 }}><ThreeDots rotated size={wp(4.6)} /></View>}
+            {isMe ? <More /> : (
+              <View style={{ paddingTop: 3 }}>
+                <ThreeDots rotated size={wp(4.6)} />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
         <View style={styles.topProfileContainer}>

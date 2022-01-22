@@ -8,9 +8,10 @@ import {
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { Auth, API, graphqlOperation } from 'aws-amplify';
-import { getPlaceExists } from '../../api/graphql/queries';
+import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
 import { createFeastItem } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
+import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
 import RatingsInput from '../components/RatingsInput';
 import { RATING_CATEGORIES } from '../../constants/constants';
@@ -100,7 +101,6 @@ const PostDetails = ({ navigation, route }) => {
     const placePK = `PLACE#${placeId}`;
     // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
     const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
-    const placeSK = `#INFO#${strippedName}`;
     const hash = geohash.encode(placeLat, placeLng);
 
     // Send place data to API Gateway for lambda function to scrape
@@ -141,11 +141,8 @@ const PostDetails = ({ navigation, route }) => {
     // Check if place exists in DynamoDB
     (async () => {
       try {
-        const res = await API.graphql(graphqlOperation(
-          getPlaceExists,
-          { PK: placePK, SK: { beginsWith: placeSK }, limit: 10 },
-        ));
-        if (!res.data.listFeastItems.items.length) {
+        const placeInDB = await getPlaceInDBQuery({ placePK });
+        if (!placeInDB) {
           // Scrape data if place does not exist
           // createPlaceItem();
         } else {
@@ -164,7 +161,9 @@ const PostDetails = ({ navigation, route }) => {
         createPlaceItem();
       }
 
-      const { PK: userPK } = state.user;
+      const {
+        PK: userPK, uid, name: userName, picture: userPic,
+      } = state.user;
       const userPlaceSK = `#PLACE#${hash}`;
       const GSI2 = 'PLACE#USER#';
       const LSI1 = `#PLACE#${placeId}`;
@@ -180,6 +179,11 @@ const PostDetails = ({ navigation, route }) => {
         geo: hash,
         review: userReview,
         rating: userRatings,
+        placeUserInfo: {
+          uid,
+          name: userName,
+          picture: userPic,
+        },
       };
       try {
         await API.graphql(graphqlOperation(
@@ -242,7 +246,12 @@ const PostDetails = ({ navigation, route }) => {
     <SafeAreaView style={styles.container}>
       <ScrollView onScrollBeginDrag={Keyboard.dismiss} style={{ margin: wp(4) }}>
         <View style={styles.postHeader}>
-          <Image style={styles.profilePic} source={{ uri: state.user.picture }} resizeMode="contain" />
+          <ProfilePic
+            uid={state.user.uid}
+            extUrl={state.user.picture}
+            size={wp(12.5)}
+            style={styles.profilePic}
+          />
           <View style={styles.headerTextContainer}>
             <Text style={styles.nameText}>{state.user.name}</Text>
             <View style={styles.locationContainer}>
@@ -322,7 +331,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontFamily: 'Semi',
-    fontSize: sizes.h3,
+    fontSize: sizes.h4,
     lineHeight: wp(6),
     textAlignVertical: 'top',
     color: colors.accent,

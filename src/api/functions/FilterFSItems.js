@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { API, graphqlOperation } from 'aws-amplify';
-import { getPlaceExists } from '../graphql/queries';
+import { getPlaceInDBQuery } from './queryFunctions';
 import FSCATEGORIES from '../../constants/FSCategories';
 import coordinateDistance from './CoordinateDistance';
 import config from '../../config';
@@ -115,18 +115,6 @@ function groupMatches(matches) {
     }
   });
   return groups;
-}
-
-async function checkItemInDynamo(PK, SK) {
-  try {
-    const res = await API.graphql(
-      graphqlOperation(getPlaceExists, { PK, SK: { beginsWith: SK }, limit: 10 }),
-    );
-    return res.data.listFeastItems.items.length;
-  } catch (e) {
-    console.log('Fetch Dynamo place data error', e);
-  }
-  return false;
 }
 
 // Compare similarity of FS item data and Google Places item data
@@ -277,7 +265,7 @@ export default async function filterFSItems({ results }) {
       // If any item in group is in db, remove
       let removed = false;
       for (const a of groups[i].keys()) {
-        const exists = await checkItemInDynamo(`PLACE#${items[a].fsq_id}`, '#INFO#');
+        const exists = await getPlaceInDBQuery({ placePK: `PLACE#${items[a].fsq_id}` });
         if (exists) {
           removed = true;
           console.log('Chosen bc already in DB: ', items[a]);

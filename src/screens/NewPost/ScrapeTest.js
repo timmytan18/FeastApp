@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { Auth, API, graphqlOperation } from 'aws-amplify';
-import { getPlaceExists } from '../../api/graphql/queries';
+import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
 
 const Category = PropTypes.shape({
   id: PropTypes.number,
@@ -112,11 +112,8 @@ const fetchPlaces = async ({ places }) => {
     const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
     const placeSK = `#INFO#${strippedName}`;
     try {
-      const res = await API.graphql(graphqlOperation(
-        getPlaceExists,
-        { PK: placePK, SK: { beginsWith: placeSK }, limit: 10 },
-      ));
-      if (!res.data.listFeastItems.items.length) {
+      const placeInDB = await getPlaceInDBQuery({ placePK });
+      if (!placeInDB) {
         failedToFetch.push(item);
         console.log('Failed to fetch place: ', item.name, item.location.address, item.location.locality);
       }
