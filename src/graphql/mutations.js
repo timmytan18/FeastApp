@@ -40,22 +40,14 @@ export const incrementFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone
@@ -122,22 +114,14 @@ export const createFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone
@@ -204,22 +188,14 @@ export const updateFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone
@@ -286,22 +262,14 @@ export const deleteFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone

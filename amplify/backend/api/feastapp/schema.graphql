@@ -49,27 +49,17 @@ type Follower {
 
 type PlaceInfo {
   name: String
-  priceLvl: String
-  orderUrl: String
+  priceLvl: Int
+  orderUrls: AWSJSON
   displayPhone: String
-  address: Address
+  address: String
   placeUrl: String
   coordinates: Coordinate
-  description: String
   menuUrl: String
   imgUrl: String
   phone: String
   yelpAlias: String
-  categories: AWSJSON
-}
-
-type Address {
-  addressRaw: String
-  address1: String
-  city: String
-  zip: String
-  state: String
-  country: String
+  categories: [String]
 }
 
 type Coordinate {

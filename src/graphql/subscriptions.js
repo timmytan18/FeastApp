@@ -40,22 +40,14 @@ export const onCreateFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone
@@ -119,22 +111,14 @@ export const onUpdateFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone
@@ -198,22 +182,14 @@ export const onDeleteFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone

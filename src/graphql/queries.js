@@ -40,22 +40,14 @@ export const getFeastItem = /* GraphQL */ `
       placeInfo {
         name
         priceLvl
-        orderUrl
+        orderUrls
         displayPhone
-        address {
-          addressRaw
-          address1
-          city
-          zip
-          state
-          country
-        }
+        address
         placeUrl
         coordinates {
           latitude
           longitude
         }
-        description
         menuUrl
         imgUrl
         phone
@@ -134,10 +126,10 @@ export const listFeastItems = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -218,10 +210,10 @@ export const itemsByGSI1 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -302,10 +294,10 @@ export const itemsByGSI2 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -386,10 +378,10 @@ export const itemsByLSI1 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -470,10 +462,10 @@ export const itemsByLSI2 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -554,10 +546,10 @@ export const itemsByLSI3 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -638,10 +630,10 @@ export const itemsByLSI4 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
@@ -722,10 +714,10 @@ export const itemsByLSI5 = /* GraphQL */ `
         placeInfo {
           name
           priceLvl
-          orderUrl
+          orderUrls
           displayPhone
+          address
           placeUrl
-          description
           menuUrl
           imgUrl
           phone
