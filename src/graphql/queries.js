@@ -36,6 +36,7 @@ export const getFeastItem = /* GraphQL */ `
         latitude
         longitude
       }
+      categories
       placeType
       placeInfo {
         name
@@ -122,6 +123,7 @@ export const listFeastItems = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -206,6 +208,7 @@ export const itemsByGSI1 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -243,7 +246,7 @@ export const itemsByGSI1 = /* GraphQL */ `
 export const itemsByGSI2 = /* GraphQL */ `
   query ItemsByGSI2(
     $GSI2: String
-    $SK: ModelStringKeyConditionInput
+    $LSI1: ModelStringKeyConditionInput
     $sortDirection: ModelSortDirection
     $filter: ModelFeastItemFilterInput
     $limit: Int
@@ -251,7 +254,7 @@ export const itemsByGSI2 = /* GraphQL */ `
   ) {
     itemsByGSI2(
       GSI2: $GSI2
-      SK: $SK
+      LSI1: $LSI1
       sortDirection: $sortDirection
       filter: $filter
       limit: $limit
@@ -290,6 +293,7 @@ export const itemsByGSI2 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -374,6 +378,7 @@ export const itemsByLSI1 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -458,6 +463,7 @@ export const itemsByLSI2 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -542,6 +548,7 @@ export const itemsByLSI3 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -626,6 +633,7 @@ export const itemsByLSI4 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name
@@ -710,6 +718,7 @@ export const itemsByLSI5 = /* GraphQL */ `
           latitude
           longitude
         }
+        categories
         placeType
         placeInfo {
           name

@@ -245,6 +245,34 @@ export const getPlaceInDB = /* GraphQL */ `
   }
 `;
 
+export const getPlaceInDBWithCategories = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        placeInfo {
+          categories
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String

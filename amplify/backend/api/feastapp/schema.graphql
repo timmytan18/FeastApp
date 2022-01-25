@@ -2,7 +2,7 @@ type FeastItem
   @model
   @key(fields: ["PK", "SK"])
   @key(name: "ByGSI1", fields: ["GSI1", "SK"], queryField: "itemsByGSI1")
-  @key(name: "ByGSI2", fields: ["GSI2", "SK"], queryField: "itemsByGSI2")
+  @key(name: "ByGSI2", fields: ["GSI2", "LSI1"], queryField: "itemsByGSI2")
   @key(name: "ByLSI1", fields: ["PK", "LSI1"], queryField: "itemsByLSI1")
   @key(name: "ByLSI2", fields: ["PK", "LSI2"], queryField: "itemsByLSI2")
   @key(name: "ByLSI3", fields: ["PK", "LSI3"], queryField: "itemsByLSI3")
@@ -29,6 +29,7 @@ type FeastItem
   placeId: String
   geo: String
   coordinates: Coordinate
+  categories: [String]
   placeType: String
   placeInfo: PlaceInfo
   placeUserInfo: PlaceUserInfo

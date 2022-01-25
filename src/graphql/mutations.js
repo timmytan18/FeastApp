@@ -36,6 +36,7 @@ export const incrementFeastItem = /* GraphQL */ `
         latitude
         longitude
       }
+      categories
       placeType
       placeInfo {
         name
@@ -110,6 +111,7 @@ export const createFeastItem = /* GraphQL */ `
         latitude
         longitude
       }
+      categories
       placeType
       placeInfo {
         name
@@ -184,6 +186,7 @@ export const updateFeastItem = /* GraphQL */ `
         latitude
         longitude
       }
+      categories
       placeType
       placeInfo {
         name
@@ -258,6 +261,7 @@ export const deleteFeastItem = /* GraphQL */ `
         latitude
         longitude
       }
+      categories
       placeType
       placeInfo {
         name
