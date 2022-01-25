@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   StyleSheet, View, Text,
 } from 'react-native';
@@ -21,30 +21,25 @@ const defaultProps = {
 
 const MapMarker = ({
   name, lat, lng, userPic, category,
-}) => {
-  console.log(name, userPic);
-  const [query, setQuery] = useState(null);
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.markerContainer}>
-        <ProfilePic
-          extUrl={userPic}
-          size={imageSize}
-          style={styles.imageContainer}
-        />
-      </View>
-      <View>
-        <Text style={styles.nameText}>{name}</Text>
-      </View>
-      {category && (
-        <View>
-          <Text style={styles.categoryText}>{category}</Text>
-        </View>
-      )}
+}) => (
+  <View style={styles.container}>
+    <View style={styles.markerContainer}>
+      <ProfilePic
+        extUrl={userPic}
+        size={imageSize}
+        style={styles.imageContainer}
+      />
     </View>
-  );
-};
+    <View>
+      <Text style={styles.nameText}>{name}</Text>
+    </View>
+    {category && (
+      <View>
+        <Text style={styles.categoryText}>{category}</Text>
+      </View>
+    )}
+  </View>
+);
 
 MapMarker.propTypes = propTypes;
 MapMarker.defaultProps = defaultProps;

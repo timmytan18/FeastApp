@@ -7,6 +7,7 @@ import geohash from 'ngeohash';
 import { getFollowingQuery, getUserReviewsQuery } from '../../api/functions/queryFunctions';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
+import LocationMapMarker from '../components/util/LocationMapMarker';
 import { Context } from '../../Store';
 import {
   colors, shadows, hp, wp,
@@ -148,6 +149,8 @@ const Home = ({ navigation }) => {
         style={styles.map}
         region={region}
         rotateEnabled={false}
+        pitchEnabled={false}
+        userInterfaceStyle="light"
       // provider={PROVIDER_GOOGLE}
       // customMapStyle={mapLessLandmarksStyle}
       >
@@ -156,11 +159,12 @@ const Home = ({ navigation }) => {
         }) => {
           if (name === 'CURRENT_USER') {
             return (
-              <MapView.Marker
+              <Marker
                 key={`${lat}${lng}`}
                 coordinate={{ latitude: lat, longitude: lng }}
-                title={name}
-              />
+              >
+                <LocationMapMarker />
+              </Marker>
             );
           }
           return (
