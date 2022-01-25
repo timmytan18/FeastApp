@@ -2,12 +2,35 @@ import React, { useEffect, useContext, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
-import MapView from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
 import { getFollowingQuery, getUserReviewsQuery } from '../../api/functions/queryFunctions';
 import SearchButton from '../components/util/SearchButton';
+import MapMarker from '../components/MapMarker';
 import { Context } from '../../Store';
-import { colors, hp, wp } from '../../constants/theme';
+import {
+  colors, shadows, hp, wp,
+} from '../../constants/theme';
+
+const mapLessLandmarksStyle = [
+  {
+    featureType: 'poi.business',
+    stylers: [
+      {
+        visibility: 'off',
+      },
+    ],
+  },
+  {
+    featureType: 'poi.park',
+    elementType: 'labels.text',
+    stylers: [
+      {
+        visibility: 'off',
+      },
+    ],
+  },
+];
 
 const Home = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
@@ -69,7 +92,7 @@ const Home = ({ navigation }) => {
 
       // Get following users' reviews
       const followingReviews = {};
-      const placeMarkers = [{ name: 'Me', lat: coords.latitude, lng: coords.longitude }];
+      const placeMarkers = [{ name: 'CURRENT_USER', lat: coords.latitude, lng: coords.longitude }];
       await Promise.all(followingUsers.map(async (user) => {
         await Promise.all(hashes.map(async (hash) => {
           const currReviews = await getUserReviewsQuery({ PK: user.PK, hash, withUserInfo: true });
@@ -124,19 +147,33 @@ const Home = ({ navigation }) => {
       <MapView
         style={styles.map}
         region={region}
-        // onRegionChangeComplete={onRegionChange}
         rotateEnabled={false}
+      // provider={PROVIDER_GOOGLE}
+      // customMapStyle={mapLessLandmarksStyle}
       >
-        {markers.map((marker) => (
-          <MapView.Marker
-            key={`${marker.lat}${marker.lng}`}
-            coordinate={{ latitude: marker.lat, longitude: marker.lng }}
-            title={marker.name}
-            image={{ uri: marker.userPic }}
-          />
-        ))}
+        {markers.map(({
+          name, lat, lng, userPic,
+        }) => {
+          if (name === 'CURRENT_USER') {
+            return (
+              <MapView.Marker
+                key={`${lat}${lng}`}
+                coordinate={{ latitude: lat, longitude: lng }}
+                title={name}
+              />
+            );
+          }
+          return (
+            <Marker
+              key={`${lat}${lng}`}
+              coordinate={{ latitude: lat, longitude: lng }}
+            >
+              <MapMarker name={name} lat={lat} lng={lng} userPic={userPic} />
+            </Marker>
+          );
+        })}
       </MapView>
-      <View style={styles.searchBtnContainer}>
+      <View style={[styles.searchBtnContainer, shadows.base]}>
         <SearchButton
           color={colors.black}
           size={wp(5.7)}
@@ -162,11 +199,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: hp(8),
     right: wp(9),
-    width: wp(12),
-    height: wp(12),
+    width: wp(14),
+    height: wp(14),
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: wp(6),
+    borderRadius: wp(5),
     backgroundColor: 'white',
   },
 });

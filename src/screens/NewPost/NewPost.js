@@ -293,7 +293,7 @@ const NewPost = ({ navigation }) => {
         <View style={styles.searchBoxContainer}>
           <SearchBox
             completeSearch={searchPlace}
-            placeholder="Search for a restaurant/business"
+            placeholder="Search for a business"
             autofocus={false}
           />
         </View>
@@ -307,7 +307,7 @@ const NewPost = ({ navigation }) => {
           {placeList.length > 0
             && (
               <Text style={styles.loadingText}>
-                {loading ? 'Retrieving nearby restaurants...' : 'Select a restaurant'}
+                {loading ? 'Retrieving nearby businesses...' : 'Select a business'}
               </Text>
             )}
         </View>

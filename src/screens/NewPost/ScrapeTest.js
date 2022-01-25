@@ -98,7 +98,7 @@ function scrapePlaceData(currItem) {
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
 const fetchPlaces = async ({ places }) => {
-  await delay(30000); // wait 30 seconds
+  await delay(20000); // wait 20 seconds
 
   const failedToFetch = [];
   places.forEach(async (item) => {
@@ -110,7 +110,6 @@ const fetchPlaces = async ({ places }) => {
     const placePK = `PLACE#${placeId}`;
     // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
     const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
-    const placeSK = `#INFO#${strippedName}`;
     try {
       const placeInDB = await getPlaceInDBQuery({ placePK });
       if (!placeInDB) {
