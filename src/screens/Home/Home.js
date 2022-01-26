@@ -1,5 +1,7 @@
-import React, { useEffect, useContext, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, {
+  useEffect, useContext, useState, useRef,
+} from 'react';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -8,6 +10,7 @@ import { getFollowingQuery, getUserReviewsQuery } from '../../api/functions/quer
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
+import LocationArrow from '../components/util/icons/LocationArrow';
 import { Context } from '../../Store';
 import {
   colors, shadows, hp, wp,
@@ -59,6 +62,8 @@ const Home = ({ navigation }) => {
 
   const [reviews, setReviews] = useState(null);
   const [markers, setMarkers] = useState([]);
+
+  const mapRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -138,9 +143,9 @@ const Home = ({ navigation }) => {
     setRegion(initialRegion);
   }
 
-  const onRegionChange = (newRegion) => {
-    console.log(newRegion);
-    setRegion(newRegion);
+  const animateToCurrLocation = () => {
+    console.log('animateToCurrLocation');
+    mapRef.current.animateToRegion(initialRegion, 350);
   };
 
   return (
@@ -151,6 +156,7 @@ const Home = ({ navigation }) => {
         rotateEnabled={false}
         pitchEnabled={false}
         userInterfaceStyle="light"
+        ref={mapRef}
       // provider={PROVIDER_GOOGLE}
       // customMapStyle={mapLessLandmarksStyle}
       >
@@ -185,6 +191,13 @@ const Home = ({ navigation }) => {
           pressed={() => navigation.navigate('SearchUsers')}
         />
       </View>
+      <TouchableOpacity
+        onPress={animateToCurrLocation}
+        activeOpacity={0.9}
+        style={[styles.locationBackBtnContainer, shadows.base]}
+      >
+        <LocationArrow size={wp(5)} />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -208,7 +221,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: wp(5),
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
+  },
+  locationBackBtnContainer: {
+    position: 'absolute',
+    bottom: hp(5),
+    right: wp(9.5),
+    width: wp(13),
+    height: wp(13),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: wp(6.5),
+    backgroundColor: 'rgba(174, 191, 229, 0.9)',
   },
 });
 
