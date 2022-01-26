@@ -67,6 +67,7 @@ const PostDetails = ({ navigation, route }) => {
   const ratings = useRef(state.ratings);
 
   const placeExists = useRef(false);
+  const placeCategories = useRef(null);
 
   useEffect(() => {
     // Save current review and ratings
@@ -139,44 +140,58 @@ const PostDetails = ({ navigation, route }) => {
     }
 
     // Check if place exists in DynamoDB
-    (async () => {
+    async function checkPlaceInDB() {
       try {
-        const placeInDB = await getPlaceInDBQuery({ placePK });
+        const { placeInDB, categoriesDB } = await getPlaceInDBQuery(
+          { placePK, withCategories: true },
+        );
         if (!placeInDB) {
-          // Scrape data if place does not exist
-          // createPlaceItem();
+          // Scrape data on screen load if place does not exist
+          createPlaceItem();
         } else {
           console.log('Place already in DB');
           placeExists.current = true;
+          placeCategories.current = categoriesDB;
         }
       } catch (e) {
         console.log('Fetch Dynamo place data error', e);
       }
-    })();
+    }
+
+    // Run once when component mounts
+    checkPlaceInDB();
 
     // Share user review for this place
     async function share() {
-      // Scrape data if place does not exist
+      // Check if place in DB and fetch categories before sharing
       if (!placeExists.current) {
-        createPlaceItem();
+        await checkPlaceInDB();
       }
+
+      const date = new Date();
+      const timestamp = date.toISOString();
 
       const {
         PK: userPK, uid, name: userName, picture: userPic,
       } = state.user;
-      const userPlaceSK = `#PLACE#${hash}`;
-      const GSI2 = 'PLACE#USER#';
-      const LSI1 = `#PLACE#${placeId}`;
+      const userPlaceSK = `#PLACE#${timestamp}`;
+      const GSI1 = `POST#${placeId}`;
+      const GSI2 = 'POST#';
+      const LSI1 = `#PLACE#${hash}`;
+      const LSI2 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRatings = ratings.current;
       const input = {
         PK: userPK,
         SK: userPlaceSK,
+        GSI1,
         GSI2,
         LSI1,
+        LSI2,
         placeId,
         name,
         geo: hash,
+        categories: placeCategories.current,
         review: userReview,
         rating: userRatings,
         placeUserInfo: {

@@ -533,7 +533,7 @@ def lambda_handler(*args, **kwargs):
         )
         if response['Items']:
             print('BUSINESS EXISTS')
-            return
+            return {'code': 200}
     except Exception as e:
         print('Get business error: ', e)
 

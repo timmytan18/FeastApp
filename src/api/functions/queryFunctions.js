@@ -3,7 +3,7 @@
 import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
-  getIsFollowing, getPlaceInDB, getFollowers, getNumFollows,
+  getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -131,19 +131,25 @@ async function searchQuery({ name, type }) {
 }
 
 // Get whether place is in database
-async function getPlaceInDBQuery({ placePK }) {
+// If withCategories, will also fetch categories and return { inDB, categories }
+async function getPlaceInDBQuery({ placePK, withCategories }) {
   const placeSK = '#INFO#';
   let placeInDB;
   try {
     const res = await API.graphql(graphqlOperation(
-      getPlaceInDB,
+      withCategories ? getPlaceInDBWithCategories : getPlaceInDB,
       { PK: placePK, SK: { beginsWith: placeSK }, limit: 10 },
     ));
-    placeInDB = res.data.listFeastItems.items.length;
+    placeInDB = res.data.listFeastItems.items;
   } catch (err) {
     console.log('Error checking whether place in DB: ', err);
   }
-  return !!placeInDB;
+  if (placeInDB.length) {
+    return withCategories ? {
+      placeInDB: true, categoriesDB: placeInDB[0].placeInfo.categories,
+    } : true;
+  }
+  return false;
 }
 
 export {
