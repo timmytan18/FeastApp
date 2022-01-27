@@ -84,45 +84,45 @@ const Home = ({ navigation }) => {
         },
       });
 
-      // Get user's following users
-      const followingUsers = await getFollowingQuery({ uid: state.user.uid });
-      console.log(followingUsers);
+      // // Get user's following users
+      // const followingUsers = await getFollowingQuery({ uid: state.user.uid });
+      // console.log(followingUsers);
 
-      // Get geohashes from user location
-      const { dLat, dLng } = geoRange;
-      const bottomLeft = { lat: coords.latitude - dLat, lng: coords.longitude - dLng };
-      const topRight = { lat: coords.latitude + dLat, lng: coords.longitude + dLng };
-      const precision = 3; // ~3 mile grid
-      const hashes = geohash.bboxes(bottomLeft.lat, bottomLeft.lng, topRight.lat, topRight.lng, precision);
-      console.log(hashes.join(' '));
+      // // Get geohashes from user location
+      // const { dLat, dLng } = geoRange;
+      // const bottomLeft = { lat: coords.latitude - dLat, lng: coords.longitude - dLng };
+      // const topRight = { lat: coords.latitude + dLat, lng: coords.longitude + dLng };
+      // const precision = 3; // ~3 mile grid
+      // const hashes = geohash.bboxes(bottomLeft.lat, bottomLeft.lng, topRight.lat, topRight.lng, precision);
+      // console.log(hashes.join(' '));
 
-      // Get following users' reviews
-      const followingReviews = {};
+      // // Get following users' reviews
+      // const followingReviews = {};
       const placeMarkers = [{ name: 'CURRENT_USER', lat: coords.latitude, lng: coords.longitude }];
-      await Promise.all(followingUsers.map(async (user) => {
-        await Promise.all(hashes.map(async (hash) => {
-          const currReviews = await getUserReviewsQuery({ PK: user.PK, hash, withUserInfo: true });
-          for (let i = 0; i < currReviews.length; i += 1) {
-            currReviews[i].coordinates = geohash.decode(currReviews[i].geo);
-            const {
-              placeId,
-              coordinates: { latitude: lat, longitude: lng },
-              name,
-              placeUserInfo: { picture: userPic },
-            } = currReviews[i];
-            if (placeId in followingReviews) {
-              followingReviews[placeId].push(currReviews[i]);
-            } else {
-              followingReviews[placeId] = [currReviews[i]];
-              placeMarkers.push({
-                name, lat, lng, userPic,
-              });
-            }
-          }
-        }));
-      }));
-      setReviews(followingReviews);
-      console.log(followingReviews);
+      // await Promise.all(followingUsers.map(async (user) => {
+      //   await Promise.all(hashes.map(async (hash) => {
+      //     const currReviews = await getUserReviewsQuery({ PK: user.PK, hash, withUserInfo: true });
+      //     for (let i = 0; i < currReviews.length; i += 1) {
+      //       currReviews[i].coordinates = geohash.decode(currReviews[i].geo);
+      //       const {
+      //         placeId,
+      //         coordinates: { latitude: lat, longitude: lng },
+      //         name,
+      //         placeUserInfo: { picture: userPic },
+      //       } = currReviews[i];
+      //       if (placeId in followingReviews) {
+      //         followingReviews[placeId].push(currReviews[i]);
+      //       } else {
+      //         followingReviews[placeId] = [currReviews[i]];
+      //         placeMarkers.push({
+      //           name, lat, lng, userPic,
+      //         });
+      //       }
+      //     }
+      //   }));
+      // }));
+      // setReviews(followingReviews);
+      // console.log(followingReviews);
       setMarkers(placeMarkers);
     })();
   }, [dispatch, state.user.uid]);
@@ -187,7 +187,7 @@ const Home = ({ navigation }) => {
         <SearchButton
           color={colors.black}
           size={wp(5.7)}
-          style={{ flex: 1 }}
+          style={styles.searchBtn}
           pressed={() => navigation.navigate('SearchUsers')}
         />
       </View>
@@ -216,6 +216,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: hp(8),
     right: wp(9),
+  },
+  searchBtn: {
     width: wp(14),
     height: wp(14),
     justifyContent: 'center',

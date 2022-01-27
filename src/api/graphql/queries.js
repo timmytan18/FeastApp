@@ -164,6 +164,7 @@ export const getUserReviews = /* GraphQL */ `
         name
         placeId
         geo
+        categories
         review
         rating {
           overall
@@ -172,6 +173,7 @@ export const getUserReviews = /* GraphQL */ `
           service
           ambience
         }
+        createdAt
       }
       nextToken
     }
@@ -201,6 +203,7 @@ export const getUserReviewsWithUserInfo = /* GraphQL */ `
         name
         placeId
         geo
+        categories
         review
         rating {
           overall

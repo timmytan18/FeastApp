@@ -21,13 +21,6 @@ export const updateFeastItem = /* GraphQL */ `
     }
   }
 `;
-export const incrementFeastItem = /* GraphQL */ `
-  mutation IncrementFeastItem($input: IncrementFeastItemInput!) {
-    incrementFeastItem(input: $input) {
-      PK
-    }
-  }
-`;
 export const deleteFeastItem = /* GraphQL */ `
   mutation DeleteFeastItem(
     $input: DeleteFeastItemInput!
@@ -35,6 +28,23 @@ export const deleteFeastItem = /* GraphQL */ `
   ) {
     deleteFeastItem(input: $input, condition: $condition) {
       PK
+    }
+  }
+`;
+// Custom resolver for incrementing/decrementing follower and following counts
+export const incrementFeastItem = /* GraphQL */ `
+  mutation IncrementFeastItem($input: IncrementFeastItemInput!) {
+    incrementFeastItem(input: $input) {
+      PK
+    }
+  }
+`;
+// Custom resolver for batch creating posts in feed
+// arbitrary return value
+export const batchCreateFollowingPosts = /* GraphQL */ `
+  mutation BatchCreateFollowingPosts($input: BatchCreateFollowingPostsInput!) {
+    batchCreateFollowingPosts(input: $input) {
+      placeId
     }
   }
 `;

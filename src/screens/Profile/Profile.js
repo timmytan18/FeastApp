@@ -187,6 +187,7 @@ const Profile = ({ navigation, route }) => {
                       myUser={state.user}
                       containerStyle={styles.editContainer}
                       textStyle={styles.editText}
+                      reviews={reviews}
                     />
                   )}
                 {/* <TouchableOpacity style={styles.socialContainer} onPress={() => link('INSTAGRAM', user.instagram)}>

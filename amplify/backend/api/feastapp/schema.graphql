@@ -84,6 +84,7 @@ type PlaceUserInfo {
 
 type Mutation {
   incrementFeastItem(input: IncrementFeastItemInput!): FeastItem
+  batchCreateFollowingPosts(input: BatchCreateFollowingPostsInput!): FeastItem
 }
 
 input IncrementFeastItemInput {
@@ -91,4 +92,37 @@ input IncrementFeastItemInput {
   SK: String!
   numFollowers: Int
   numFollowing: Int
+}
+
+input BatchCreateFollowingPostsInput {
+  posts: [FollowingPostInput]
+}
+
+input FollowingPostInput {
+  PK: String!
+  SK: String!
+  LSI2: String!
+  placeId: String!
+  name: String!
+  geo: String!
+  picture: String
+  categories: [String]
+  review: String
+  createdAt: String
+  rating: RatingInput
+  placeUserInfo: PlaceUserInfoInput
+}
+
+input RatingInput {
+  overall: Float!
+  food: Float!
+  value: Float!
+  service: Float!
+  ambience: Float!
+}
+
+input PlaceUserInfoInput {
+  uid: String
+  name: String
+  picture: String
 }

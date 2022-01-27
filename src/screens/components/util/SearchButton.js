@@ -7,9 +7,10 @@ const SearchButton = ({
 }) => (
   <TouchableOpacity
     onPress={pressed}
-    style={{
+    activeOpacity={0.9}
+    style={[{
       height: size * 1.3, width: size * 1.3, alignItems: 'center', justifyContent: 'center',
-    }}
+    }, style]}
   >
     <Search color={color} size={size} style={style} />
   </TouchableOpacity>
