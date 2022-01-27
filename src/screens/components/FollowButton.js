@@ -75,6 +75,7 @@ const FollowButton = ({
   const [following, setFollowing] = useState(currentUser.following);
 
   const reviewsForFeed = useRef([]);
+  const reviewsToDelete = useRef([]);
 
   useEffect(() => {
     const updatedReviews = [];
@@ -82,7 +83,8 @@ const FollowButton = ({
       updatedReviews.push({
         ...review,
         PK: myPK,
-        SK: `#FOLLOWINGPOST#${review.createdAt}`, // TODO: Update to be actual time post was made
+        SK: `#FOLLOWINGPOST#${review.createdAt}`,
+        LSI1: `#FOLLOWINGPOST#${review.geo}`,
         LSI2: `#FOLLOWINGPOST#${review.placeId}`,
       });
     });

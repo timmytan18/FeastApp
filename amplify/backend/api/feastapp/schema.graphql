@@ -101,6 +101,7 @@ input BatchCreateFollowingPostsInput {
 input FollowingPostInput {
   PK: String!
   SK: String!
+  LSI1: String!
   LSI2: String!
   placeId: String!
   name: String!
