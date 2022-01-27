@@ -36,10 +36,6 @@ const propTypes = {
     placeId: PropTypes.string,
     name: PropTypes.string,
     geo: PropTypes.string,
-    placeUserInfo: PropTypes.shape({
-      name: PropTypes.string,
-      uid: PropTypes.string,
-    }),
     createdAt: PropTypes.string,
   })).isRequired,
 };
@@ -86,10 +82,15 @@ const FollowButton = ({
         SK: `#FOLLOWINGPOST#${review.createdAt}`,
         LSI1: `#FOLLOWINGPOST#${review.geo}`,
         LSI2: `#FOLLOWINGPOST#${review.placeId}`,
+        placeUserInfo: {
+          name,
+          uid,
+          picture,
+        },
       });
     });
     reviewsForFeed.current = updatedReviews;
-  }, [reviews, myPK]);
+  }, [reviews, myPK, name, uid, picture]);
 
   const changeFollowingConfirmation = () => {
     if (following) {
