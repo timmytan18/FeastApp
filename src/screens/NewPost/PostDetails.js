@@ -8,8 +8,8 @@ import {
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { Auth, API, graphqlOperation } from 'aws-amplify';
-import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
-import { createFeastItem } from '../../api/graphql/mutations';
+import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
+import { createFeastItem, batchCreateFollowingPosts } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
@@ -168,9 +168,9 @@ const PostDetails = ({ navigation, route }) => {
         await checkPlaceInDB();
       }
 
+      // Add post to user posts
       const date = new Date();
       const timestamp = date.toISOString();
-
       const {
         PK: userPK, uid, name: userName, picture: userPic,
       } = state.user;
@@ -181,7 +181,7 @@ const PostDetails = ({ navigation, route }) => {
       const LSI2 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRatings = ratings.current;
-      const input = {
+      const userPostInput = {
         PK: userPK,
         SK: userPlaceSK,
         GSI1,
@@ -203,7 +203,7 @@ const PostDetails = ({ navigation, route }) => {
       try {
         await API.graphql(graphqlOperation(
           createFeastItem,
-          { input },
+          { input: userPostInput },
         ));
       } catch (err) {
         console.log(err);
@@ -215,6 +215,53 @@ const PostDetails = ({ navigation, route }) => {
         );
         return;
       }
+
+      // Share post to user's followers' feeds
+      const userFeedsInput = {
+        SK: `#FOLLOWINGPOST#${timestamp}`,
+        LSI1: `#FOLLOWINGPOST#${hash}`,
+        LSI2: `#FOLLOWINGPOST#${placeId}`,
+        LSI3: `#FOLLOWINGPOST#${uid}`,
+        placeId,
+        name,
+        geo: hash,
+        categories: placeCategories.current,
+        review: userReview,
+        rating: userRatings,
+        placeUserInfo: {
+          uid,
+          name: userName,
+          picture: userPic,
+        },
+      };
+      // Created all post items for each follower
+      const followers = await getFollowersQuery({ PK: userPK, onlyReturnUIDs: true });
+      const allUserFeedPosts = [];
+      followers.forEach(({ follower: { PK: followerPK } }) => {
+        allUserFeedPosts.push({
+          ...userFeedsInput,
+          PK: followerPK,
+        });
+      });
+
+      console.log(allUserFeedPosts);
+      // Add user's post to followers' feeds in batches
+      if (allUserFeedPosts.length) {
+        let i; let j;
+        const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
+        for (i = 0, j = allUserFeedPosts.length; i < j; i += BATCH_NUM) {
+          const batch = allUserFeedPosts.slice(i, i + BATCH_NUM);
+          try {
+            await API.graphql(graphqlOperation(
+              batchCreateFollowingPosts,
+              { input: { posts: batch } },
+            ));
+          } catch (err) {
+            console.log("Error adding posts to followers' feeds", err);
+          }
+        }
+      }
+
       // Clear and reset review and ratings
       dispatch({
         type: 'SET_REVIEW_RATINGS',

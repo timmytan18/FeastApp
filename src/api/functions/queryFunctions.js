@@ -4,7 +4,7 @@ import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
-  getFollowingPosts, getFollowingPostsByUser,
+  getFollowingPosts, getFollowingPostsByUser, getFollowersPK,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -87,11 +87,11 @@ async function getNumFollowsQuery({ PK, SK }) {
 }
 
 // Get followers/following list
-async function getFollowersQuery({ PK }) {
+async function getFollowersQuery({ PK, onlyReturnPKs }) {
   let users;
   try {
     const res = await API.graphql(graphqlOperation(
-      getFollowers,
+      onlyReturnPKs ? getFollowersPK : getFollowers,
       { PK, SK: { beginsWith: '#FOLLOWER#' }, limit: 200 },
     ));
     users = res.data.listFeastItems.items;

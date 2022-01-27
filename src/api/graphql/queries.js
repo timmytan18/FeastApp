@@ -99,6 +99,33 @@ export const getFollowers = /* GraphQL */ `
   }
 `;
 
+export const getFollowersPK = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        follower {
+          PK
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 export const getFollowing = /* GraphQL */ `
   query ItemsByGsi1(
     $GSI1: String
