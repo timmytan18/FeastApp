@@ -31,11 +31,11 @@ const MapMarker = ({
       />
     </View>
     <View>
-      <Text style={styles.nameText}>{name}</Text>
+      <Text style={[styles.nameText, styles.textWithShadow]}>{name}</Text>
     </View>
     {category && (
       <View>
-        <Text style={styles.categoryText}>{category}</Text>
+        <Text style={[styles.categoryText, styles.textWithShadow]}>{category}</Text>
       </View>
     )}
   </View>
@@ -75,6 +75,11 @@ const styles = StyleSheet.create({
   categoryText: {
     fontFamily: 'Book',
     fontSize: sizes.caption,
+  },
+  textWithShadow: {
+    textShadowColor: 'rgba(255, 197, 41, 0.75)',
+    textShadowOffset: { width: -2, height: 2 },
+    textShadowRadius: 10,
   },
 });
 

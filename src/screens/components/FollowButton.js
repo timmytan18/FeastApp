@@ -5,8 +5,10 @@ import {
 import { API, graphqlOperation } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import PropTypes from 'prop-types';
+import { getFollowingPostsByUserQuery } from '../../api/functions/queryFunctions';
 import {
-  createFeastItem, deleteFeastItem, incrementFeastItem, batchCreateFollowingPosts,
+  createFeastItem, deleteFeastItem, incrementFeastItem,
+  batchCreateFollowingPosts, batchDeleteFollowingPosts,
 } from '../../api/graphql/mutations';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import {
@@ -82,6 +84,7 @@ const FollowButton = ({
         SK: `#FOLLOWINGPOST#${review.createdAt}`,
         LSI1: `#FOLLOWINGPOST#${review.geo}`,
         LSI2: `#FOLLOWINGPOST#${review.placeId}`,
+        LSI3: `#FOLLOWINGPOST#${uid}`,
         placeUserInfo: {
           name,
           uid,
@@ -92,12 +95,18 @@ const FollowButton = ({
     reviewsForFeed.current = updatedReviews;
   }, [reviews, myPK, name, uid, picture]);
 
-  const changeFollowingConfirmation = () => {
+  const changeFollowingConfirmation = async () => {
     if (following) {
+      reviewsToDelete.current = await getFollowingPostsByUserQuery(
+        { PK: myPK, followingUID: uid },
+      );
       TwoButtonAlert({
         title: `Unfollow ${currentUser.name}?`,
         yesButton: 'Confirm',
-        pressed: changeFollowing,
+        pressed: () => {
+          changeFollowing();
+          removePostsFromFeed();
+        },
       });
     } else {
       changeFollowing();
@@ -171,6 +180,27 @@ const FollowButton = ({
           ));
         } catch (err) {
           console.log("Error adding followed user's posts to feed", err);
+        }
+      }
+    }
+  };
+
+  // Remove followed user's posts from feed in batches
+  const removePostsFromFeed = async () => {
+    const allPosts = reviewsToDelete.current;
+    console.log(allPosts);
+    if (allPosts.length) {
+      let i; let j;
+      const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
+      for (i = 0, j = allPosts.length; i < j; i += BATCH_NUM) {
+        const batch = allPosts.slice(i, i + BATCH_NUM);
+        try {
+          await API.graphql(graphqlOperation(
+            batchDeleteFollowingPosts,
+            { input: { posts: batch } },
+          ));
+        } catch (err) {
+          console.log("Error removing followed user's posts from feed", err);
         }
       }
     }

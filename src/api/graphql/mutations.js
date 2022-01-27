@@ -48,3 +48,12 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
     }
   }
 `;
+// Custom resolver for batch creating posts in feed
+// arbitrary return value
+export const batchDeleteFollowingPosts = /* GraphQL */ `
+  mutation BatchDeleteFollowingPosts($input: BatchDeleteFollowingPostsInput!) {
+    batchDeleteFollowingPosts(input: $input) {
+      placeId
+    }
+  }
+`;

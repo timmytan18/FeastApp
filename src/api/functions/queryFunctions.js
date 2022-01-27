@@ -4,7 +4,7 @@ import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
-  getFollowingPosts,
+  getFollowingPosts, getFollowingPostsByUser,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -153,15 +153,30 @@ async function getPlaceInDBQuery({ placePK, withCategories }) {
   return false;
 }
 
-// Get followers/following list
+// Get all posts in feed from following
 async function getFollowingPostsQuery({ PK }) {
   let posts;
   try {
     const res = await API.graphql(graphqlOperation(
       getFollowingPosts,
-      { PK, SK: { beginsWith: '#FOLLOWINGPOST#' }, limit: 500 },
+      { PK, SK: { beginsWith: '#FOLLOWINGPOST#' }, limit: 1000 },
     ));
     posts = res.data.listFeastItems.items;
+  } catch (err) {
+    console.log('Error getting followers/following list: ', err);
+  }
+  return posts;
+}
+
+// Get all posts in feed from following
+async function getFollowingPostsByUserQuery({ PK, followingUID }) {
+  let posts;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getFollowingPostsByUser,
+      { PK, LSI3: { eq: `#FOLLOWINGPOST#${followingUID}` }, limit: 500 },
+    ));
+    posts = res.data.itemsByLSI3.items;
   } catch (err) {
     console.log('Error getting followers/following list: ', err);
   }
@@ -171,4 +186,5 @@ async function getFollowingPostsQuery({ PK }) {
 export {
   getUserProfileQuery, getUserReviewsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
   getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
+  getFollowingPostsByUserQuery,
 };

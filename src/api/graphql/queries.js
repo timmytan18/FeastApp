@@ -309,6 +309,32 @@ export const getFollowingPosts = /* GraphQL */ `
   }
 `;
 
+export const getFollowingPostsByUser = /* GraphQL */ `
+  query ItemsByLSI3(
+    $PK: String
+    $LSI3: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByLSI3(
+      PK: $PK
+      LSI3: $LSI3
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+      }
+      nextToken
+    }
+  }
+`;
+
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String
