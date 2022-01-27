@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
-import { getFollowingQuery, getUserReviewsQuery } from '../../api/functions/queryFunctions';
+import { getFollowingPostsQuery } from '../../api/functions/queryFunctions';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
@@ -84,10 +84,6 @@ const Home = ({ navigation }) => {
         },
       });
 
-      // // Get user's following users
-      // const followingUsers = await getFollowingQuery({ uid: state.user.uid });
-      // console.log(followingUsers);
-
       // // Get geohashes from user location
       // const { dLat, dLng } = geoRange;
       // const bottomLeft = { lat: coords.latitude - dLat, lng: coords.longitude - dLng };
@@ -96,36 +92,37 @@ const Home = ({ navigation }) => {
       // const hashes = geohash.bboxes(bottomLeft.lat, bottomLeft.lng, topRight.lat, topRight.lng, precision);
       // console.log(hashes.join(' '));
 
-      // // Get following users' reviews
-      // const followingReviews = {};
+      // Get following users' reviews
+      const userPlaces = {}; // obj of uid: set(placeIds)
       const placeMarkers = [{ name: 'CURRENT_USER', lat: coords.latitude, lng: coords.longitude }];
-      // await Promise.all(followingUsers.map(async (user) => {
-      //   await Promise.all(hashes.map(async (hash) => {
-      //     const currReviews = await getUserReviewsQuery({ PK: user.PK, hash, withUserInfo: true });
-      //     for (let i = 0; i < currReviews.length; i += 1) {
-      //       currReviews[i].coordinates = geohash.decode(currReviews[i].geo);
-      //       const {
-      //         placeId,
-      //         coordinates: { latitude: lat, longitude: lng },
-      //         name,
-      //         placeUserInfo: { picture: userPic },
-      //       } = currReviews[i];
-      //       if (placeId in followingReviews) {
-      //         followingReviews[placeId].push(currReviews[i]);
-      //       } else {
-      //         followingReviews[placeId] = [currReviews[i]];
-      //         placeMarkers.push({
-      //           name, lat, lng, userPic,
-      //         });
-      //       }
-      //     }
-      //   }));
-      // }));
-      // setReviews(followingReviews);
-      // console.log(followingReviews);
+      const allPosts = await getFollowingPostsQuery({ PK: state.user.PK });
+      console.log(allPosts);
+      for (let i = 0; i < allPosts.length; i += 1) {
+        allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
+        // Desconstruct attributes needed from post
+        const {
+          placeId,
+          coordinates: { latitude: lat, longitude: lng },
+          name,
+          categories,
+          placeUserInfo: { picture: userPic, uid },
+        } = allPosts[i];
+        // Create new place set for user if not already created
+        if (!userPlaces[uid]) {
+          userPlaces[uid] = new Set();
+        }
+        // Add place to user's place set and placeMarkers if not already added
+        if (!(placeId in userPlaces[uid])) {
+          userPlaces[uid].add(placeId);
+          placeMarkers.push({
+            name, lat, lng, userPic, category: categories[0],
+          });
+        }
+      }
+      console.log(placeMarkers);
       setMarkers(placeMarkers);
     })();
-  }, [dispatch, state.user.uid]);
+  }, [dispatch, state.user.PK, state.user.uid]);
 
   if (!state.location) {
     return (null);
@@ -161,7 +158,7 @@ const Home = ({ navigation }) => {
       // customMapStyle={mapLessLandmarksStyle}
       >
         {markers.map(({
-          name, lat, lng, userPic,
+          name, lat, lng, userPic, category,
         }) => {
           if (name === 'CURRENT_USER') {
             return (
@@ -178,7 +175,7 @@ const Home = ({ navigation }) => {
               key={`${lat}${lng}`}
               coordinate={{ latitude: lat, longitude: lng }}
             >
-              <MapMarker name={name} lat={lat} lng={lng} userPic={userPic} />
+              <MapMarker name={name} lat={lat} lng={lng} userPic={userPic} category={category} />
             </Marker>
           );
         })}

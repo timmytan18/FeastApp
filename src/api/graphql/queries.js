@@ -276,6 +276,39 @@ export const getPlaceInDBWithCategories = /* GraphQL */ `
   }
 `;
 
+export const getFollowingPosts = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        placeId
+        name
+        geo
+        categories
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String

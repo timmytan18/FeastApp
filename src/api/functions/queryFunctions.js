@@ -4,6 +4,7 @@ import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
+  getFollowingPosts,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -21,7 +22,7 @@ async function getUserProfileQuery({ PK, SK }) {
   return user;
 }
 
-// Fetch reviews for current user (all or with geohash)
+// Fetch reviews for a user (all or with geohash)
 // withUserInfo: true will fetch reviews with user info
 async function getUserReviewsQuery({ PK, hash, withUserInfo }) {
   const SK = hash ? `#PLACE#${hash}` : '#PLACE#';
@@ -152,7 +153,22 @@ async function getPlaceInDBQuery({ placePK, withCategories }) {
   return false;
 }
 
+// Get followers/following list
+async function getFollowingPostsQuery({ PK }) {
+  let posts;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getFollowingPosts,
+      { PK, SK: { beginsWith: '#FOLLOWINGPOST#' }, limit: 500 },
+    ));
+    posts = res.data.listFeastItems.items;
+  } catch (err) {
+    console.log('Error getting followers/following list: ', err);
+  }
+  return posts;
+}
+
 export {
   getUserProfileQuery, getUserReviewsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
-  getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
+  getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
 };
