@@ -40,10 +40,11 @@ const propTypes = {
     geo: PropTypes.string,
     createdAt: PropTypes.string,
   })).isRequired,
+  numFollowing: PropTypes.number.isRequired,
 };
 
 const FollowButton = ({
-  currentUser, myUser, reviews, containerStyle, textStyle,
+  currentUser, myUser, reviews, numFollowing, dispatch, containerStyle, textStyle,
 }) => {
   // Destructure current user (profile user is viewing) object
   const {
@@ -145,11 +146,6 @@ const FollowButton = ({
     // Increment/decrement follower and following counts
     const one = currFollow ? -1 : 1;
     console.log('UPDATING FOLLOWS');
-    console.log(PK);
-    console.log(SK);
-    console.log(one);
-    console.log(myPK);
-    console.log(mySK);
     try {
       await API.graphql(graphqlOperation(
         incrementFeastItem,
@@ -159,6 +155,11 @@ const FollowButton = ({
         incrementFeastItem,
         { input: { PK: myPK, SK: mySK, numFollowing: one } },
       ));
+      // Update app state with new num following count
+      dispatch({
+        type: 'SET_NUM_FOLLOWING',
+        payload: { num: numFollowing + one },
+      });
     } catch (err) {
       console.log(err);
     }

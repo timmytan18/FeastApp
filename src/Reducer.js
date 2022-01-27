@@ -13,6 +13,11 @@ const Reducer = (state, action) => {
           latitude: action.payload.latitude,
         },
       };
+    case 'SET_NUM_FOLLOWING':
+      return {
+        ...state,
+        numFollowing: action.payload.num,
+      };
     case 'SET_REVIEW_RATINGS':
       return {
         ...state,

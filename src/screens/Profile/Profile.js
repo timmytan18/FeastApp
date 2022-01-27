@@ -44,7 +44,7 @@ const Profile = ({ navigation, route }) => {
   const isMe = !(!onTab && route.params.user.PK != state.user.PK);
   const user = isMe ? state.user : route.params.user;
 
-  const [numFollows, setNumFollows] = useState([0, 0]);
+  const [numFollows, setNumFollows] = useState([0, state.numFollowing]);
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
@@ -53,6 +53,13 @@ const Profile = ({ navigation, route }) => {
       const num = await getNumFollowsQuery({ PK: user.PK, SK: user.SK });
       setNumFollows(num);
       setRefreshing(false);
+      const numFollowing = num[1];
+      if (isMe && numFollowing !== state.numFollowing) {
+        dispatch({
+          type: 'SET_NUM_FOLLOWING',
+          payload: { num: numFollowing },
+        });
+      }
     })();
     // Get reviews for current user
     (async () => {
@@ -185,9 +192,11 @@ const Profile = ({ navigation, route }) => {
                     <FollowButton
                       currentUser={user}
                       myUser={state.user}
+                      reviews={reviews}
+                      dispatch={dispatch}
+                      numFollowing={state.numFollowing}
                       containerStyle={styles.editContainer}
                       textStyle={styles.editText}
-                      reviews={reviews}
                     />
                   )}
                 {/* <TouchableOpacity style={styles.socialContainer} onPress={() => link('INSTAGRAM', user.instagram)}>
