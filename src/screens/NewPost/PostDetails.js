@@ -249,7 +249,7 @@ const PostDetails = ({ navigation, route }) => {
       headerLeftContainerStyle: { paddingLeft: sizes.margin },
       headerRight,
     });
-  }, [business, dispatch, navigation, state.user]);
+  }, [business, dispatch, navigation, state.user.PK, state.user.uid]);
 
   const changeRatings = ({ value, type }) => {
     if (ratings.current[type] !== value) {

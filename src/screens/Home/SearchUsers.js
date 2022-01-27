@@ -99,7 +99,7 @@ const SearchUsers = ({ navigation }) => {
       // Check if I am following the current user
       if (currentPK !== PK) {
         currentUser.following = await getIsFollowingQuery({ currentPK, myUID: ID });
-        console.log(currentUser.following);
+        console.log('isFollowing:', currentUser.following);
       }
 
       navigation.push('Profile', { user: currentUser });

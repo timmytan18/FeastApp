@@ -16,7 +16,7 @@ const propTypes = {
 
 const defaultProps = {
   userPic: null,
-  category: 'Food/Drink',
+  category: null,
 };
 
 const MapMarker = ({
