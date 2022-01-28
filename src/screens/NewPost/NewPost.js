@@ -108,6 +108,9 @@ const NewPost = ({ navigation }) => {
 
   // Filter POIs by category and remove duplicates
   async function filterSetResults(results) {
+    if (!results.length) {
+      return [];
+    }
     const items = await filterFSItems({ results });
     console.log('Filtered items', items);
     setLoading(false);

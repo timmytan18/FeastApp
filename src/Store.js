@@ -7,7 +7,7 @@ const initialState = {
   numFollowing: null,
   review: null,
   ratings: { ...RATING_CATEGORIES },
-  location: null,
+  location: { longitude: null, latitude: null },
   restaurants: [],
   headerHeight: null,
   error: null,

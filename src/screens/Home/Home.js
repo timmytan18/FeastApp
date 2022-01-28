@@ -147,7 +147,7 @@ const Home = ({ navigation }) => {
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.numFollowing]);
 
-  if (!state.location) {
+  if (!state.location.latitude || !state.location.longitude) {
     return (null);
   }
 
