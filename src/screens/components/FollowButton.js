@@ -33,6 +33,7 @@ const propTypes = {
     name: PropTypes.string,
     identityId: PropTypes.string,
     picture: PropTypes.string,
+    s3Picture: PropTypes.string,
   }).isRequired,
   reviews: PropTypes.arrayOf(PropTypes.shape({
     placeId: PropTypes.string,
@@ -67,8 +68,8 @@ const FollowButton = ({
     followedSK: SK,
     uid: myID,
   };
-  if (myUser.picture) {
-    follower.picture = myUser.picture;
+  if (myUser.picture && myUser.s3Picture) {
+    follower.picture = myUser.s3Picture;
   }
 
   const [following, setFollowing] = useState(currentUser.following);

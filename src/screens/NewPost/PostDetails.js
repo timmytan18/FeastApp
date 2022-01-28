@@ -177,7 +177,7 @@ const PostDetails = ({ navigation, route }) => {
       const date = new Date();
       const timestamp = date.toISOString();
       const {
-        PK: userPK, uid, name: userName, picture: userPic,
+        PK: userPK, uid, name: userName, s3Picture: userPic,
       } = state.user;
       const userPlaceSK = `#PLACE#${timestamp}`;
       const GSI1 = `POST#${placeId}`;

@@ -68,7 +68,16 @@ const Main = () => {
         identityId = await updateIdentityId(PK, SK);
       }
       const user = {
-        PK, SK, uid, name, identityId, city, picture,
+        PK,
+        SK,
+        uid,
+        name,
+        identityId,
+        city,
+        picture,
+        // s3Picture is used to store user picture in DB for other items
+        // state.user.picture can be overwritten when updating picture from local storage
+        s3Picture: picture,
       };
       console.log('User profile:', user);
 
