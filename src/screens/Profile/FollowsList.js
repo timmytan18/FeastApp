@@ -43,11 +43,10 @@ const FollowsList = ({ navigation, route }) => {
       currentUser.SK = currentSK;
       currentUser.picture = currentProfilePic;
 
-      if (type !== 'Following') {
-        currentUser.following = await getIsFollowingQuery({ currentPK, myUID: uid });
-      } else {
-        currentUser.following = true;
-      }
+      // Check if my user is following the current user, even if showing list of following users
+      // Accounts of edge case of viewing profile immediately after unfollowing
+      currentUser.following = await getIsFollowingQuery({ currentPK, myUID: uid });
+      console.log(currentUser);
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.log(err);

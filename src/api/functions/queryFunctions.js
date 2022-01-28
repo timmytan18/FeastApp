@@ -79,7 +79,10 @@ async function getNumFollowsQuery({ PK, SK }) {
       { PK, SK },
     ));
     res = res.data.getFeastItem;
-    num = [res.numFollowers, res.numFollowing];
+    num = [
+      res.numFollowers >= 0 ? res.numFollowers : 0,
+      res.numFollowing >= 0 ? res.numFollowing : 0,
+    ];
   } catch (err) {
     console.log(err);
   }
