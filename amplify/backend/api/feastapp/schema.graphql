@@ -28,6 +28,7 @@ type FeastItem
   follower: Follower
   placeId: String
   geo: String
+  timestamp: String
   coordinates: Coordinate
   categories: [String]
   placeType: String
@@ -112,6 +113,7 @@ input FollowingPostInput {
   placeId: String!
   name: String!
   geo: String!
+  timestamp: String!
   picture: String
   categories: [String]
   review: String

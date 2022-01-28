@@ -69,6 +69,8 @@ const PostDetails = ({ navigation, route }) => {
   const placeExists = useRef(false);
   const placeCategories = useRef(null);
 
+  const [shareDisable, setShareDisable] = useState(false);
+
   useEffect(() => {
     // Save current review and ratings
     function saveReview() {
@@ -158,15 +160,18 @@ const PostDetails = ({ navigation, route }) => {
       }
     }
 
-    // Run once when component mounts
-    checkPlaceInDB();
+    // Check if place in DB and fetch categories before sharing
+    // Run once when component mounts and on share
+    if (!placeExists.current) {
+      checkPlaceInDB();
+    }
 
     // Share user review for this place
     async function share() {
-      // Check if place in DB and fetch categories before sharing
-      if (!placeExists.current) {
-        await checkPlaceInDB();
+      if (shareDisable) {
+        return;
       }
+      setShareDisable(true);
 
       // Add post to user posts
       const date = new Date();
@@ -190,6 +195,7 @@ const PostDetails = ({ navigation, route }) => {
         LSI2,
         placeId,
         name,
+        timestamp,
         geo: hash,
         categories: placeCategories.current,
         review: userReview,
@@ -225,6 +231,7 @@ const PostDetails = ({ navigation, route }) => {
         placeId,
         name,
         geo: hash,
+        timestamp,
         categories: placeCategories.current,
         review: userReview,
         rating: userRatings,
@@ -285,6 +292,7 @@ const PostDetails = ({ navigation, route }) => {
     const headerRight = () => (
       <TouchableOpacity
         style={styles.shareButtonContainer}
+        disabled={shareDisable}
         onPress={() => share()}
       >
         <Text style={styles.shareButtonText}>Share</Text>
@@ -296,7 +304,7 @@ const PostDetails = ({ navigation, route }) => {
       headerLeftContainerStyle: { paddingLeft: sizes.margin },
       headerRight,
     });
-  }, [business, dispatch, navigation, state.user.PK, state.user.uid]);
+  }, [business, shareDisable, dispatch, navigation, state.user.PK, state.user.uid]);
 
   const changeRatings = ({ value, type }) => {
     if (ratings.current[type] !== value) {

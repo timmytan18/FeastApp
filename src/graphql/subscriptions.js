@@ -32,6 +32,7 @@ export const onCreateFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -104,6 +105,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -176,6 +178,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude

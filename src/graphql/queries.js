@@ -32,6 +32,7 @@ export const getFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -119,6 +120,7 @@ export const listFeastItems = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -204,6 +206,7 @@ export const itemsByGSI1 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -289,6 +292,7 @@ export const itemsByGSI2 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -374,6 +378,7 @@ export const itemsByLSI1 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -459,6 +464,7 @@ export const itemsByLSI2 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -544,6 +550,7 @@ export const itemsByLSI3 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -629,6 +636,7 @@ export const itemsByLSI4 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude
@@ -714,6 +722,7 @@ export const itemsByLSI5 = /* GraphQL */ `
         }
         placeId
         geo
+        timestamp
         coordinates {
           latitude
           longitude

@@ -191,6 +191,7 @@ export const getUserReviews = /* GraphQL */ `
         name
         placeId
         geo
+        timestamp
         categories
         review
         rating {
@@ -230,6 +231,7 @@ export const getUserReviewsWithUserInfo = /* GraphQL */ `
         name
         placeId
         geo
+        timestamp
         categories
         review
         rating {

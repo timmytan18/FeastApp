@@ -32,6 +32,7 @@ export const incrementFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -104,6 +105,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -176,6 +178,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -251,6 +254,7 @@ export const createFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -326,6 +330,7 @@ export const updateFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude
@@ -401,6 +406,7 @@ export const deleteFeastItem = /* GraphQL */ `
       }
       placeId
       geo
+      timestamp
       coordinates {
         latitude
         longitude

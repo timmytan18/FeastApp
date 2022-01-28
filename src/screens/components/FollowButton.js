@@ -12,7 +12,7 @@ import {
 } from '../../api/graphql/mutations';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import {
-  colors, gradients, shadows, sizes, wp, hp,
+  colors, gradients,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -38,7 +38,7 @@ const propTypes = {
     placeId: PropTypes.string,
     name: PropTypes.string,
     geo: PropTypes.string,
-    createdAt: PropTypes.string,
+    timestamp: PropTypes.string,
   })).isRequired,
   numFollowing: PropTypes.number.isRequired,
 };
@@ -82,7 +82,7 @@ const FollowButton = ({
       updatedReviews.push({
         ...review,
         PK: myPK,
-        SK: `#FOLLOWINGPOST#${review.createdAt}`,
+        SK: `#FOLLOWINGPOST#${review.timestamp}`,
         LSI1: `#FOLLOWINGPOST#${review.geo}`,
         LSI2: `#FOLLOWINGPOST#${review.placeId}`,
         LSI3: `#FOLLOWINGPOST#${uid}`,

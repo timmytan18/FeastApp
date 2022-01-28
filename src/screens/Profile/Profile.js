@@ -2,16 +2,18 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList,
+  StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList, Alert,
 } from 'react-native';
 // import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { API, graphqlOperation } from 'aws-amplify';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
-import { getUserReviewsQuery, getNumFollowsQuery } from '../../api/functions/queryFunctions';
+import { getUserReviewsQuery, getNumFollowsQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
+import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
+import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import ProfilePic from '../components/ProfilePic';
 // import { link } from '../components/OpenLink';
 import MoreView from '../components/MoreView';
@@ -68,7 +70,7 @@ const Profile = ({ navigation, route }) => {
       setReviews(userReviews);
       setRefreshing(false);
     })();
-  }, [numRefresh.current]);
+  }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK]);
 
   if (isLoading) {
     return <CenterSpinner />;
@@ -241,32 +243,103 @@ const Profile = ({ navigation, route }) => {
     </View>
   );
 
+  const deletePost = async ({ timestamp }) => {
+    // Delete post from user's profile
+    const input = { PK: user.PK, SK: `#PLACE#${timestamp}` };
+    try {
+      await API.graphql(graphqlOperation(
+        deleteFeastItem,
+        { input },
+      ));
+    } catch (err) {
+      console.log(err);
+      Alert.alert(
+        'Error',
+        'Could not delete post',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+      return;
+    }
+
+    // Remove user's post from followers' feeds in batches
+    const followers = await getFollowersQuery({ PK: user.PK, onlyReturnUIDs: true });
+    const postInUserFeeds = [];
+    followers.forEach(({ follower: { PK: followerPK } }) => {
+      postInUserFeeds.push({
+        PK: followerPK,
+        SK: `#FOLLOWINGPOST#${timestamp}`,
+      });
+    });
+
+    console.log(postInUserFeeds);
+    if (postInUserFeeds.length) {
+      let i; let j;
+      const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
+      for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
+        const batch = postInUserFeeds.slice(i, i + BATCH_NUM);
+        try {
+          await API.graphql(graphqlOperation(
+            batchDeleteFollowingPosts,
+            { input: { posts: batch } },
+          ));
+        } catch (err) {
+          console.log("Error removing followed user's posts from feed", err);
+        }
+      }
+    }
+    // Refresh user posts list
+    numRefresh.current += 1;
+    setRefreshing(true);
+  };
+
   const renderItem = (item) => (
-    <View>
-      <Text style={styles.userText}>
-        {item.name}
-      </Text>
-      <Text style={styles.userText}>
-        {item.review}
-      </Text>
-      <Text style={styles.userText}>
-        Overall:
-        {' '}
-        {item.rating.overall}
-        {' '}
-        Food:
-        {item.rating.overall}
-        {' '}
-        Value:
-        {item.rating.value}
-        {' '}
-        Service:
-        {item.rating.service}
-        {' '}
-        Ambience:
-        {item.rating.ambience}
-      </Text>
-      <Text style={styles.userText} />
+    <View style={{ flexDirection: 'row' }}>
+      <View style={{ flex: 0.8, paddingLeft: wp(5) }}>
+        <Text style={styles.userText}>
+          {item.name}
+        </Text>
+        <Text style={styles.userText}>
+          {item.review}
+        </Text>
+        <Text style={styles.userText}>
+          Overall:
+          {' '}
+          {item.rating.overall}
+          {' '}
+          Food:
+          {item.rating.overall}
+          {' '}
+          Value:
+          {item.rating.value}
+          {' '}
+          Service:
+          {item.rating.service}
+          {' '}
+          Ambience:
+          {item.rating.ambience}
+        </Text>
+        <Text style={styles.userText} />
+      </View>
+      {isMe && (
+        <View style={{
+          flex: 0.2, justifyContent: 'center', alignItems: 'center',
+        }}
+        >
+          <TouchableOpacity onPress={() => {
+            TwoButtonAlert({
+              title: 'Delete Post',
+              yesButton: 'Confirm',
+              pressed: () => {
+                deletePost({ timestamp: item.timestamp });
+              },
+            });
+          }}
+          >
+            <Text style={{ color: 'blue' }}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -291,7 +364,12 @@ const Profile = ({ navigation, route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <MoreView items={moreItems} morePressed={morePressed} setMorePressed={setMorePressed} />
-      <EditProfile editPressed={editPressed} setEditPressed={setEditPressed} user={user} dispatch={dispatch} />
+      <EditProfile
+        editPressed={editPressed}
+        setEditPressed={setEditPressed}
+        user={user}
+        dispatch={dispatch}
+      />
       <SectionList
         sections={data}
         keyExtractor={(item, index) => index}
@@ -299,7 +377,7 @@ const Profile = ({ navigation, route }) => {
         renderSectionHeader={renderTopContainer}
         refreshing={refreshing}
         onRefresh={() => {
-          numRefresh.current++;
+          numRefresh.current += 1;
           setRefreshing(true);
         }}
       />
