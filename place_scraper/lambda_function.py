@@ -247,8 +247,6 @@ def lambda_handler(*args, **kwargs):
     _state = inp.get('region', '')
     _zip = inp.get('zip', '')
     _country = inp.get('country', '')
-    _category = inp.get('category', '')
-    _chain = inp.get('chain', '')
 
     query = f'{_name} {_address} {_city} {_state}' if re.search(
         '\d', _address) else f'{_name} {_city} {_state}'
@@ -256,13 +254,6 @@ def lambda_handler(*args, **kwargs):
     bing_url = 'https://www.bing.com/search?q='
     search_url = bing_url + query_formatted
     print(search_url)
-
-    search_with_category_url = None
-    if _category:
-        query_with_category = f'{_name} {_category} {_address} {_city} {_state}' if re.search(
-            '\d', _address) else f'{_name} {_category} {_city} {_state}'
-        query_with_category = normalize(query_with_category)
-        search_with_category_url = bing_url + query_with_category
 
     # Required info for normal layout
     centerResult = None
@@ -344,28 +335,22 @@ def lambda_handler(*args, **kwargs):
     isNormalLayout = True
     try:
         isNormalLayout = getRequiredInfo(search_url)
-    except:
-        try:
-            if not search_with_category_url:
-                raise Exception('COULD NOT FIND RESTAURANT, no category')
-            print('Could not find restaurant, attempting with category')
-            isNormalLayout = getRequiredInfo(search_with_category_url)
-        except Exception as e:
-            if str(e) == 'PERMANENTLY_CLOSED':
-                print('PERMANENTLY CLOSED')
-                return
-            element = driver.find_element_by_xpath('//*')
-            element = element.get_attribute('innerHTML')
-            print(element)
-            print(search_url)
-            raise Exception('COULD NOT FIND RESTAURANT')
+    except Exception as e:
+        if str(e) == 'PERMANENTLY_CLOSED':
+            print('PERMANENTLY CLOSED')
+            return
+        element = driver.find_element_by_xpath('//*')
+        element = element.get_attribute('innerHTML')
+        print(element)
+        print(search_url)
+        raise Exception('COULD NOT FIND RESTAURANT')
 
     # default placeType to IND if not chain in FSQ
-    placeType = 'CHAIN' if _chain else 'IND'
-    if name in fastfood:
-        placeType = 'FAST'
-    elif name in chains:
+    placeType = 'IND'
+    if name in chains:
         placeType = 'CHAIN'
+    elif name in fastfood:
+        placeType = 'FAST'
 
     address = None
     try:

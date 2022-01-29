@@ -24,23 +24,10 @@ import {
 // Tests
 import scrapeTest from './ScrapeTest';
 
-const FS_API_KEY = config.FOURSQUARE_API_KEY;
-const FS_GET_OPTIONS = {
-  method: 'GET',
-  headers: {
-    Accept: 'application/json',
-    Authorization: FS_API_KEY,
-  },
-};
-const FS_CATEGORY_ID = '13000';
-// const FS_ITEM_LIMIT = 50;
-// const FS_SEARCH_RADIUS = 50000; // 50000 meter ~= 30 mile radius
-const FS_ITEM_LIMIT = 20;
-const FS_SEARCH_RADIUS = 10000;
-const FS_DEFAULT_CATEGORY_ICON = {
-  prefix: 'https://ss3.4sqi.net/img/categories_v2/food/default_',
-  suffix: '.png',
-};
+const BING_KEY = config.BING_API_KEY;
+const BING_CAT_TYPE = 'EatDrink';
+const BING_NEARBY_RADIUS = '1000'; // 1 km radius
+const BING_SEARCH_RADIUS = '5000'; // 5 km radius (max); is more when no results within 5 km
 
 const NewPost = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
@@ -145,16 +132,16 @@ const NewPost = ({ navigation }) => {
       } catch (err) {
         console.log('Error updating current location', err);
       }
-
       const lat = latitude.current;
       const lng = longitude.current;
-      const url = `https://api.foursquare.com/v3/places/nearby?ll=${lat},${lng}&limit=${FS_ITEM_LIMIT}&categories=${FS_CATEGORY_ID}`;
+      const url = `https://dev.virtualearth.net/REST/v1/LocalSearch/?&type=${BING_CAT_TYPE}&userCircularMapView=${lat},${lng},${BING_NEARBY_RADIUS}&maxResults=25&key=${BING_KEY}`;
       try {
-        const res = await fetch(url, FS_GET_OPTIONS);
+        const res = await fetch(url);
         const data = await res.json();
-        nearbyPlaces.current = await filterSetResults(data.results);
+        const items = data.resourceSets[0].resources;
+        nearbyPlaces.current = await filterSetResults(items);
       } catch (err) {
-        console.log('Error fetching and filtering nearby FS POIs', err);
+        console.log('Error fetching Bing locations', err);
       }
 
       isSearch.current = false;
@@ -173,13 +160,14 @@ const NewPost = ({ navigation }) => {
     } else {
       const lat = latitude.current;
       const lng = longitude.current;
-      const url = `https://api.foursquare.com/v3/places/search?ll=${lat},${lng}&query=${query}&categories=${FS_CATEGORY_ID}&radius=${FS_SEARCH_RADIUS}&limit=${FS_ITEM_LIMIT}`;
-      console.log(url);
+      const url = `https://dev.virtualearth.net/REST/v1/LocalSearch/?query=${query}&type=${BING_CAT_TYPE}&userCircularMapView=${lat},${lng},${BING_SEARCH_RADIUS}&maxResults=25&key=${BING_KEY}`;
       try {
-        const res = await fetch(url, FS_GET_OPTIONS);
+        const res = await fetch(url);
         const data = await res.json();
         isSearch.current = true;
-        const searchResults = await filterSetResults(data.results);
+        const items = data.resourceSets[0].resources;
+        console.log(items);
+        await filterSetResults(items);
         // Run scraper test
         // scrapeTest({ places: searchResults });
       } catch (err) {
@@ -189,25 +177,22 @@ const NewPost = ({ navigation }) => {
   };
 
   const renderItem = ({ item }) => {
-    // Calcuate distance between item coordinates and user location
-    const { latitude: lat, longitude: lng } = item.geocodes && item.geocodes.main
-      ? item.geocodes.main : { latitude: latitude.current, longitude: longitude.current };
+    // Calculate distance between item coordinates and user location
+    // If item doesn't have coordinates, use user's location
+    const [lat, lng] = item.geocodePoints
+      && item.geocodePoints.length
+      && item.geocodePoints[0].coordinates
+      ? item.geocodePoints[0].coordinates : [latitude.current, longitude.current];
     const distance = coordinateDistance(latitude.current, longitude.current, lat, lng);
     // Get city and address
-    const city = item.location && item.location.locality ? item.location.locality : '';
-    const address = item.location && item.location.address ? item.location.address : '';
+    const city = item.Address && item.Address.locality ? item.Address.locality : '';
+    const address = item.Address && item.Address.addressLine ? item.Address.addressLine : '';
     let loc = city;
     if (address) {
       loc = `${address}, ${city}`;
     }
 
-    // Use first icon from category array
-    const { prefix, suffix } = item.categories.length
-      ? item.categories[0].icon : FS_DEFAULT_CATEGORY_ICON;
-    // const { prefix, suffix } = item.categories.length
-    //   ? item.categories[item.categories.length - 1].icon : FS_DEFAULT_CATEGORY_ICON;
-
-    if (item.fsq_id === selected) {
+    if (item.placeId === selected) {
       return (
         <TouchableOpacity
           style={styles.itemContainer}
@@ -223,13 +208,13 @@ const NewPost = ({ navigation }) => {
             start={gradients.orange.start}
             end={gradients.orange.end}
           >
-            <View style={styles.iconContainer}>
+            {/* <View style={styles.iconContainer}>
               <Image
                 source={{ uri: prefix.concat('44', suffix) }}
                 resizeMode="contain"
                 style={{ flex: 1, tintColor: 'white' }}
               />
-            </View>
+            </View> */}
             <View style={styles.infoContainer}>
               <Text style={[styles.nameText, { color: 'white' }]}>{item.name}</Text>
               <Text
@@ -257,17 +242,17 @@ const NewPost = ({ navigation }) => {
         style={styles.itemContainer}
         activeOpacity={0.8}
         onPress={() => {
-          setSelected(item.fsq_id);
+          setSelected(item.placeId);
           selectedData.current = item;
         }}
       >
-        <View style={styles.iconContainer}>
+        {/* <View style={styles.iconContainer}>
           <Image
             source={{ uri: prefix.concat('44', suffix) }}
             resizeMode="contain"
             style={{ flex: 1, tintColor: colors.black }}
           />
-        </View>
+        </View> */}
         <View style={styles.infoContainer}>
           <Text style={styles.nameText}>{item.name}</Text>
           <Text
@@ -334,7 +319,7 @@ const NewPost = ({ navigation }) => {
                 data={placeList}
                 extraData={placeList}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.fsq_id}
+                keyExtractor={(item) => item.placeId}
                 showsVerticalScrollIndicator={false}
                 onScrollBeginDrag={Keyboard.dismiss}
               // ListFooterComponent={smallLoading && (

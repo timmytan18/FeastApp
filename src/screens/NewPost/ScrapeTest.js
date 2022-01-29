@@ -3,33 +3,20 @@ import geohash from 'ngeohash';
 import { Auth, API, graphqlOperation } from 'aws-amplify';
 import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
 
-const Category = PropTypes.shape({
-  id: PropTypes.number,
-  name: PropTypes.string,
-});
-
-const Chain = PropTypes.shape({
-  id: PropTypes.string,
-  name: PropTypes.string,
-});
-
 const propTypes = {
   places: PropTypes.shape({
-    categories: PropTypes.arrayOf(Category),
-    chains: PropTypes.arrayOf(Chain),
-    fsq_id: PropTypes.string,
-    geocodes: PropTypes.shape({
-      main: PropTypes.shape({
-        latitude: PropTypes.number,
-        longitude: PropTypes.number,
+    placeId: PropTypes.string,
+    geocodePoints: PropTypes.arrayOf(
+      PropTypes.shape({
+        coordinates: PropTypes.arrayOf(PropTypes.number),
       }),
-    }),
-    location: PropTypes.shape({
+    ),
+    Address: PropTypes.shape({
       locality: PropTypes.string, // city
-      region: PropTypes.string, // state
-      country: PropTypes.string,
-      address: PropTypes.string,
-      postcode: PropTypes.string,
+      adminDistrict: PropTypes.string, // state
+      countryRegion: PropTypes.string,
+      addressLine: PropTypes.string,
+      postalCode: PropTypes.string,
     }),
     name: PropTypes.string,
   }).isRequired,
@@ -38,23 +25,16 @@ const propTypes = {
 function scrapePlaceData(currItem) {
   // Destructure place attributes
   const {
-    fsq_id: placeId,
+    placeId,
     name,
-    location: {
-      locality: city,
-      region, // state
-      country,
-      address,
-      postcode,
+    Address: {
+      locality: city, // city
+      adminDistrict: region, // state
+      countryRegion: country,
+      addressLine: address,
+      postalCode: postcode,
     },
-    geocodes: {
-      main: {
-        latitude: placeLat,
-        longitude: placeLng,
-      },
-    },
-    categories,
-    chains,
+    geocodePoints: [{ coordinates: [placeLat, placeLng] }],
   } = currItem;
 
   // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
@@ -64,7 +44,6 @@ function scrapePlaceData(currItem) {
   (async function createPlaceItem() {
     const cognitoUser = await Auth.currentAuthenticatedUser();
     const token = cognitoUser.signInUserSession.idToken.jwtToken;
-    const category = categories[0].name;
     const data = {
       placeId,
       geohash: hash,
@@ -75,8 +54,6 @@ function scrapePlaceData(currItem) {
       region,
       zip: postcode,
       country,
-      category,
-      chain: chains.length ? chains[0].name : '',
     };
     console.log(JSON.stringify(data));
 
@@ -103,7 +80,7 @@ const fetchPlaces = async ({ places }) => {
   const failedToFetch = [];
   places.forEach(async (item) => {
     const {
-      fsq_id: placeId,
+      placeId,
       name,
     } = item;
 

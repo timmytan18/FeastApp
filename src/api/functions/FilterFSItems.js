@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { API, graphqlOperation } from 'aws-amplify';
+import geohash from 'ngeohash';
 import { getPlaceInDBQuery } from './queryFunctions';
 import FSCATEGORIES from '../../constants/FSCategories';
 import coordinateDistance from './CoordinateDistance';
@@ -17,7 +18,6 @@ const Category = PropTypes.shape({
 const PlaceItem = PropTypes.shape({
   categories: PropTypes.arrayOf(Category),
   distance: PropTypes.number,
-  fsq_id: PropTypes.string,
   geocodes: PropTypes.shape({
     main: PropTypes.shape({
       latitude: PropTypes.number,
@@ -120,11 +120,11 @@ function groupMatches(matches) {
 // Compare similarity of FS item data and Google Places item data
 function compareToGooglePlaces(item, place) {
   const nameSim = compareTwoStrings(item.name, place.name, false);
-  const { latitude: itemLat, longitude: itemLng } = item.geocodes.main;
+  const [itemLat, itemLng] = item.geocodePoints[0].coordinates;
   const { lat: placeLat, lng: placeLng } = place.geometry.location;
   const dist = coordinateDistance(itemLat, itemLng, placeLat, placeLng);
   const distSim = dist === 0 ? 2 : 0.1 / dist;
-  const itemAddress = item.location.address;
+  const itemAddress = item.Address.addressLine;
   const placeAddress = place.formatted_address;
   const addressSim = compareTwoStrings(itemAddress, placeAddress, true);
 
@@ -136,15 +136,17 @@ export default async function filterFSItems({ results }) {
   // Filter out places that aren't in dining and drinking categories and null items
   let items = [];
   results.forEach((item) => {
-    if (item && item.categories) {
-      for (let i = 0; i < item.categories.length; i += 1) {
-        if (item.categories[i].id in FSCATEGORIES) {
-          items.push(item);
-          break;
-        }
-      }
+    if (item) {
+      const [placeLat, placeLng] = item.geocodePoints[0].coordinates;
+      const hash = geohash.encode(placeLat, placeLng);
+      // const strippedName = item.Address.addressLine.replace(/[^0-9a-z]/gi, '').toLowerCase();
+      // console.log(hash + strippedName);
+      item.placeId = hash;
+      items.push(item);
     }
   });
+
+  // let items = results;
 
   const matches = {};
 
@@ -202,19 +204,19 @@ export default async function filterFSItems({ results }) {
         }
       }
 
-      if (nameSim >= 0.7) {
+      if (nameSim >= 0.5) {
         // Calculate distance similarity use coordinates
-        const { latitude: latA, longitude: lngA } = items[i].geocodes.main;
-        const { latitude: latB, longitude: lngB } = items[j].geocodes.main;
+        const [latA, lngA] = items[i].geocodePoints[0].coordinates;
+        const [latB, lngB] = items[j].geocodePoints[0].coordinates;
         if (latA && lngA && latB && lngB) {
           const dist = coordinateDistance(latA, lngA, latB, lngB);
           distSim = dist === 0 ? 2 : 0.1 / dist;
         }
         // Calculate address similarity using address, city, and zip
-        const { locality: localityA, postcode: postcodeA } = items[i].location;
-        const { locality: localityB, postcode: postcodeB } = items[j].location;
-        let addressA = items[i].location.address;
-        let addressB = items[j].location.address;
+        const { locality: localityA, postalCode: postcodeA } = items[i].Address;
+        const { locality: localityB, postalCode: postcodeB } = items[j].Address;
+        let addressA = items[i].Address.addressLine;
+        let addressB = items[j].Address.addressLine;
         // If both addresses contain the city name after the first index, remove it from both
         if (addressA.toLowerCase().includes(localityA.toLowerCase(), 1)
           && addressB.toLowerCase().includes(localityB.toLowerCase(), 1)) {
@@ -265,7 +267,7 @@ export default async function filterFSItems({ results }) {
       // If any item in group is in db, remove
       let removed = false;
       for (const a of groups[i].keys()) {
-        const exists = await getPlaceInDBQuery({ placePK: `PLACE#${items[a].fsq_id}` });
+        const exists = await getPlaceInDBQuery({ placePK: `PLACE#${items[a].placeId}` });
         if (exists) {
           removed = true;
           console.log('Chosen bc already in DB: ', items[a]);
@@ -279,8 +281,8 @@ export default async function filterFSItems({ results }) {
         const key = config.GOOGLE_GEO_API_KEY;
         const places = {};
         for (const a of groups[i].keys()) {
-          const { name, location, geocodes } = items[a];
-          const { latitude: lat, longitude: lng } = geocodes.main;
+          const { name, point } = items[a];
+          const [lat, lng] = point.coordinates;
           const request = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${name}&inputtype=textquery&fields=name,geometry,formatted_address,place_id&locationbias=point:${lat},${lng}&key=${key}`;
           const res = await fetch(request);
           let data = await res.json();

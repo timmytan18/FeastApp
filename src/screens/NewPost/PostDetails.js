@@ -20,35 +20,22 @@ import {
   colors, sizes, wp, hp,
 } from '../../constants/theme';
 
-const Category = PropTypes.shape({
-  id: PropTypes.number,
-  name: PropTypes.string,
-});
-
-const Chain = PropTypes.shape({
-  id: PropTypes.string,
-  name: PropTypes.string,
-});
-
 const propTypes = {
   route: PropTypes.shape({
     params: PropTypes.shape({
       business: PropTypes.shape({
-        categories: PropTypes.arrayOf(Category),
-        chains: PropTypes.arrayOf(Chain),
-        fsq_id: PropTypes.string,
-        geocodes: PropTypes.shape({
-          main: PropTypes.shape({
-            latitude: PropTypes.number,
-            longitude: PropTypes.number,
+        placeId: PropTypes.string,
+        geocodePoints: PropTypes.arrayOf(
+          PropTypes.shape({
+            coordinates: PropTypes.arrayOf(PropTypes.number),
           }),
-        }),
-        location: PropTypes.shape({
+        ),
+        Address: PropTypes.shape({
           locality: PropTypes.string, // city
-          region: PropTypes.string, // state
-          country: PropTypes.string,
-          address: PropTypes.string,
-          postcode: PropTypes.string,
+          adminDistrict: PropTypes.string, // state
+          countryRegion: PropTypes.string,
+          addressLine: PropTypes.string,
+          postalCode: PropTypes.string,
         }),
         name: PropTypes.string,
       }),
@@ -82,23 +69,16 @@ const PostDetails = ({ navigation, route }) => {
 
     // Destructure place attributes
     const {
-      fsq_id: placeId,
+      placeId,
       name,
-      location: {
-        locality: city,
-        region, // state
-        country,
-        address,
-        postcode,
+      Address: {
+        locality: city, // city
+        adminDistrict: region, // state
+        countryRegion: country,
+        addressLine: address,
+        postalCode: postcode,
       },
-      geocodes: {
-        main: {
-          latitude: placeLat,
-          longitude: placeLng,
-        },
-      },
-      categories,
-      chains,
+      geocodePoints: [{ coordinates: [placeLat, placeLng] }],
     } = business;
 
     const placePK = `PLACE#${placeId}`;
@@ -111,7 +91,6 @@ const PostDetails = ({ navigation, route }) => {
     async function createPlaceItem() {
       const cognitoUser = await Auth.currentAuthenticatedUser();
       const token = cognitoUser.signInUserSession.idToken.jwtToken;
-      const category = categories[0].name;
       const data = {
         placeId,
         geohash: hash,
@@ -122,8 +101,6 @@ const PostDetails = ({ navigation, route }) => {
         region,
         zip: postcode,
         country,
-        category,
-        chain: chains.length ? chains[0].name : '',
       };
       console.log(JSON.stringify(data));
 
