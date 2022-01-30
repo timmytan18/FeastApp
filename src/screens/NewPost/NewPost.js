@@ -52,6 +52,7 @@ const NewPost = ({ navigation }) => {
     // Navigate to next screen
     function businessChosen() {
       if (selectedData.current) {
+        setShowMap(false);
         navigation.navigate('PostDetails', {
           business: selectedData.current,
           businesses: placeList,
