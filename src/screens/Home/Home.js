@@ -188,7 +188,7 @@ const Home = ({ navigation }) => {
                 key={`${lat}${lng}`}
                 coordinate={{ latitude: lat, longitude: lng }}
               >
-                <LocationMapMarker />
+                <LocationMapMarker isUser />
               </Marker>
             );
           }

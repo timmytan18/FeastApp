@@ -2,11 +2,13 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, FlatList, Image, Keyboard,
+  StyleSheet, Text, View, TouchableOpacity, FlatList, Keyboard,
 } from 'react-native';
 import * as Location from 'expo-location';
+import * as WebBrowser from 'expo-web-browser';
 import { BallIndicator } from 'react-native-indicators';
 import { LinearGradient } from 'expo-linear-gradient';
+import MapModal from '../components/MapModal';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import filterFSItems from '../../api/functions/FilterFSItems';
 import config from '../../config';
@@ -14,11 +16,11 @@ import { Context } from '../../Store';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import NextArrow from '../components/util/icons/NextArrow';
+import Redirect from '../components/util/icons/Redirect';
 import MapMarker from '../components/util/icons/MapMarker';
-import Car from '../components/util/icons/Car';
 import { RATING_CATEGORIES } from '../../constants/constants';
 import {
-  colors, gradients, shadows, sizes, wp,
+  colors, gradients, shadows, sizes, wp, hp,
 } from '../../constants/theme';
 
 // Tests
@@ -41,6 +43,9 @@ const NewPost = ({ navigation }) => {
   const selectedData = useRef(null);
   const isSearch = useRef(false);
   // const [smallLoading, setSmallLoading] = useState(false);
+
+  const [showMap, setShowMap] = useState(false);
+  const showMapPlace = useRef({ name: null, latitude: null, longitude: null });
 
   // Set up navigation and header options
   useEffect(() => {
@@ -125,8 +130,8 @@ const NewPost = ({ navigation }) => {
       // longitude.current = '-84.13485';
     }
 
-    // Fetch nearby POIs from Foursquare
-    (async function getNearby() {
+    // Fetch nearby POIs from Bing
+    async function getNearby() {
       try {
         await updateCurrentLocation();
       } catch (err) {
@@ -145,7 +150,11 @@ const NewPost = ({ navigation }) => {
       }
 
       isSearch.current = false;
-    }());
+    }
+
+    if (!nearbyPlaces.current.length) {
+      getNearby();
+    }
   }, [dispatch, navigation]);
 
   // Search for nearby POIs using query string
@@ -171,9 +180,15 @@ const NewPost = ({ navigation }) => {
         // Run scraper test
         // scrapeTest({ places: searchResults });
       } catch (err) {
-        console.log('Error fetching and filtering searched FS POIs', err);
+        console.log('Error fetching and filtering searched Bing POIs', err);
       }
     }
+  };
+
+  const showMapPressed = (place) => {
+    const { name: placeName, geocodePoints: [{ coordinates: [placeLat, placeLng] }] } = place;
+    showMapPlace.current = { placeName, placeLat, placeLng };
+    setShowMap(true);
   };
 
   const renderItem = ({ item }) => {
@@ -208,15 +223,17 @@ const NewPost = ({ navigation }) => {
             start={gradients.orange.start}
             end={gradients.orange.end}
           >
-            {/* <View style={styles.iconContainer}>
-              <Image
-                source={{ uri: prefix.concat('44', suffix) }}
-                resizeMode="contain"
-                style={{ flex: 1, tintColor: 'white' }}
-              />
-            </View> */}
             <View style={styles.infoContainer}>
-              <Text style={[styles.nameText, { color: 'white' }]}>{item.name}</Text>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={[styles.nameText, { color: 'white' }]}>{item.name}</Text>
+                {item.Website && (
+                  <TouchableOpacity
+                    onPressIn={() => WebBrowser.openBrowserAsync(item.Website)}
+                  >
+                    <Redirect color={colors.white} size={wp(4.2)} />
+                  </TouchableOpacity>
+                )}
+              </View>
               <Text
                 style={[styles.locationText, { color: 'white' }]}
                 numberOfLines={item.name.length > 20 ? 1 : 2}
@@ -225,36 +242,41 @@ const NewPost = ({ navigation }) => {
                 {loc}
               </Text>
             </View>
-            <View style={styles.distanceContainer}>
-              <Car size={wp(4.5)} color="white" />
+            <TouchableOpacity
+              style={styles.distanceContainer}
+              onPress={() => showMapPressed(item)}
+            >
+              <MapMarker size={wp(5.5)} color={colors.white} />
               <Text style={[styles.distanceText, { color: 'white' }]}>
                 {distance}
                 {' '}
                 mi
               </Text>
-            </View>
+            </TouchableOpacity>
           </LinearGradient>
         </TouchableOpacity>
       );
     }
     return (
       <TouchableOpacity
-        style={styles.itemContainer}
+        style={[styles.itemContainer, shadows.even]}
         activeOpacity={0.8}
         onPress={() => {
           setSelected(item.placeId);
           selectedData.current = item;
         }}
       >
-        {/* <View style={styles.iconContainer}>
-          <Image
-            source={{ uri: prefix.concat('44', suffix) }}
-            resizeMode="contain"
-            style={{ flex: 1, tintColor: colors.black }}
-          />
-        </View> */}
         <View style={styles.infoContainer}>
-          <Text style={styles.nameText}>{item.name}</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.nameText}>{item.name}</Text>
+            {item.Website && (
+              <TouchableOpacity
+                onPressIn={() => WebBrowser.openBrowserAsync(item.Website)}
+              >
+                <Redirect color={colors.tertiary} size={wp(4.2)} />
+              </TouchableOpacity>
+            )}
+          </View>
           <Text
             style={styles.locationText}
             numberOfLines={item.name.length > 20 ? 1 : 2}
@@ -263,14 +285,17 @@ const NewPost = ({ navigation }) => {
             {loc}
           </Text>
         </View>
-        <View style={styles.distanceContainer}>
-          <Car size={wp(4.5)} />
+        <TouchableOpacity
+          style={styles.distanceContainer}
+          onPress={() => showMapPressed(item)}
+        >
+          <MapMarker size={wp(5.5)} color={colors.tertiary} />
           <Text style={styles.distanceText}>
             {distance}
             {' '}
             mi
           </Text>
-        </View>
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -278,6 +303,21 @@ const NewPost = ({ navigation }) => {
   return (
     <DismissKeyboardView style={{ flex: 1 }}>
       <View style={styles.container}>
+        {showMap && (
+          <MapModal
+            visible={showMap}
+            setVisible={setShowMap}
+            userLat={latitude.current}
+            userLng={longitude.current}
+            userPic={state.user.picture}
+            place={showMapPlace.current}
+          />
+        )}
+        <View style={styles.topTextContainer}>
+          <Text style={styles.topText}>
+            Where did you Feast?
+          </Text>
+        </View>
         <View style={styles.searchBoxContainer}>
           <SearchBox
             completeSearch={searchPlace}
@@ -375,11 +415,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     alignItems: 'center',
   },
+  topTextContainer: {
+    alignSelf: 'flex-start',
+    marginTop: hp(2.5),
+    marginLeft: sizes.margin,
+  },
+  topText: {
+    fontFamily: 'Semi',
+    fontSize: sizes.h4,
+    textAlign: 'left',
+    color: colors.black,
+  },
   searchBoxContainer: {
     flex: 0.06,
     width: '100%',
-    paddingHorizontal: wp(3),
-    paddingVertical: wp(5),
+    paddingHorizontal: wp(3.5),
+    paddingTop: wp(3),
+    paddingBottom: wp(5),
   },
   topContainer: {
     flex: 0.11,
@@ -433,19 +485,17 @@ const styles = StyleSheet.create({
     flex: 1,
     width: wp(92),
   },
-  iconContainer: {
-    flex: 0.2,
-    height: wp(6.5),
-  },
   infoContainer: {
-    flex: 0.6,
+    flex: 0.7,
     paddingTop: wp(1),
+    marginLeft: wp(7.2),
   },
   nameText: {
     fontFamily: 'Semi',
     fontSize: sizes.h4,
     lineHeight: sizes.h4 * 1.2,
     color: colors.black,
+    paddingRight: wp(2.2),
   },
   locationText: {
     fontFamily: 'Book',
@@ -456,7 +506,7 @@ const styles = StyleSheet.create({
     paddingTop: wp(0.8),
   },
   distanceContainer: {
-    flex: 0.2,
+    flex: 0.3,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -464,8 +514,8 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontFamily: 'Medium',
-    fontSize: sizes.b4,
-    color: colors.black,
+    fontSize: sizes.caption,
+    color: colors.tertiary,
     paddingTop: wp(0.5),
   },
   smallLoader: {
