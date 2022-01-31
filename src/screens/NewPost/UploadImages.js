@@ -379,20 +379,6 @@ const UploadImages = ({ navigation, route }) => {
               onEndEditing={() => (tab === CAMERA_TAB ? slideInput(0) : slideInput(0.7))}
             />
           </Animated.View>
-          {/* <Animated.View
-          style={[styles.itemInputContainer, { transform: [{ translateY: inputTranslate }] }]}
-        >
-          <Dish />
-          <TextInput
-            style={styles.itemInput}
-            onChangeText={(text) => setMenuItem(text)}
-            value={menuItem}
-            placeholder="What's this menu item? (optional)"
-            placeholderTextColor={colors.tertiary}
-            onFocus={() => slideInput(1)}
-            onEndEditing={() => (tab === CAMERA_TAB ? slideInput(0) : slideInput(0.7))}
-          />
-        </Animated.View> */}
           {tab === CAMERA_TAB
             && (
               <TouchableOpacity
@@ -407,7 +393,6 @@ const UploadImages = ({ navigation, route }) => {
             && (
               <View style={styles.previewContainer}>
                 <FlatList
-                  // style={styles.previewContainer}
                   contentContainerStyle={{ paddingLeft: wp(0.5) }}
                   data={libraryPreview}
                   renderItem={renderGridItem}
@@ -421,7 +406,12 @@ const UploadImages = ({ navigation, route }) => {
                       style={styles.allLibraryContainer}
                       onPress={async () => {
                         const image = await ImagePicker.launchImageLibraryAsync(
-                          { aspect: [1, 1], allowsEditing: true, quality: 1 },
+                          {
+                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            aspect: [1, 1],
+                            allowsEditing: true,
+                            quality: 1,
+                          },
                         );
                         if (!image.cancelled) {
                           delete image.cancelled;
@@ -434,6 +424,7 @@ const UploadImages = ({ navigation, route }) => {
                       </View>
                     </TouchableOpacity>
                   )}
+                  ListFooterComponentStyle={{ alignItems: 'center', justifyContent: 'center' }}
                 />
               </View>
             )}
@@ -579,7 +570,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(1),
   },
   allLibraryContainer: {
-    height: '100%',
+    height: '60%',
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -594,7 +585,7 @@ const styles = StyleSheet.create({
   },
   allLibraryText: {
     fontFamily: 'Medium',
-    fontSize: sizes.b1,
+    fontSize: sizes.b3,
     color: colors.tertiary,
     textAlign: 'center',
   },
