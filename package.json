@@ -51,7 +51,9 @@
     "react-native-status-bar-height": "^2.6.0",
     "react-native-svg": "12.1.1",
     "react-native-unimodules": "~0.15.0",
-    "react-native-web": "0.17.1"
+    "react-native-web": "0.17.1",
+    "expo-camera": "~12.1.0",
+    "expo-media-library": "~14.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

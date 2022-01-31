@@ -61,6 +61,7 @@ export const getFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -145,6 +146,7 @@ export const listFeastItems = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -231,6 +233,7 @@ export const itemsByGSI1 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -317,6 +320,7 @@ export const itemsByGSI2 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -403,6 +407,7 @@ export const itemsByLSI1 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -489,6 +494,7 @@ export const itemsByLSI2 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -575,6 +581,7 @@ export const itemsByLSI3 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -661,6 +668,7 @@ export const itemsByLSI4 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food
@@ -747,6 +755,7 @@ export const itemsByLSI5 = /* GraphQL */ `
           name
           picture
         }
+        dish
         rating {
           overall
           food

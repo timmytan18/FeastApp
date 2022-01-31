@@ -65,7 +65,7 @@ const sizes = {
 };
 
 const header = {
-  title: { fontFamily: 'Semi', fontSize: sizes.b0, color: colors.black },
+  title: { fontFamily: 'Semi', fontSize: sizes.h3, color: colors.black },
 };
 
 const isIOS = Platform.OS == 'ios';

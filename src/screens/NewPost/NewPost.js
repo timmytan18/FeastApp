@@ -53,11 +53,8 @@ const NewPost = ({ navigation }) => {
     function businessChosen() {
       if (selectedData.current) {
         setShowMap(false);
-        navigation.navigate('PostDetails', {
+        navigation.navigate('UploadImages', {
           business: selectedData.current,
-          businesses: placeList,
-          // currLat: latitude.current,
-          // currLng: longitude.current
         });
       }
     }
@@ -243,17 +240,18 @@ const NewPost = ({ navigation }) => {
                 {loc}
               </Text>
             </View>
-            <TouchableOpacity
-              style={styles.distanceContainer}
-              onPress={() => showMapPressed(item)}
-            >
-              <MapMarker size={wp(5.5)} color={colors.white} />
-              <Text style={[styles.distanceText, { color: 'white' }]}>
-                {distance}
-                {' '}
-                mi
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.distanceContainer}>
+              <TouchableOpacity onPress={() => showMapPressed(item)}>
+                <MapMarker size={wp(5.5)} color={colors.white} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => showMapPressed(item)}>
+                <Text style={[styles.distanceText, { color: 'white' }]}>
+                  {distance}
+                  {' '}
+                  mi
+                </Text>
+              </TouchableOpacity>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       );
@@ -286,17 +284,18 @@ const NewPost = ({ navigation }) => {
             {loc}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.distanceContainer}
-          onPress={() => showMapPressed(item)}
-        >
-          <MapMarker size={wp(5.5)} color={colors.tertiary} />
-          <Text style={styles.distanceText}>
-            {distance}
-            {' '}
-            mi
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.distanceContainer}>
+          <TouchableOpacity onPress={() => showMapPressed(item)}>
+            <MapMarker size={wp(5.5)} color={colors.tertiary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => showMapPressed(item)}>
+            <Text style={styles.distanceText}>
+              {distance}
+              {' '}
+              mi
+            </Text>
+          </TouchableOpacity>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -422,7 +421,7 @@ const styles = StyleSheet.create({
     marginLeft: sizes.margin,
   },
   topText: {
-    fontFamily: 'Semi',
+    fontFamily: 'Medium',
     fontSize: sizes.h4,
     textAlign: 'left',
     color: colors.black,

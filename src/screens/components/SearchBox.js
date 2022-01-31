@@ -33,6 +33,7 @@ const SearchBox = ({
         onSubmitEditing={() => {
           completeSearch(query);
         }}
+        autoCorrect={false}
       />
     </View>
   );
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     marginLeft: wp(0.5),
     paddingTop: wp(0.2),
     fontFamily: 'Book',
-    fontSize: sizes.h3,
+    fontSize: sizes.h4,
     letterSpacing: 0.1,
   },
 });

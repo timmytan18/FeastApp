@@ -34,6 +34,7 @@ type FeastItem
   placeType: String
   placeInfo: PlaceInfo
   placeUserInfo: PlaceUserInfo
+  dish: String
   rating: Rating
   review: String
   updatedAt: String

@@ -3,11 +3,13 @@ import React, {
 } from 'react';
 import {
   StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput,
-  Image, ScrollView, Keyboard, Alert,
+  ScrollView, Keyboard, Alert, ImageBackground,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
-import { Auth, API, graphqlOperation } from 'aws-amplify';
+import { API, Storage, graphqlOperation } from 'aws-amplify';
+import { manipulateAsync } from 'expo-image-manipulator';
+import awsmobile from '../../aws-exports';
 import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
 import { createFeastItem, batchCreateFollowingPosts } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
@@ -17,8 +19,10 @@ import RatingsInput from '../components/RatingsInput';
 import { RATING_CATEGORIES } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp, hp, header,
 } from '../../constants/theme';
+
+const { aws_user_files_s3_bucket: bucket } = awsmobile;
 
 const propTypes = {
   route: PropTypes.shape({
@@ -30,31 +34,32 @@ const propTypes = {
             coordinates: PropTypes.arrayOf(PropTypes.number),
           }),
         ),
-        Address: PropTypes.shape({
-          locality: PropTypes.string, // city
-          adminDistrict: PropTypes.string, // state
-          countryRegion: PropTypes.string,
-          addressLine: PropTypes.string,
-          postalCode: PropTypes.string,
-        }),
         name: PropTypes.string,
       }),
+      picture: PropTypes.shape({
+        uri: PropTypes.string,
+      }),
+      menuItem: PropTypes.string,
+      pExists: PropTypes.bool,
+      pCategories: PropTypes.arrayOf(PropTypes.string),
     }),
   }).isRequired,
 };
 
-const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws.com/dev/scraper';
-
 const PostDetails = ({ navigation, route }) => {
-  const { business, businesses } = route.params;
+  const {
+    business, picture, menuItem, pExists, pCategories,
+  } = route.params;
+  console.log(picture);
+  console.log(menuItem);
   const [state, dispatch] = useContext(Context);
 
   const [review, setReview] = useState(state.review);
   const reviewRef = useRef(state.review);
   const ratings = useRef(state.ratings);
 
-  const placeExists = useRef(false);
-  const placeCategories = useRef(null);
+  const placeExists = useRef(pExists);
+  const placeCategories = useRef(pCategories);
 
   const [shareDisable, setShareDisable] = useState(false);
 
@@ -71,52 +76,11 @@ const PostDetails = ({ navigation, route }) => {
     const {
       placeId,
       name,
-      Address: {
-        locality: city, // city
-        adminDistrict: region, // state
-        countryRegion: country,
-        addressLine: address,
-        postalCode: postcode,
-      },
       geocodePoints: [{ coordinates: [placeLat, placeLng] }],
     } = business;
 
     const placePK = `PLACE#${placeId}`;
-    // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
-    const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
     const hash = geohash.encode(placeLat, placeLng);
-
-    // Send place data to API Gateway for lambda function to scrape
-    // TODO: decide whether to run after user selects place or after user submits review
-    async function createPlaceItem() {
-      const cognitoUser = await Auth.currentAuthenticatedUser();
-      const token = cognitoUser.signInUserSession.idToken.jwtToken;
-      const data = {
-        placeId,
-        geohash: hash,
-        strippedName,
-        name,
-        address,
-        city,
-        region,
-        zip: postcode,
-        country,
-      };
-      console.log(JSON.stringify(data));
-
-      try {
-        await fetch(API_GATEWAY_ENDPOINT, {
-          method: 'PUT',
-          headers: {
-            Authorization: token,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-      } catch (e) {
-        console.log('Could not run scraper', e);
-      }
-    }
 
     // Check if place exists in DynamoDB
     async function checkPlaceInDB() {
@@ -124,10 +88,7 @@ const PostDetails = ({ navigation, route }) => {
         const { placeInDB, categoriesDB } = await getPlaceInDBQuery(
           { placePK, withCategories: true },
         );
-        if (!placeInDB) {
-          // Scrape data on screen load if place does not exist
-          createPlaceItem();
-        } else {
+        if (placeInDB) {
           console.log('Place already in DB');
           placeExists.current = true;
           placeCategories.current = categoriesDB;
@@ -137,10 +98,29 @@ const PostDetails = ({ navigation, route }) => {
       }
     }
 
-    // Check if place in DB and fetch categories before sharing
-    // Run once when component mounts and on share
-    if (!placeExists.current) {
-      checkPlaceInDB();
+    // Resize and compress photo; save to S3
+    async function resizeAndSaveS3({ image, timestamp }) {
+      const manipResult = await manipulateAsync(
+        image.localUri || image.uri,
+        [
+          { resize: { height: 200, width: 200 } },
+        ],
+        { compress: 0.5 },
+      );
+
+      const img = manipResult.uri;
+      if (img) {
+        const response = await fetch(img);
+        const blob = await response.blob();
+        const key = `post_images/${name}/${timestamp}`;
+        await Storage.put(key, blob, {
+          level: 'protected',
+          contentType: 'image/jpeg',
+        });
+        console.log(key);
+        return key;
+      }
+      return null;
     }
 
     // Share user review for this place
@@ -150,9 +130,31 @@ const PostDetails = ({ navigation, route }) => {
       }
       setShareDisable(true);
 
-      // Add post to user posts
       const date = new Date();
       const timestamp = date.toISOString();
+
+      let postImgS3Url;
+      try {
+        postImgS3Url = await resizeAndSaveS3({ image: picture, timestamp });
+      } catch (e) {
+        console.log('Error storing updated profile picture in S3:', e);
+        Alert.alert(
+          'Error',
+          'Could not share your review. Please try again.',
+          [{ text: 'OK' }],
+          { cancelable: false },
+        );
+        return;
+      }
+
+      // Check if place in DB and fetch categories before sharing
+      if (!placeExists.current) {
+        await checkPlaceInDB();
+      }
+
+      console.log(postImgS3Url);
+
+      // Add post to user posts
       const {
         PK: userPK, uid, name: userName, s3Picture: userPic,
       } = state.user;
@@ -163,6 +165,7 @@ const PostDetails = ({ navigation, route }) => {
       const LSI2 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRatings = ratings.current;
+      const dish = menuItem ? menuItem.trim() : null;
       const userPostInput = {
         PK: userPK,
         SK: userPlaceSK,
@@ -175,6 +178,8 @@ const PostDetails = ({ navigation, route }) => {
         timestamp,
         geo: hash,
         categories: placeCategories.current,
+        picture: postImgS3Url,
+        dish,
         review: userReview,
         rating: userRatings,
         placeUserInfo: {
@@ -188,8 +193,8 @@ const PostDetails = ({ navigation, route }) => {
           createFeastItem,
           { input: userPostInput },
         ));
-      } catch (err) {
-        console.log(err);
+      } catch (e) {
+        console.log('Error saving post to user posts in DB:', e);
         Alert.alert(
           'Error',
           'Could not share your review. Please try again.',
@@ -210,6 +215,8 @@ const PostDetails = ({ navigation, route }) => {
         geo: hash,
         timestamp,
         categories: placeCategories.current,
+        picture: postImgS3Url,
+        dish,
         review: userReview,
         rating: userRatings,
         placeUserInfo: {
@@ -228,8 +235,9 @@ const PostDetails = ({ navigation, route }) => {
         });
       });
 
-      console.log(allUserFeedPosts);
+      // TODO: Add error handling for this
       // Add user's post to followers' feeds in batches
+      console.log('User feed posts:', allUserFeedPosts);
       if (allUserFeedPosts.length) {
         let i; let j;
         const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
@@ -280,8 +288,10 @@ const PostDetails = ({ navigation, route }) => {
       headerLeft,
       headerLeftContainerStyle: { paddingLeft: sizes.margin },
       headerRight,
+      title: business.name,
+      headerTitleStyle: header.title,
     });
-  }, [business, shareDisable, dispatch, navigation, state.user.PK, state.user.uid]);
+  }, [business, shareDisable, state.user.PK, state.user.uid]);
 
   const changeRatings = ({ value, type }) => {
     if (ratings.current[type] !== value) {
@@ -291,7 +301,11 @@ const PostDetails = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView onScrollBeginDrag={Keyboard.dismiss} style={{ margin: wp(4) }}>
+      <ScrollView
+        onScrollBeginDrag={Keyboard.dismiss}
+        showsVerticalScrollIndicator={false}
+        style={{ margin: wp(4) }}
+      >
         <View style={styles.postHeader}>
           <ProfilePic
             uid={state.user.uid}
@@ -321,6 +335,13 @@ const PostDetails = ({ navigation, route }) => {
           blurOnSubmit
           returnKeyType="done"
         />
+        <ImageBackground
+          style={styles.imageContainer}
+          imageStyle={{ borderRadius: wp(2) }}
+          source={{ uri: picture.uri }}
+        >
+          {menuItem && <Text style={styles.menuItemText}>{menuItem}</Text>}
+        </ImageBackground>
         <Text style={styles.ratingTitle}>My Ratings</Text>
         <View style={styles.ratingsContainer}>
           <RatingsInput ratings={ratings} changeRatings={changeRatings} />
@@ -408,9 +429,9 @@ const styles = StyleSheet.create({
     paddingBottom: wp(2),
     marginVertical: wp(3),
     letterSpacing: 0.3,
-    backgroundColor: colors.gray2,
+    backgroundColor: colors.gray4,
     borderRadius: wp(2),
-    height: hp(15),
+    height: hp(10),
   },
   imageContainer: {
     width: '100%',

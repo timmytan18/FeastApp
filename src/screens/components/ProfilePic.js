@@ -14,11 +14,8 @@ const ProfilePic = ({
 }) => {
   const key = `profile_images/${uid}`;
   const url = `https://${bucket}.s3.amazonaws.com/public/${key}?${new Date()}`;
-  console.log(url);
 
   const iconStyle = { height: size, width: size, borderRadius: size / 2 };
-
-  // console.log(isLocal);
 
   return (
     <View style={[

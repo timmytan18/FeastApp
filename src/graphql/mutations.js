@@ -61,6 +61,7 @@ export const incrementFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -134,6 +135,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -207,6 +209,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -283,6 +286,7 @@ export const createFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -359,6 +363,7 @@ export const updateFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -435,6 +440,7 @@ export const deleteFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food

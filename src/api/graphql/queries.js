@@ -193,6 +193,8 @@ export const getUserReviews = /* GraphQL */ `
         geo
         timestamp
         categories
+        picture
+        dish
         review
         rating {
           overall
@@ -233,6 +235,8 @@ export const getUserReviewsWithUserInfo = /* GraphQL */ `
         geo
         timestamp
         categories
+        picture
+        dish
         review
         rating {
           overall

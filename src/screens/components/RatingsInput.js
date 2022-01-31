@@ -19,6 +19,7 @@ const RatingsInput = ({ ratings, changeRatings }) => {
             maximumValue={5}
             minimumValue={1}
             onValueChange={(value) => changeRatings({ value: value[0], type })}
+            trackClickable={false}
             minimumTrackTintColor={colors.accent2}
             renderThumbComponent={() => (
               <LinearGradient

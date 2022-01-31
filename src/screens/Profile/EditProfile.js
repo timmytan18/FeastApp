@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, Platform, Image,
 } from 'react-native';
-import { Storage } from 'aws-amplify';
 import Modal from 'react-native-modal';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';

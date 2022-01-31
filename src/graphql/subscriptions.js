@@ -61,6 +61,7 @@ export const onCreateFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -134,6 +135,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food
@@ -207,6 +209,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
         name
         picture
       }
+      dish
       rating {
         overall
         food

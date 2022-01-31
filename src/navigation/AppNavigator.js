@@ -23,7 +23,7 @@ import FollowsList from '../screens/Profile/FollowsList';
 // import DetailCard from '../screens/components/DetailCard';
 // import RestaurantList from '../screens/components/RestaurantList';
 import Settings from '../screens/Profile/Settings';
-// import UploadImages from '../screens/NewPost/UploadImages';
+import UploadImages from '../screens/NewPost/UploadImages';
 import PostDetails from '../screens/NewPost/PostDetails';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
@@ -96,30 +96,30 @@ function HomeStackScreen() {
 const NewPostStack = createStackNavigator();
 function NewPostStackScreen() {
   return (
-    <NewPostStack.Navigator
-      screenOptions={{
-        title: <Text style={header.title}>New Review</Text>,
-      }}
-    >
+    <NewPostStack.Navigator>
       <NewPostStack.Screen
         name="NewPost"
         component={NewPost}
+        options={{
+          title: 'New Review',
+          headerTitleStyle: header.title,
+        }}
       />
-      {/* <NewPostStack.Screen
-                name="UploadImages"
-                component={UploadImages}
-                options={{
-                    headerLeft: ({ onPress }) => (
-                        <BackArrow
-                            color={colors.black}
-                            size={wp(6.2)}
-                            style={{ flex: 1 }}
-                            pressed={onPress}
-                        />
-                    ),
-                    headerLeftContainerStyle: { paddingLeft: sizes.margin }
-                }}
-            /> */}
+      <NewPostStack.Screen
+        name="UploadImages"
+        component={UploadImages}
+        options={{
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
       <NewPostStack.Screen
         name="PostDetails"
         component={PostDetails}
