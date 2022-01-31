@@ -312,6 +312,21 @@ const UploadImages = ({ navigation, route }) => {
     );
   };
 
+  const pickImage = async () => {
+    const image = await ImagePicker.launchImageLibraryAsync(
+      {
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        aspect: [1, 1],
+        allowsEditing: true,
+        quality: 1,
+      },
+    );
+    if (!image.cancelled) {
+      delete image.cancelled;
+      setPicture(image);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
       <View style={styles.container}>
@@ -354,7 +369,14 @@ const UploadImages = ({ navigation, route }) => {
                 </View>
               </Camera>
             )}
-          {picture && <Image style={styles.camContainer} source={{ uri: picture.uri }} />}
+          {picture && tab !== CAMERA_TAB
+            && (
+              <TouchableOpacity activeOpacity={0.9} onPress={pickImage}>
+                <Image style={styles.camContainer} source={{ uri: picture.uri }} />
+              </TouchableOpacity>
+            )}
+          {picture && tab === CAMERA_TAB
+            && <Image style={styles.camContainer} source={{ uri: picture.uri }} />}
           {picture && tab === CAMERA_TAB
             && (
               <TouchableOpacity style={styles.xContainer} onPress={() => setPicture(null)}>
@@ -399,25 +421,10 @@ const UploadImages = ({ navigation, route }) => {
                   keyExtractor={(item) => item[0].id}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  // onEndReached={() => getNextResults()}
-                  // onEndReachedThreshold={0.1}
                   ListFooterComponent={(
                     <TouchableOpacity
                       style={styles.allLibraryContainer}
-                      onPress={async () => {
-                        const image = await ImagePicker.launchImageLibraryAsync(
-                          {
-                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                            aspect: [1, 1],
-                            allowsEditing: true,
-                            quality: 1,
-                          },
-                        );
-                        if (!image.cancelled) {
-                          delete image.cancelled;
-                          setPicture(image);
-                        }
-                      }}
+                      onPress={pickImage}
                     >
                       <View style={styles.allLibrary}>
                         <Text style={styles.allLibraryText}>See All Photos</Text>
