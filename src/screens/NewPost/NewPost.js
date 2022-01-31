@@ -108,11 +108,14 @@ const NewPost = ({ navigation }) => {
     return items || [];
   }
 
+  const getNearbyAbortControllerRef = useRef(new AbortController());
+  const searchAbortControllerRef = useRef(new AbortController());
+
   // Set up location and loading nearby POIs
   useEffect(() => {
     // Get current user location
     async function updateCurrentLocation() {
-      const { coords } = await Location.getCurrentPositionAsync({});
+      const { coords } = await Location.getLastKnownPositionAsync({});
       dispatch({
         type: 'SET_LOCATION',
         payload: {
@@ -128,6 +131,9 @@ const NewPost = ({ navigation }) => {
       // longitude.current = '-84.13485';
     }
 
+    const getNearbyAbortController = getNearbyAbortControllerRef.current;
+    const searchAbortController = searchAbortControllerRef.current;
+
     // Fetch nearby POIs from Bing
     async function getNearby() {
       try {
@@ -139,12 +145,14 @@ const NewPost = ({ navigation }) => {
       const lng = longitude.current;
       const url = `https://dev.virtualearth.net/REST/v1/LocalSearch/?&type=${BING_CAT_TYPE}&userCircularMapView=${lat},${lng},${BING_NEARBY_RADIUS}&maxResults=25&key=${BING_KEY}`;
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: getNearbyAbortController.signal });
         const data = await res.json();
         const items = data.resourceSets[0].resources;
         nearbyPlaces.current = await filterSetResults(items);
       } catch (err) {
-        console.log('Error fetching Bing locations', err);
+        if (!getNearbyAbortController.signal.aborted) {
+          console.log('Error fetching and filtering nearby Bing locations', err);
+        }
       }
 
       isSearch.current = false;
@@ -153,6 +161,12 @@ const NewPost = ({ navigation }) => {
     if (!nearbyPlaces.current.length) {
       getNearby();
     }
+
+    return () => {
+      console.log('Aborting Bing API calls');
+      getNearbyAbortController.abort();
+      searchAbortController.abort();
+    };
   }, [dispatch, navigation]);
 
   // Search for nearby POIs using query string
@@ -165,11 +179,12 @@ const NewPost = ({ navigation }) => {
       setPlaceList(nearbyPlaces.current);
       setLoading(false);
     } else {
+      getNearbyAbortControllerRef.current.abort(); // abort get nearby on search
       const lat = latitude.current;
       const lng = longitude.current;
       const url = `https://dev.virtualearth.net/REST/v1/LocalSearch/?query=${query}&type=${BING_CAT_TYPE}&userCircularMapView=${lat},${lng},${BING_SEARCH_RADIUS}&maxResults=25&key=${BING_KEY}`;
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: searchAbortControllerRef.current.signal });
         const data = await res.json();
         isSearch.current = true;
         const items = data.resourceSets[0].resources;
@@ -178,7 +193,9 @@ const NewPost = ({ navigation }) => {
         // Run scraper test
         // scrapeTest({ places: searchResults });
       } catch (err) {
-        console.log('Error fetching and filtering searched Bing POIs', err);
+        if (!searchAbortControllerRef.current.signal.aborted) {
+          console.log('Error fetching and filtering searched Bing POIs', err);
+        }
       }
     }
   };
