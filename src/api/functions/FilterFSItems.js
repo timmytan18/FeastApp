@@ -132,15 +132,15 @@ function compareToGooglePlaces(item, place) {
   return score;
 }
 
+const GEOHASH_PRECISION = 12;
+
 export default async function filterFSItems({ results }) {
   // Filter out places that aren't in dining and drinking categories and null items
   let items = [];
   results.forEach((item) => {
     if (item) {
       const [placeLat, placeLng] = item.geocodePoints[0].coordinates;
-      const hash = geohash.encode(placeLat, placeLng);
-      // const strippedName = item.Address.addressLine.replace(/[^0-9a-z]/gi, '').toLowerCase();
-      // console.log(hash + strippedName);
+      const hash = geohash.encode(placeLat, placeLng, GEOHASH_PRECISION);
       item.placeId = hash;
       items.push(item);
     }
@@ -166,6 +166,21 @@ export default async function filterFSItems({ results }) {
     for (let j = i + 1; j < items.length; j += 1) {
       // Check for invalid item/name
       if (!items[i] || !items[j] || !items[i].name || !items[j].name) {
+        continue;
+      }
+
+      // If identical geohash, add to matches
+      if (items[i].placeId === items[j].placeId) {
+        if (matches[i]) {
+          matches[i].push(j);
+        } else {
+          matches[i] = [j];
+        }
+        if (matches[j]) {
+          matches[j].push(i);
+        } else {
+          matches[j] = [i];
+        }
         continue;
       }
 
