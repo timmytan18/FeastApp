@@ -50,8 +50,6 @@ const PostDetails = ({ navigation, route }) => {
   const {
     business, picture, menuItem, pExists, pCategories,
   } = route.params;
-  console.log(picture);
-  console.log(menuItem);
   const [state, dispatch] = useContext(Context);
 
   const [review, setReview] = useState(state.review);
@@ -117,7 +115,6 @@ const PostDetails = ({ navigation, route }) => {
           level: 'protected',
           contentType: 'image/jpeg',
         });
-        console.log(key);
         return key;
       }
       return null;
@@ -151,8 +148,6 @@ const PostDetails = ({ navigation, route }) => {
       if (!placeExists.current) {
         await checkPlaceInDB();
       }
-
-      console.log(postImgS3Url);
 
       // Add post to user posts
       const {
@@ -317,7 +312,7 @@ const PostDetails = ({ navigation, route }) => {
             <Text style={styles.nameText}>{state.user.name}</Text>
             <View style={styles.locationContainer}>
               <MapMarker size={wp(4.8)} color={colors.accent} />
-              <Text style={styles.locationText}>{business.name}</Text>
+              <Text style={styles.locationText} numberOfLines={1}>{business.name}</Text>
             </View>
           </View>
         </View>
@@ -395,6 +390,7 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: 'row',
     paddingLeft: wp(2.2),
+    width: '90%',
     alignItems: 'flex-start',
   },
   locationText: {

@@ -116,6 +116,7 @@ input FollowingPostInput {
   geo: String!
   timestamp: String!
   picture: String
+  dish: String
   categories: [String]
   review: String
   createdAt: String

@@ -68,7 +68,7 @@ const header = {
   title: { fontFamily: 'Semi', fontSize: sizes.h3, color: colors.black },
 };
 
-const isIOS = Platform.OS == 'ios';
+const isIOS = Platform.OS === 'ios';
 
 export {
   colors, shadows, gradients, sizes, header, wp, hp, isIOS,

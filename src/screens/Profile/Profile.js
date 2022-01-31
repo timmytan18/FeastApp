@@ -5,7 +5,7 @@ import {
   StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList, Alert,
 } from 'react-native';
 // import { API, graphqlOperation, Storage } from 'aws-amplify';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
@@ -63,14 +63,43 @@ const Profile = ({ navigation, route }) => {
         });
       }
     })();
+
+    const getPostPictures = (item) => new Promise((resolve, reject) => {
+      Storage.get(item.picture, { level: 'protected', identityId: user.identityId })
+        .then((url) => {
+          item.s3Photo = url;
+          resolve(item);
+        })
+        .catch((err) => {
+          console.log('Error fetching post picture from S3: ', err);
+          reject();
+        });
+    });
+
     // Get reviews for current user
+    let userReviews;
     (async () => {
-      const userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
+      userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
       console.log('User Reviews: ', userReviews);
-      setReviews(userReviews);
-      setRefreshing(false);
+      if (userReviews) {
+        Promise.all(userReviews.map(getPostPictures)).then((posts) => {
+          setReviews(posts);
+          console.log(posts);
+          setRefreshing(false);
+        });
+      } else {
+        setReviews([]);
+        setRefreshing(false);
+      }
     })();
-  }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK]);
+  }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK, user.identityId]);
+
+  const position = useRef(new Animated.Value(0)).current;
+
+  const translate = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, wp(100) / 2 - wp(3) * 2],
+  });
 
   if (isLoading) {
     return <CenterSpinner />;
@@ -129,11 +158,9 @@ const Profile = ({ navigation, route }) => {
             style={styles.moreButton}
             onPress={() => setMorePressed(true)}
           >
-            {isMe ? <More /> : (
-              <View style={{ paddingTop: 3 }}>
-                <ThreeDots rotated size={wp(4.6)} />
-              </View>
-            )}
+            <View style={{ paddingTop: 2 }}>
+              {isMe ? <More /> : <ThreeDots rotated size={wp(4.6)} />}
+            </View>
           </TouchableOpacity>
         </View>
         <View style={styles.topProfileContainer}>
@@ -243,7 +270,7 @@ const Profile = ({ navigation, route }) => {
     </View>
   );
 
-  const deletePost = async ({ timestamp }) => {
+  const deletePost = async ({ timestamp, s3Key }) => {
     // Delete post from user's profile
     const input = { PK: user.PK, SK: `#PLACE#${timestamp}` };
     try {
@@ -252,7 +279,21 @@ const Profile = ({ navigation, route }) => {
         { input },
       ));
     } catch (err) {
-      console.log(err);
+      console.log('Error deleting post from user profile:', err);
+      Alert.alert(
+        'Error',
+        'Could not delete post',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+      return;
+    }
+
+    // Delete post image from S3
+    try {
+      await Storage.remove(s3Key, { level: 'protected' });
+    } catch (err) {
+      console.log('Error deleting post image from S3:', err);
       Alert.alert(
         'Error',
         'Could not delete post',
@@ -321,6 +362,14 @@ const Profile = ({ navigation, route }) => {
         </Text>
         <Text style={styles.userText} />
       </View>
+      <View style={{ width: wp(18), height: wp(18) }}>
+        <Image
+          resizeMode="cover"
+          style={{ flex: 1, width: '100%', height: '100%' }}
+          source={{ uri: item.s3Photo }}
+        />
+        <Text>{item.dish}</Text>
+      </View>
       {isMe && (
         <View style={{
           flex: 0.2, justifyContent: 'center', alignItems: 'center',
@@ -331,7 +380,7 @@ const Profile = ({ navigation, route }) => {
               title: 'Delete Post',
               yesButton: 'Confirm',
               pressed: () => {
-                deletePost({ timestamp: item.timestamp });
+                deletePost({ timestamp: item.timestamp, s3Key: item.picture });
               },
             });
           }}
@@ -343,20 +392,6 @@ const Profile = ({ navigation, route }) => {
     </View>
   );
 
-  const position = useRef(new Animated.Value(0)).current;
-
-  const translate = position.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, wp(100) / 2 - wp(3) * 2],
-  });
-
-  // placeholders
-  // user.instagram = 'tim0_otan'
-
-  // const ratings = 4.5;
-  // const photo = 'https://s3-media0.fl.yelpcdn.com/bphoto/a2hkhqRpe2tWE2_Gb9ZhyA/o.jpg';
-  // const businessName = 'Pho King Midtown';
-  // const post = { ratings, photo, businessName }
   const data = [{ title: 'profile', data: reviews }];
 
   const [examplePic, setExamplePic] = useState(null);
@@ -412,21 +447,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: 'white',
-    paddingTop: wp(1),
   },
   headerTitleContainer: {
     flexDirection: 'row',
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
+    paddingTop: hp(1.5),
   },
   headerTitle: {
     fontFamily: 'Semi',
     fontSize: wp(6.2),
     color: colors.primary,
     paddingLeft: wp(5),
+    paddingTop: hp(0.7),
+    lineHeight: wp(6.2),
   },
   backArrowContainer: {
-    paddingBottom: wp(0.9),
+    paddingVertical: wp(0.3),
     marginLeft: sizes.margin,
   },
   moreButton: {
