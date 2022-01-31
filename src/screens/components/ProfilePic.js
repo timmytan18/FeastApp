@@ -10,12 +10,15 @@ const { aws_user_files_s3_bucket: bucket } = awsmobile;
 // then external provider links (if exists),
 // then default profile pic svg
 const ProfilePic = ({
-  uid, extUrl, isMe, size, style,
+  uid, extUrl, isLocal, isMe, size, style,
 }) => {
   const key = `profile_images/${uid}`;
-  const url = `https://${bucket}.s3.amazonaws.com/public/${key}`;
+  const url = `https://${bucket}.s3.amazonaws.com/public/${key}?${new Date()}`;
+  console.log(url);
 
   const iconStyle = { height: size, width: size, borderRadius: size / 2 };
+
+  // console.log(isLocal);
 
   return (
     <View style={[
@@ -36,7 +39,7 @@ const ProfilePic = ({
       )}
       {(isMe || (extUrl && url !== extUrl)) && (
         <Image
-          source={{ uri: extUrl }}
+          source={{ uri: isLocal ? extUrl : `${extUrl}?${new Date()}` }}
           resizeMode="cover"
           style={[
             styles.iconImage,

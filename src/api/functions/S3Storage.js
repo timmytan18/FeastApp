@@ -14,12 +14,18 @@ export default async function updateProfilePic(PK, SK, uid, img) {
       await Storage.put(key, blob, {
         contentType: 'image/jpeg',
       });
+    } catch (err) {
+      console.log('Error storing updated profile picture in S3:', err);
+    }
+
+    try {
       await API.graphql(graphqlOperation(
         updateFeastItem,
         { input: { PK, SK, picture: url } },
       ));
     } catch (err) {
-      console.log(err);
+      console.log('Error updating S3 url in DB:', err);
     }
+    return url;
   }
 }

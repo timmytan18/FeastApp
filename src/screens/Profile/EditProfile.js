@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Image,
+  StyleSheet, Text, View, TouchableOpacity, Platform, Image,
 } from 'react-native';
 import { Storage } from 'aws-amplify';
 import Modal from 'react-native-modal';
@@ -16,14 +16,28 @@ const EditProfile = ({
   editPressed, setEditPressed, user, dispatch,
 }) => {
   const [photo, setPhoto] = useState(user.picture ? user.picture : null);
+  const isLocal = useRef(false);
   const [error, setError] = useState(null);
+
+  // Resize and compress photo
+  async function resize(image) {
+    const manipResult = await manipulateAsync(
+      image.localUri || image.uri,
+      [
+        { resize: { height: 200, width: 200 } },
+      ],
+      { compress: 0.5 },
+    );
+    isLocal.current = true;
+    setPhoto(manipResult.uri);
+  }
 
   // Open camera roll to choose a photo
   const choosePhoto = async () => {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        alert('Sorry, we need camera roll permissions to make this work!');
+        alert('Sorry, we need camera roll permissions to update your profile picture!');
       }
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -38,42 +52,20 @@ const EditProfile = ({
     }
   };
 
-  // Resize and compress photo
-  async function resize(image) {
-    const manipResult = await manipulateAsync(
-      image.localUri || image.uri,
-      [
-        { resize: { height: 200, width: 200 } },
-      ],
-      { compress: 0.5 },
-    );
-    setPhoto(manipResult.uri);
-  }
-
   async function saveEdits() {
     if (user.picture !== photo) {
       // Store new user profile photo in S3 and DynamoDB
-      await updateProfilePic(user.PK, user.SK, user.uid, photo);
-
-      let picture;
-      try {
-        picture = await Storage.get('profile_pic.jpeg', {
-          level: 'protected',
-          identityId: user.identityId,
-        });
-      } catch (err) {
-        setError('Error saving profile picture');
-        console.log(err);
+      const newPicture = await updateProfilePic(user.PK, user.SK, user.uid, photo);
+      if (newPicture) {
+        dispatch({ type: 'SET_USER', payload: { ...user, picture: newPicture } });
       }
-
-      // Update user profile picture in local state
-      dispatch({ type: 'SET_USER', payload: { ...user, picture: photo } });
     }
     hideModal();
   }
 
   const hideModal = () => {
     setError(null);
+    isLocal.current = false;
     setPhoto(user.picture ? user.picture : null);
     setEditPressed(false);
   };
@@ -95,6 +87,7 @@ const EditProfile = ({
             <ProfilePic
               extUrl={photo}
               isMe
+              isLocal={isLocal.current}
               size={styles.userPicture.width}
               style={styles.userPicture}
             />
