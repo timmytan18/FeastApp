@@ -67,7 +67,7 @@ export const getFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -152,7 +152,7 @@ export const listFeastItems = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -239,7 +239,7 @@ export const itemsByGSI1 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -326,7 +326,7 @@ export const itemsByGSI2 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -413,7 +413,7 @@ export const itemsByLSI1 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -500,7 +500,7 @@ export const itemsByLSI2 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -587,7 +587,7 @@ export const itemsByLSI3 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -674,7 +674,7 @@ export const itemsByLSI4 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt
@@ -761,7 +761,7 @@ export const itemsByLSI5 = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         review
         updatedAt

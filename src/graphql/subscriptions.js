@@ -67,7 +67,7 @@ export const onCreateFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -141,7 +141,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -215,7 +215,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt

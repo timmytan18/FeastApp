@@ -228,9 +228,6 @@ const Profile = ({ navigation, route }) => {
                       textStyle={styles.editText}
                     />
                   )}
-                {/* <TouchableOpacity style={styles.socialContainer} onPress={() => link('INSTAGRAM', user.instagram)}>
-                                        <Instagram />
-                                    </TouchableOpacity> */}
               </View>
             </View>
           </View>
@@ -357,8 +354,8 @@ const Profile = ({ navigation, route }) => {
           Service:
           {item.rating.service}
           {' '}
-          Ambience:
-          {item.rating.ambience}
+          Atmosphere:
+          {item.rating.atmosphere}
         </Text>
         <Text style={styles.userText} />
       </View>

@@ -201,7 +201,7 @@ export const getUserReviews = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         createdAt
       }
@@ -243,7 +243,7 @@ export const getUserReviewsWithUserInfo = /* GraphQL */ `
           food
           value
           service
-          ambience
+          atmosphere
         }
         placeUserInfo {
           uid

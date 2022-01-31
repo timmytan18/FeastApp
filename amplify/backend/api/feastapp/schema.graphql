@@ -75,7 +75,7 @@ type Rating {
   food: Float!
   value: Float!
   service: Float!
-  ambience: Float!
+  atmosphere: Float!
 }
 
 type PlaceUserInfo {
@@ -129,7 +129,7 @@ input RatingInput {
   food: Float!
   value: Float!
   service: Float!
-  ambience: Float!
+  atmosphere: Float!
 }
 
 input PlaceUserInfoInput {

@@ -67,7 +67,7 @@ export const incrementFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -141,7 +141,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -215,7 +215,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -292,7 +292,7 @@ export const createFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -369,7 +369,7 @@ export const updateFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
@@ -446,7 +446,7 @@ export const deleteFeastItem = /* GraphQL */ `
         food
         value
         service
-        ambience
+        atmosphere
       }
       review
       updatedAt
