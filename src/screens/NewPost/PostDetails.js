@@ -102,7 +102,7 @@ const PostDetails = ({ navigation, route }) => {
           placeCategories.current = categoriesDB;
         }
       } catch (e) {
-        console.log('Fetch Dynamo place data error', e);
+        console.warn('Error fetching DB place data: ', e);
       }
     }
 
@@ -144,7 +144,7 @@ const PostDetails = ({ navigation, route }) => {
       try {
         postImgS3Url = await resizeAndSaveS3({ image: picture, timestamp });
       } catch (e) {
-        console.log('Error storing updated profile picture in S3:', e);
+        console.warn('Error storing updated profile picture in S3: ', e);
         Alert.alert(
           'Error',
           'Could not share your review. Please try again.',
@@ -199,7 +199,7 @@ const PostDetails = ({ navigation, route }) => {
           { input: userPostInput },
         ));
       } catch (e) {
-        console.log('Error saving post to user posts in DB:', e);
+        console.warn('Error saving post to user posts in DB: ', e);
         Alert.alert(
           'Error',
           'Could not share your review. Please try again.',
@@ -254,7 +254,7 @@ const PostDetails = ({ navigation, route }) => {
               { input: { posts: batch } },
             ));
           } catch (err) {
-            console.log("Error adding posts to followers' feeds", err);
+            console.warn("Error adding posts to followers' feeds: ", err);
           }
         }
       }

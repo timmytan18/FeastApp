@@ -69,7 +69,7 @@ const Profile = ({ navigation, route }) => {
           resolve(item);
         })
         .catch((err) => {
-          console.log('Error fetching post picture from S3: ', err);
+          console.warn('Error fetching post picture from S3: ', err);
           reject();
         });
     });
@@ -274,7 +274,7 @@ const Profile = ({ navigation, route }) => {
         { input },
       ));
     } catch (err) {
-      console.log('Error deleting post from user profile:', err);
+      console.warn('Error deleting post from user profile:', err);
       Alert.alert(
         'Error',
         'Could not delete post',
@@ -288,7 +288,7 @@ const Profile = ({ navigation, route }) => {
     try {
       await Storage.remove(s3Key, { level: 'protected' });
     } catch (err) {
-      console.log('Error deleting post image from S3:', err);
+      console.warn('Error deleting post image from S3:', err);
       Alert.alert(
         'Error',
         'Could not delete post',
@@ -320,7 +320,7 @@ const Profile = ({ navigation, route }) => {
             { input: { posts: batch } },
           ));
         } catch (err) {
-          console.log("Error removing followed user's posts from feed", err);
+          console.warn("Error removing followed user's posts from feed", err);
         }
       }
     }

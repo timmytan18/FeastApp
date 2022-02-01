@@ -43,7 +43,7 @@ const Main = () => {
           { input: { PK, SK, identityId } },
         ));
       } catch (err) {
-        console.log(err);
+        console.warn('Error updating identityId', err);
       }
       return identityId;
     }

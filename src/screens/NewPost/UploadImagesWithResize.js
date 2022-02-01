@@ -106,7 +106,7 @@ const UploadImages = ({ navigation, route }) => {
           body: JSON.stringify(data),
         });
       } catch (e) {
-        console.log('Could not run scraper', e);
+        console.warn('Error running scraper: ', e);
       }
     }
 
@@ -125,7 +125,7 @@ const UploadImages = ({ navigation, route }) => {
           placeCategories.current = categoriesDB;
         }
       } catch (e) {
-        console.log('Fetch Dynamo place data error', e);
+        console.warn('Error fetching Dynamo place data: ', e);
       }
     }
 
@@ -176,20 +176,39 @@ const UploadImages = ({ navigation, route }) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (evt, gestureState) => {
-        console.log(currOffset.current + gestureState.dy);
-        console.log(pictureToEdit.current.height - wp(99));
-        if (currOffset.current + gestureState.dy <= 0
-          && (currOffset.current + gestureState.dy) >= (-1
-            * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
-          pan.setValue({ x: 0, y: currOffset.current + gestureState.dy });
-        }
+        // console.log(currOffset.current + gestureState.dy);
+        // console.log(pictureToEdit.current.height - wp(99));
+        // if (currOffset.current + gestureState.dy <= 0
+        //   && (currOffset.current + gestureState.dy) >= (-1
+        //     * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
+
+        // }
+
+        pan.setValue({ x: 0, y: currOffset.current + gestureState.dy });
       },
       onPanResponderRelease: (evt, gestureState) => {
-        if (currOffset.current + pan.y._value <= 0
-          && (currOffset.current + pan.y._value) >= (-1
-            * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
+        const bottom = -1
+          * ((pictureToEdit.current.height / pictureToEdit.current.width)
+            * wp(99) - wp(99));
+        console.log('bottom', bottom);
+        console.log('value', currOffset.current + pan.y._value);
+        if (currOffset.current + pan.y._value > 0) {
+          console.log('top');
+          currOffset.current = 0;
+          pan.setValue({ x: 0, y: 0 });
+        } else if (currOffset.current + pan.y._value < bottom) {
+          console.log('bottom');
+          currOffset.current = bottom + pan.y._value;
+          pan.setValue({ x: 0, y: bottom });
+        } else {
+          console.log('middle');
           currOffset.current = pan.y._value;
         }
+        // if (currOffset.current + pan.y._value <= 0
+        //   && (currOffset.current + pan.y._value) >= (-1
+        //     * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
+        //   currOffset.current = pan.y._value;
+        // }
       },
     }),
   ).current;
@@ -223,7 +242,6 @@ const UploadImages = ({ navigation, route }) => {
   const cropAndSetImage = async (img) => {
     currOffset.current = 0;
     pan.setValue({ x: 0, y: 0 });
-    console.log(img);
     pictureToEdit.current = img;
     // setEditorVisible(true);
     setPicture(img);

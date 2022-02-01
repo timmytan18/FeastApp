@@ -15,7 +15,7 @@ export default async function updateProfilePic(PK, SK, uid, img) {
         contentType: 'image/jpeg',
       });
     } catch (err) {
-      console.log('Error storing updated profile picture in S3:', err);
+      console.warn('Error storing updated profile picture in S3:', err);
     }
 
     try {
@@ -24,7 +24,7 @@ export default async function updateProfilePic(PK, SK, uid, img) {
         { input: { PK, SK, picture: url } },
       ));
     } catch (err) {
-      console.log('Error updating S3 url in DB:', err);
+      console.warn('Error updating S3 url in DB:', err);
     }
     return url;
   }

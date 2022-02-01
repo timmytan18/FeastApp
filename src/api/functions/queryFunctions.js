@@ -17,7 +17,7 @@ async function getUserProfileQuery({ PK, SK }) {
     );
     user = res.data.listFeastItems.items[0];
   } catch (err) {
-    console.log('Error fetching user profile data: ', err);
+    console.warn('Error fetching user profile data: ', err);
   }
   return user;
 }
@@ -34,7 +34,7 @@ async function getUserReviewsQuery({ PK, hash, withUserInfo }) {
     ));
     userReviews = res.data.listFeastItems.items;
   } catch (err) {
-    console.log('Error fetching user reviews: ', err);
+    console.warn('Error fetching user reviews: ', err);
   }
   return userReviews;
 }
@@ -49,7 +49,7 @@ async function getFollowingQuery({ uid }) {
     ));
     users = res.data.itemsByGSI1.items;
   } catch (err) {
-    console.log('Error fetching following users: ', err);
+    console.warn('Error fetching following users: ', err);
   }
   return users;
 }
@@ -65,7 +65,7 @@ async function getIsFollowingQuery({ currentPK, myUID }) {
     ));
     isFollowing = res.data.getFeastItem;
   } catch (err) {
-    console.log('Error getting following status: ', err);
+    console.warn('Error getting following status: ', err);
   }
   return !!isFollowing;
 }
@@ -84,7 +84,7 @@ async function getNumFollowsQuery({ PK, SK }) {
       res.numFollowing >= 0 ? res.numFollowing : 0,
     ];
   } catch (err) {
-    console.log(err);
+    console.warn('Error fetching num followers/following: ', err);
   }
   return num;
 }
@@ -99,7 +99,7 @@ async function getFollowersQuery({ PK, onlyReturnPKs }) {
     ));
     users = res.data.listFeastItems.items;
   } catch (err) {
-    console.log('Error getting followers/following list: ', err);
+    console.warn('Error getting followers/following list: ', err);
   }
   return users;
 }
@@ -129,7 +129,7 @@ async function searchQuery({ name, type }) {
     ));
     searchResults = res.data.itemsByGSI1.items;
   } catch (err) {
-    console.log('Error searching for users: ', err);
+    console.warn('Error searching for users: ', err);
   }
   return searchResults;
 }
@@ -146,7 +146,7 @@ async function getPlaceInDBQuery({ placePK, withCategories }) {
     ));
     placeInDB = res.data.listFeastItems.items;
   } catch (err) {
-    console.log('Error checking whether place in DB: ', err);
+    console.warn('Error checking whether place in DB: ', err);
   }
   if (placeInDB.length) {
     return withCategories ? {
@@ -166,7 +166,7 @@ async function getFollowingPostsQuery({ PK }) {
     ));
     posts = res.data.listFeastItems.items;
   } catch (err) {
-    console.log('Error getting followers/following list: ', err);
+    console.warn('Error getting followers/following list: ', err);
   }
   return posts;
 }
@@ -181,7 +181,7 @@ async function getFollowingPostsByUserQuery({ PK, followingUID }) {
     ));
     posts = res.data.itemsByLSI3.items;
   } catch (err) {
-    console.log('Error getting followers/following list: ', err);
+    console.warn('Error getting followers/following list: ', err);
   }
   return posts;
 }

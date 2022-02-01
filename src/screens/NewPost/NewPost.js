@@ -139,7 +139,7 @@ const NewPost = ({ navigation }) => {
       try {
         await updateCurrentLocation();
       } catch (err) {
-        console.log('Error updating current location', err);
+        console.warn('Error updating current location: ', err);
       }
       const lat = latitude.current;
       const lng = longitude.current;
@@ -151,7 +151,7 @@ const NewPost = ({ navigation }) => {
         nearbyPlaces.current = await filterSetResults(items);
       } catch (err) {
         if (!getNearbyAbortController.signal.aborted) {
-          console.log('Error fetching and filtering nearby Bing locations', err);
+          console.warn('Error fetching and filtering nearby Bing locations: ', err);
         }
       }
 
@@ -194,7 +194,7 @@ const NewPost = ({ navigation }) => {
         // scrapeTest({ places: searchResults });
       } catch (err) {
         if (!searchAbortControllerRef.current.signal.aborted) {
-          console.log('Error fetching and filtering searched Bing POIs', err);
+          console.warn('Error fetching and filtering searched Bing POIs: ', err);
         }
       }
     }

@@ -67,7 +67,7 @@ function scrapePlaceData(currItem) {
         body: JSON.stringify(data),
       });
     } catch (e) {
-      console.log('Could not run scraper', e);
+      console.warn('Error running scraper: ', e);
     }
   }());
 }
@@ -91,10 +91,10 @@ const fetchPlaces = async ({ places }) => {
       const placeInDB = await getPlaceInDBQuery({ placePK });
       if (!placeInDB) {
         failedToFetch.push(item);
-        console.log('Failed to fetch place: ', item.name, item.location.address, item.location.locality);
+        console.warn('Failed to fetch place: ', item.name, item.location.address, item.location.locality);
       }
     } catch (e) {
-      console.log('Fetch Dynamo place data error', e);
+      console.warn('Error fetching DB place data: ', e);
     }
   });
 };
@@ -107,13 +107,13 @@ function scrapeTest({ places }) {
       scrapePlaceData(item);
     });
   } catch (e) {
-    console.log('Error running scraper', e);
+    console.warn('Error running scraper: ', e);
   }
 
   try {
     fetchPlaces({ places });
   } catch (e) {
-    console.log('Error fetching places from DB', e);
+    console.warn('Error fetching places from DB: ', e);
   }
 }
 

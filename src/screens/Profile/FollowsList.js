@@ -49,7 +49,7 @@ const FollowsList = ({ navigation, route }) => {
       console.log(currentUser);
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
-      console.log(err);
+      console.warn('Error fetching current user: ', err);
     }
   };
 

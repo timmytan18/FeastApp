@@ -117,7 +117,7 @@ const FollowButton = ({
   };
 
   const changeFollowing = async () => {
-    // Add following/unfollowing to dynamo
+    // Add following/unfollowing to DB
     const currFollow = following;
     setFollowing(!currFollow);
     const mutation = currFollow ? deleteFeastItem : createFeastItem;
@@ -134,7 +134,7 @@ const FollowButton = ({
       ));
     } catch (err) {
       setFollowing(currFollow);
-      console.log(err);
+      console.warn('Error changing following status: ', err);
       Alert.alert(
         'Error',
         `Could not ${currFollow ? 'unfollow' : 'follow'}`,
@@ -162,7 +162,7 @@ const FollowButton = ({
         payload: { num: numFollowing + one },
       });
     } catch (err) {
-      console.log(err);
+      console.warn('Error update follower/following counts: ', err);
     }
   };
 
@@ -181,7 +181,7 @@ const FollowButton = ({
             { input: { posts: batch } },
           ));
         } catch (err) {
-          console.log("Error adding followed user's posts to feed", err);
+          console.warn("Error adding followed user's posts to feed: ", err);
         }
       }
     }
@@ -202,7 +202,7 @@ const FollowButton = ({
             { input: { posts: batch } },
           ));
         } catch (err) {
-          console.log("Error removing followed user's posts from feed", err);
+          console.warn("Error removing followed user's posts from feed: ", err);
         }
       }
     }

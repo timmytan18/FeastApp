@@ -105,7 +105,7 @@ const UploadImages = ({ navigation, route }) => {
           body: JSON.stringify(data),
         });
       } catch (e) {
-        console.log('Could not run scraper', e);
+        console.warn('Error running scraper: ', e);
       }
     }
 
@@ -124,7 +124,7 @@ const UploadImages = ({ navigation, route }) => {
           placeCategories.current = categoriesDB;
         }
       } catch (e) {
-        console.log('Fetch Dynamo place data error', e);
+        console.warn('Error fetching Dynamo place data: ', e);
       }
     }
 

@@ -83,10 +83,11 @@ const Home = ({ navigation }) => {
       // Get user location
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Permission to access location was denied');
+        console.warn('Permission to access location was denied');
       }
 
-      const { coords } = await Location.getCurrentPositionAsync({});
+      const { coords } = await Location.getLastKnownPositionAsync({});
+      // const { coords } = await Location.getCurrentPositionAsync({});
       console.log('Curr location:', coords);
 
       dispatch({
