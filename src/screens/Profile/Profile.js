@@ -4,18 +4,16 @@ import React, {
 import {
   StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList, Alert,
 } from 'react-native';
-// import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
+import Stars from 'react-native-stars';
 import { getUserReviewsQuery, getNumFollowsQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
-import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import ProfilePic from '../components/ProfilePic';
-// import { link } from '../components/OpenLink';
 import MoreView from '../components/MoreView';
 import FollowButton from '../components/FollowButton';
 import More from '../components/util/icons/More';
@@ -25,7 +23,7 @@ import Heart from '../components/util/icons/Heart';
 import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
-// import Instagram from '../components/util/icons/Instagram';
+import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
 import BackArrow from '../components/util/icons/BackArrow';
 import CenterSpinner from '../components/util/CenterSpinner';
 import {
@@ -331,67 +329,102 @@ const Profile = ({ navigation, route }) => {
     setRefreshing(true);
   };
 
-  const renderItem = (item) => (
-    <View style={{ flexDirection: 'row' }}>
-      <View style={{ flex: 0.8, paddingLeft: wp(5) }}>
-        <Text style={styles.userText}>
-          {item.name}
-        </Text>
-        <Text style={styles.userText}>
-          {item.review}
-        </Text>
-        <Text style={styles.userText}>
-          Overall:
-          {' '}
-          {item.rating.overall}
-          {' '}
-          Food:
-          {item.rating.overall}
-          {' '}
-          Value:
-          {item.rating.value}
-          {' '}
-          Service:
-          {item.rating.service}
-          {' '}
-          Atmosphere:
-          {item.rating.atmosphere}
-        </Text>
-        <Text style={styles.userText} />
-      </View>
-      <View style={{ width: wp(18), height: wp(18) }}>
-        <Image
-          resizeMode="cover"
-          style={{ flex: 1, width: '100%', height: '100%' }}
-          source={{ uri: item.s3Photo }}
-        />
-        <Text>{item.dish}</Text>
-      </View>
-      {isMe && (
-        <View style={{
-          flex: 0.2, justifyContent: 'center', alignItems: 'center',
-        }}
-        >
-          <TouchableOpacity onPress={() => {
-            TwoButtonAlert({
-              title: 'Delete Post',
-              yesButton: 'Confirm',
-              pressed: () => {
-                deletePost({ timestamp: item.timestamp, s3Key: item.picture });
-              },
-            });
-          }}
-          >
-            <Text style={{ color: 'blue' }}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+  // const renderItem = (item) => (
+  //   <View style={{ flexDirection: 'row' }}>
+  //     <View style={{ flex: 0.8, paddingLeft: wp(5) }}>
+  //       <Text style={styles.userText}>
+  //         {item.name}
+  //       </Text>
+  //       <Text style={styles.userText}>
+  //         {item.review}
+  //       </Text>
+  //       <Text style={styles.userText}>
+  //         Overall:
+  //         {' '}
+  //         {item.rating.overall}
+  //         {' '}
+  //         Food:
+  //         {item.rating.overall}
+  //         {' '}
+  //         Value:
+  //         {item.rating.value}
+  //         {' '}
+  //         Service:
+  //         {item.rating.service}
+  //         {' '}
+  //         Atmosphere:
+  //         {item.rating.atmosphere}
+  //       </Text>
+  //       <Text style={styles.userText} />
+  //     </View>
+  //     <View style={{ width: wp(18), height: wp(18) }}>
+  //       <Image
+  //         resizeMode="cover"
+  //         style={{ flex: 1, width: '100%', height: '100%' }}
+  //         source={{ uri: item.s3Photo }}
+  //       />
+  //       <Text>{item.dish}</Text>
+  //     </View>
+  //     {isMe && (
+  //       <View style={{
+  //         flex: 0.2, justifyContent: 'center', alignItems: 'center',
+  //       }}
+  //       >
+  //         <TouchableOpacity onPress={() => {
+  //           TwoButtonAlert({
+  //             title: 'Delete Post',
+  //             yesButton: 'Confirm',
+  //             pressed: () => {
+  //               deletePost({ timestamp: item.timestamp, s3Key: item.picture });
+  //             },
+  //           });
+  //         }}
+  //         >
+  //           <Text style={{ color: 'blue' }}>Delete</Text>
+  //         </TouchableOpacity>
+  //       </View>
+  //     )}
+  //   </View>
+  // );
+
+  const renderRow = (items) => (
+    <View style={styles.postsRowContainer}>
+      {items.map((item) => (
+        <TouchableOpacity key={item.timestamp} style={{ alignItems: 'center' }} activeOpacity={0.9}>
+          <View style={styles.postItem}>
+            <View style={styles.starsContainer}>
+              <Stars
+                default={item.rating.overall}
+                count={5}
+                half
+                disabled
+                spacing={wp(0.6)}
+                fullStar={<StarFull size={wp(4)} style={styles.star} />}
+                halfStar={<StarHalf size={wp(4)} style={styles.star} />}
+                emptyStar={<StarEmpty size={wp(4)} style={styles.star} />}
+              />
+            </View>
+            <Image
+              resizeMode="cover"
+              style={styles.postImage}
+              source={{ uri: item.s3Photo }}
+            />
+          </View>
+          <Text style={styles.postNameText}>
+            {item.name}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 
-  const data = [{ title: 'profile', data: reviews }];
-
-  const [examplePic, setExamplePic] = useState(null);
+  const posts = [];
+  const size = 2;
+  const reversedReviews = reviews.reverse();
+  for (let i = 0; i < reversedReviews.length; i += size) {
+    posts.push(reversedReviews.slice(i, i + size));
+  }
+  const data = [{ title: 'profile', data: posts }];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -405,7 +438,7 @@ const Profile = ({ navigation, route }) => {
       <SectionList
         sections={data}
         keyExtractor={(item, index) => index}
-        renderItem={({ item }) => renderItem(item)}
+        renderItem={({ item }) => renderRow(item)}
         renderSectionHeader={renderTopContainer}
         refreshing={refreshing}
         onRefresh={() => {
@@ -413,18 +446,6 @@ const Profile = ({ navigation, route }) => {
           setRefreshing(true);
         }}
       />
-      <View style={styles.bottomContainer}>
-        <View style={[styles.userPicture, { backgroundColor: colors.gray }]}>
-          {examplePic
-            && (
-              <Image
-                resizeMode="cover"
-                style={styles.userPicture}
-                source={{ uri: examplePic, cache: 'force-cache' }}
-              />
-            )}
-        </View>
-      </View>
     </SafeAreaView>
   );
 };
@@ -434,11 +455,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flex: 1,
     paddingBottom: wp(2.4),
-  },
-  bottomContainer: {
-    flex: 0.62,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -565,6 +581,42 @@ const styles = StyleSheet.create({
     backgroundColor: colors.black,
     borderTopLeftRadius: wp(1),
     borderTopRightRadius: wp(1),
+  },
+  postsRowContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    marginHorizontal: wp(5),
+    marginBottom: wp(2.5),
+    flexDirection: 'row',
+  },
+  postItem: {
+    width: wp(43.5),
+    height: wp(43.5),
+  },
+  postImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderRadius: wp(2),
+  },
+  postNameText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b3,
+    color: colors.black,
+    marginTop: wp(1),
+  },
+  starsContainer: {
+    position: 'absolute',
+    top: wp(3),
+    right: wp(3),
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    paddingHorizontal: wp(1.7),
+    paddingVertical: wp(1.5),
+    borderRadius: wp(1.3),
+    zIndex: 1,
+  },
+  style: {
+    marginHorizontal: wp(0.5),
   },
 });
 
