@@ -154,6 +154,7 @@ const UploadImages = ({ navigation, route }) => {
 
   // Menu item input
   const [menuItem, setMenuItem] = useState(null);
+  const [inputActive, setInputActive] = useState(false);
   const inputAnim = useRef(new Animated.Value(0)).current;
   const inputTranslate = inputAnim.interpolate({
     inputRange: [0, 1],
@@ -366,7 +367,11 @@ const UploadImages = ({ navigation, route }) => {
             )}
           {picture && tab !== CAMERA_TAB
             && (
-              <TouchableOpacity activeOpacity={0.9} onPress={pickImage}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={pickImage}
+                disabled={inputActive}
+              >
                 <Image style={styles.camContainer} source={{ uri: picture.uri }} />
               </TouchableOpacity>
             )}
@@ -392,8 +397,14 @@ const UploadImages = ({ navigation, route }) => {
               value={menuItem}
               placeholder="What's this menu item? (optional)"
               placeholderTextColor={colors.tertiary}
-              onFocus={() => slideInput(1)}
-              onEndEditing={() => (tab === CAMERA_TAB ? slideInput(0) : slideInput(0.7))}
+              onFocus={() => {
+                setInputActive(true);
+                slideInput(1);
+              }}
+              onEndEditing={() => {
+                setInputActive(false);
+                slideInput(tab === CAMERA_TAB ? 0 : 0.7);
+              }}
             />
           </Animated.View>
           {tab === CAMERA_TAB
