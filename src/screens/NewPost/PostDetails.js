@@ -3,13 +3,13 @@ import React, {
 } from 'react';
 import {
   StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput,
-  ScrollView, Keyboard, Alert, ImageBackground,
+  ScrollView, Keyboard, Alert, ImageBackground, Animated,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { manipulateAsync } from 'expo-image-manipulator';
-import awsmobile from '../../aws-exports';
+import EmojiModal from 'react-native-emoji-modal';
 import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
 import { createFeastItem, batchCreateFollowingPosts } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
@@ -19,10 +19,8 @@ import RatingsInput from '../components/RatingsInput';
 import { RATING_CATEGORIES } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp, hp, header,
+  colors, sizes, wp, hp, header, shadows,
 } from '../../constants/theme';
-
-const { aws_user_files_s3_bucket: bucket } = awsmobile;
 
 const propTypes = {
   route: PropTypes.shape({
@@ -58,6 +56,18 @@ const PostDetails = ({ navigation, route }) => {
 
   const placeExists = useRef(pExists);
   const placeCategories = useRef(pCategories);
+
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [emoji, setEmoji] = useState('😋');
+  const emojiPosition = useRef(new Animated.Value(0)).current;
+  const translateAnim = emojiPosition.interpolate({
+    inputRange: [0, 1],
+    outputRange: [wp(100), 20],
+  });
+  const opacityAnim = emojiPosition.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
 
   const [shareDisable, setShareDisable] = useState(false);
 
@@ -101,9 +111,9 @@ const PostDetails = ({ navigation, route }) => {
       const manipResult = await manipulateAsync(
         image.localUri || image.uri,
         [
-          { resize: { height: 200, width: 200 } },
+          { resize: { height: 500, width: 500 } },
         ],
-        { compress: 0.5 },
+        { compress: 0.75 },
       );
 
       const img = manipResult.uri;
@@ -294,8 +304,58 @@ const PostDetails = ({ navigation, route }) => {
     }
   };
 
+  const handleEmojiSelect = (emojiObject) => {
+    console.log(emojiObject);
+    setEmoji(emojiObject);
+    handleOpenCloseEmoji(false);
+  };
+
+  const handleOpenCloseEmoji = (open) => {
+    Animated.spring(emojiPosition, {
+      toValue: open ? 1 : 0,
+      speed: 100,
+      bounciness: 2,
+      useNativeDriver: true,
+    }).start();
+    setEmojiOpen(open);
+    Keyboard.dismiss();
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <Animated.View
+        style={[{
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          bottom: 10,
+          zIndex: 1,
+          width: wp(100),
+          height: hp(90),
+          alignSelf: 'center',
+        }, { transform: [{ translateY: translateAnim }], opacity: opacityAnim }]}
+        pointerEvents={emojiOpen ? 'auto' : 'none'}
+      >
+        <EmojiModal
+          onEmojiSelected={handleEmojiSelect}
+          onPressOutside={() => handleOpenCloseEmoji(false)}
+          columns={8}
+          emojiSize={wp(9)}
+          scrollStyle={{
+            height: '100%',
+          }}
+          scrollContentContainerStyle={{ alignItems: 'center', padding: 0, margin: 0 }}
+          containerStyle={[shadows.darker, {
+            width: '100%',
+            height: wp(103),
+            borderRadius: 0,
+            borderTopLeftRadius: wp(4),
+            borderTopRightRadius: wp(4),
+            justifyContent: 'flex-start',
+            paddingTop: wp(3),
+          }]}
+          backgroundStyle={{ opacity: 0.3, backgroundColor: emojiOpen ? colors.gray4 : 'transparent' }}
+        />
+      </Animated.View>
       <ScrollView
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
@@ -316,20 +376,28 @@ const PostDetails = ({ navigation, route }) => {
             </View>
           </View>
         </View>
-        <TextInput
-          style={styles.reviewInput}
-          onChangeText={(text) => {
-            setReview(text);
-            reviewRef.current = text;
-          }}
-          value={review}
-          placeholder="Add a review/caption…"
-          placeholderTextColor={colors.tertiary}
-          multiline
-          maxLength={256}
-          blurOnSubmit
-          returnKeyType="done"
-        />
+        <View style={{ flexDirection: 'row' }}>
+          <TextInput
+            style={styles.reviewInput}
+            onChangeText={(text) => {
+              setReview(text);
+              reviewRef.current = text;
+            }}
+            value={review}
+            placeholder="Add a review/caption…"
+            placeholderTextColor={colors.tertiary}
+            multiline
+            maxLength={256}
+            blurOnSubmit
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            style={styles.emojiInput}
+            onPress={() => handleOpenCloseEmoji(true)}
+          >
+            <Text style={{ fontSize: wp(5) }}>{emoji}</Text>
+          </TouchableOpacity>
+        </View>
         <ImageBackground
           style={styles.imageContainer}
           imageStyle={{ borderRadius: wp(2) }}
@@ -342,7 +410,7 @@ const PostDetails = ({ navigation, route }) => {
           <RatingsInput ratings={ratings} changeRatings={changeRatings} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -417,6 +485,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   reviewInput: {
+    flex: 0.9,
     fontFamily: 'Book',
     fontSize: sizes.h4,
     color: colors.black,
@@ -428,6 +497,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray4,
     borderRadius: wp(2),
     height: hp(10),
+  },
+  emojiInput: {
+    flex: 0.1,
+    fontSize: sizes.h3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.gray4,
+    borderRadius: wp(2),
+    height: hp(10),
+    paddingHorizontal: wp(3),
+    paddingVertical: wp(2),
+    marginVertical: wp(3),
+    marginLeft: wp(3),
   },
   imageContainer: {
     width: '100%',
@@ -449,8 +531,8 @@ const styles = StyleSheet.create({
   },
   ratingTitle: {
     fontFamily: 'Semi',
-    fontSize: wp(5.5),
-    color: colors.primary,
+    fontSize: sizes.b0,
+    color: colors.tertiary,
     paddingLeft: wp(0.5),
     marginBottom: -wp(2),
   },

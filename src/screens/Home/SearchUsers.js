@@ -56,24 +56,6 @@ const SearchUsers = ({ navigation }) => {
 
   const [usersList, setUsersList] = useState(users);
 
-  // function getProfilePictures(item) {
-  //     return new Promise((resolve, reject) => {
-  //         if (item.picture) {
-  //             resolve(item)
-  //         } else {
-  //             Storage.get('profile_pic.jpeg', { identityId: item.identityId })
-  //                 .then(url => {
-  //                     item.picture = url;
-  //                     resolve(item)
-  //                 })
-  //                 .catch(err => {
-  //                     console.log(err)
-  //                     reject()
-  //                 });
-  //         }
-  //     });
-  // }
-
   const searchForUser = async (query) => {
     if (query) {
       setLoading(true);
@@ -126,10 +108,7 @@ const SearchUsers = ({ navigation }) => {
         <Text style={styles.userNameText}>{item.name}</Text>
         {item.city && <Text style={styles.userCityText}>{item.city}</Text>}
       </View>
-      <View style={styles.distanceContainer}>
-        {/* <Car size={wp(4.5)} />
-                    <Text style={styles.distanceText}>{distance} mi</Text> */}
-      </View>
+      <View style={styles.distanceContainer} />
     </TouchableOpacity>
   );
 

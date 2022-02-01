@@ -228,11 +228,6 @@ const UploadImages = ({ navigation, route }) => {
   };
 
   const cameraPermissions = async () => {
-    // const image = await ImagePicker.launchCameraAsync({ aspect: [1,1], allowsEditing: true, quality: 1 })
-    // if (!image.cancelled) {
-    //     delete image.cancelled
-    //     setPicture(image)
-    // }
     const { status } = await Camera.requestCameraPermissionsAsync();
     setHasCameraPermission(status === 'granted');
     setPicture(null);
@@ -427,7 +422,11 @@ const UploadImages = ({ navigation, route }) => {
                       onPress={pickImage}
                     >
                       <View style={styles.allLibrary}>
-                        <Text style={styles.allLibraryText}>See All Photos</Text>
+                        <Text style={styles.allLibraryText}>
+                          See All
+                          {'\n'}
+                          Photos
+                        </Text>
                       </View>
                     </TouchableOpacity>
                   )}
@@ -577,7 +576,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(1),
   },
   allLibraryContainer: {
-    height: '60%',
+    height: wp(45),
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -586,7 +585,7 @@ const styles = StyleSheet.create({
     width: '50%',
     aspectRatio: 1,
     borderRadius: wp(30),
-    backgroundColor: colors.gray2,
+    backgroundColor: colors.gray3,
     alignItems: 'center',
     justifyContent: 'center',
   },
