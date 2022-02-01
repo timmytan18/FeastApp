@@ -93,6 +93,7 @@ const FollowButton = ({
           picture,
         },
       });
+      delete updatedReviews[updatedReviews.length - 1].s3Photo;
     });
     reviewsForFeed.current = updatedReviews;
   }, [reviews, myPK, name, uid, picture]);
