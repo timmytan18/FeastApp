@@ -10,6 +10,7 @@ import { Auth } from 'aws-amplify';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
+import { manipulateAsync } from 'expo-image-manipulator';
 import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
 import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
@@ -151,6 +152,7 @@ const UploadImages = ({ navigation, route }) => {
 
   // Picture
   const [picture, setPicture] = useState(null);
+  const pictureFromPreview = useRef(true);
 
   // Menu item input
   const [menuItem, setMenuItem] = useState(null);
@@ -168,19 +170,39 @@ const UploadImages = ({ navigation, route }) => {
     }).start();
   }
 
+  const cropImage = async () => {
+    const size = Math.min(picture.width, picture.height);
+    const origin = Math.max(picture.width, picture.height) / 2 - size / 2;
+    const manipResult = await manipulateAsync(
+      picture.localUri || picture.uri,
+      [{
+        crop: {
+          height: size,
+          width: size,
+          originX: picture.height > picture.width ? 0 : origin,
+          originY: picture.height > picture.width ? origin : 0,
+        },
+      }],
+    );
+    return manipResult;
+  };
+
   // Set navigation with button, set header title to place name
   useEffect(() => {
     const headerRight = () => (
       <TouchableOpacity
         style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}
         disabled={!picture}
-        onPress={() => navigation.navigate('PostDetails', {
-          business,
-          picture,
-          menuItem,
-          pExists: placeExists.current,
-          pCategories: placeCategories.current,
-        })}
+        onPress={async () => {
+          const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
+          navigation.navigate('PostDetails', {
+            business,
+            picture: croppedImg,
+            menuItem,
+            pExists: placeExists.current,
+            pCategories: placeCategories.current,
+          });
+        }}
       >
         <Text style={styles.nextButtonText}>Next</Text>
         <NextArrow />
@@ -203,9 +225,11 @@ const UploadImages = ({ navigation, route }) => {
       }
       setLibraryPreview(images);
       if (assets.length) {
+        pictureFromPreview.current = true;
         setPicture(assets[0]);
       }
     } else if (libraryPreview.length && libraryPreview[0].length) {
+      pictureFromPreview.current = true;
       setPicture(libraryPreview[0][0]);
     }
     setTab(LIBRARY_TAB);
@@ -224,6 +248,7 @@ const UploadImages = ({ navigation, route }) => {
   const takePicture = async () => {
     if (camera.current) {
       const photo = await camera.current.takePictureAsync({ quality: 1 });
+      pictureFromPreview.current = false;
       setPicture(photo);
     }
   };
@@ -233,6 +258,7 @@ const UploadImages = ({ navigation, route }) => {
     setHasCameraPermission(status === 'granted');
     setPicture(null);
     slideInput(0);
+    pictureFromPreview.current = false;
     setTab(CAMERA_TAB);
   };
 
@@ -293,14 +319,20 @@ const UploadImages = ({ navigation, route }) => {
         <TouchableOpacity
           activeOpacity={0.6}
           style={styles.gridItem}
-          onPress={() => setPicture(item[0])}
+          onPress={() => {
+            pictureFromPreview.current = true;
+            setPicture(item[0]);
+          }}
         >
           <Image style={gridStyleTop} source={{ uri: item[0].uri }} />
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.6}
           style={styles.gridItem}
-          onPress={() => setPicture(item[1])}
+          onPress={() => {
+            pictureFromPreview.current = true;
+            setPicture(item[1]);
+          }}
         >
           <Image style={gridStyleBottom} source={{ uri: item[1].uri }} />
         </TouchableOpacity>
@@ -319,6 +351,7 @@ const UploadImages = ({ navigation, route }) => {
     );
     if (!image.cancelled) {
       delete image.cancelled;
+      pictureFromPreview.current = false;
       setPicture(image);
     }
   };
