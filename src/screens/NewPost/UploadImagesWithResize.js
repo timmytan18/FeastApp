@@ -2,7 +2,8 @@ import React, {
   useState, useEffect, useCallback, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Animated, Image, FlatList, PanResponder,
+  StyleSheet, Text, View, SafeAreaView, TouchableOpacity, PanResponder,
+  TextInput, Animated, ImageBackground, Image, FlatList,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
@@ -10,7 +11,7 @@ import { Auth } from 'aws-amplify';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { manipulateAsync } from 'expo-image-manipulator';
 import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
 import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
@@ -50,6 +51,8 @@ const propTypes = {
 };
 
 const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws.com/dev/scraper';
+
+const AnimatedImage = Animated.createAnimatedComponent(ImageBackground);
 
 const UploadImages = ({ navigation, route }) => {
   // FIND BUSINESS IN DYNAMO
@@ -152,11 +155,11 @@ const UploadImages = ({ navigation, route }) => {
 
   // Picture
   const [picture, setPicture] = useState(null);
-  const pictureToEdit = useRef(null);
-  const [editorVisible, setEditorVisible] = useState(false);
+  const pictureFromPreview = useRef(true);
 
   // Menu item input
   const [menuItem, setMenuItem] = useState(null);
+  const [inputActive, setInputActive] = useState(false);
   const inputAnim = useRef(new Animated.Value(0)).current;
   const inputTranslate = inputAnim.interpolate({
     inputRange: [0, 1],
@@ -170,7 +173,9 @@ const UploadImages = ({ navigation, route }) => {
     }).start();
   }
 
+  // Image cropper
   const pan = useRef(new Animated.ValueXY()).current;
+  const [topValue, setTopValue] = useState(0);
   const currOffset = useRef(0);
   const panResponder = useRef(
     PanResponder.create({
@@ -183,27 +188,32 @@ const UploadImages = ({ navigation, route }) => {
         //     * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
 
         // }
-
+        console.log(gestureState.dy);
+        console.log(pan.y._value);
         pan.setValue({ x: 0, y: currOffset.current + gestureState.dy });
+        // if () {
+
+        // }
       },
       onPanResponderRelease: (evt, gestureState) => {
-        const bottom = -1
-          * ((pictureToEdit.current.height / pictureToEdit.current.width)
-            * wp(99) - wp(99));
-        console.log('bottom', bottom);
-        console.log('value', currOffset.current + pan.y._value);
-        if (currOffset.current + pan.y._value > 0) {
-          console.log('top');
-          currOffset.current = 0;
-          pan.setValue({ x: 0, y: 0 });
-        } else if (currOffset.current + pan.y._value < bottom) {
-          console.log('bottom');
-          currOffset.current = bottom + pan.y._value;
-          pan.setValue({ x: 0, y: bottom });
-        } else {
-          console.log('middle');
-          currOffset.current = pan.y._value;
-        }
+        setTopValue(pan.y._value);
+        // const bottom = -1
+        //   * ((pictureToEdit.current.height / pictureToEdit.current.width)
+        //     * wp(99) - wp(99));
+        // console.log('bottom', bottom);
+        // console.log('value', currOffset.current + pan.y._value);
+        // if (currOffset.current + pan.y._value > 0) {
+        //   console.log('top');
+        //   currOffset.current = 0;
+        //   pan.setValue({ x: 0, y: 0 });
+        // } else if (currOffset.current + pan.y._value < bottom) {
+        //   console.log('bottom');
+        //   currOffset.current = bottom + pan.y._value;
+        //   pan.setValue({ x: 0, y: bottom });
+        // } else {
+        //   console.log('middle');
+        //   currOffset.current = pan.y._value;
+        // }
         // if (currOffset.current + pan.y._value <= 0
         //   && (currOffset.current + pan.y._value) >= (-1
         //     * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
@@ -213,19 +223,39 @@ const UploadImages = ({ navigation, route }) => {
     }),
   ).current;
 
+  const cropImage = async () => {
+    const size = Math.min(picture.width, picture.height);
+    const origin = Math.max(picture.width, picture.height) / 2 - size / 2;
+    const manipResult = await manipulateAsync(
+      picture.localUri || picture.uri,
+      [{
+        crop: {
+          height: size,
+          width: size,
+          originX: picture.height > picture.width ? 0 : origin,
+          originY: picture.height > picture.width ? origin : 0,
+        },
+      }],
+    );
+    return manipResult;
+  };
+
   // Set navigation with button, set header title to place name
   useEffect(() => {
     const headerRight = () => (
       <TouchableOpacity
         style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}
         disabled={!picture}
-        onPress={() => navigation.navigate('PostDetails', {
-          business,
-          picture,
-          menuItem,
-          pExists: placeExists.current,
-          pCategories: placeCategories.current,
-        })}
+        onPress={async () => {
+          const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
+          navigation.navigate('PostDetails', {
+            business,
+            picture: croppedImg,
+            menuItem,
+            pExists: placeExists.current,
+            pCategories: placeCategories.current,
+          });
+        }}
       >
         <Text style={styles.nextButtonText}>Next</Text>
         <NextArrow />
@@ -239,14 +269,6 @@ const UploadImages = ({ navigation, route }) => {
     });
   }, [business, picture, menuItem, navigation]);
 
-  const cropAndSetImage = async (img) => {
-    currOffset.current = 0;
-    pan.setValue({ x: 0, y: 0 });
-    pictureToEdit.current = img;
-    // setEditorVisible(true);
-    setPicture(img);
-  };
-
   const openLibraryPreview = async () => {
     if (!libraryPreview) {
       const { assets } = await MediaLibrary.getAssetsAsync();
@@ -256,10 +278,12 @@ const UploadImages = ({ navigation, route }) => {
       }
       setLibraryPreview(images);
       if (assets.length) {
-        cropAndSetImage(assets[0]);
+        pictureFromPreview.current = true;
+        setPicture(assets[0]);
       }
     } else if (libraryPreview.length && libraryPreview[0].length) {
-      cropAndSetImage(libraryPreview[0][0]);
+      pictureFromPreview.current = true;
+      setPicture(libraryPreview[0][0]);
     }
     setTab(LIBRARY_TAB);
     slideInput(0.7);
@@ -277,6 +301,7 @@ const UploadImages = ({ navigation, route }) => {
   const takePicture = async () => {
     if (camera.current) {
       const photo = await camera.current.takePictureAsync({ quality: 1 });
+      pictureFromPreview.current = false;
       setPicture(photo);
     }
   };
@@ -286,6 +311,7 @@ const UploadImages = ({ navigation, route }) => {
     setHasCameraPermission(status === 'granted');
     setPicture(null);
     slideInput(0);
+    pictureFromPreview.current = false;
     setTab(CAMERA_TAB);
   };
 
@@ -346,14 +372,20 @@ const UploadImages = ({ navigation, route }) => {
         <TouchableOpacity
           activeOpacity={0.6}
           style={styles.gridItem}
-          onPress={() => cropAndSetImage(item[0])}
+          onPress={() => {
+            pictureFromPreview.current = true;
+            setPicture(item[0]);
+          }}
         >
           <Image style={gridStyleTop} source={{ uri: item[0].uri }} />
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.6}
           style={styles.gridItem}
-          onPress={() => cropAndSetImage(item[1])}
+          onPress={() => {
+            pictureFromPreview.current = true;
+            setPicture(item[1]);
+          }}
         >
           <Image style={gridStyleBottom} source={{ uri: item[1].uri }} />
         </TouchableOpacity>
@@ -372,6 +404,7 @@ const UploadImages = ({ navigation, route }) => {
     );
     if (!image.cancelled) {
       delete image.cancelled;
+      pictureFromPreview.current = false;
       setPicture(image);
     }
   };
@@ -425,19 +458,29 @@ const UploadImages = ({ navigation, route }) => {
                 activeOpacity={0.9}
                 onPress={pickImage}
               >
-                <Animated.View
+                <View
                   style={[{
-                    transform: [{ translateY: pan.y }],
                     backgroundColor: 'blue',
-                  }, styles.camContainer, { aspectRatio: picture.width / picture.height }]}
-                  {...panResponder.panHandlers}
+                  }, styles.camContainer]}
                 >
-                  <Image
-                    style={[styles.camContainer, { aspectRatio: picture.width / picture.height }]}
+                  <AnimatedImage
+                    style={[styles.camContainer, {
+                      width: '100%',
+                      height: wp(99),
+                      overflow: 'hidden',
+                    }]}
+                    imageStyle={{
+                      resizeMode: 'cover',
+                      width: '100%',
+                      height: wp(99) * (picture.height / picture.width),
+                      top: topValue,
+                      // top: -wp(99) * (picture.height / picture.width) + wp(99),
+                      bottom: undefined,
+                    }}
                     source={{ uri: picture.uri }}
-                    resizeMode="cover"
+                    {...panResponder.panHandlers}
                   />
-                </Animated.View>
+                </View>
               </View>
             )}
           {picture && tab === CAMERA_TAB
@@ -462,8 +505,14 @@ const UploadImages = ({ navigation, route }) => {
               value={menuItem}
               placeholder="What's this menu item? (optional)"
               placeholderTextColor={colors.tertiary}
-              onFocus={() => slideInput(1)}
-              onEndEditing={() => (tab === CAMERA_TAB ? slideInput(0) : slideInput(0.7))}
+              onFocus={() => {
+                setInputActive(true);
+                slideInput(1);
+              }}
+              onEndEditing={() => {
+                setInputActive(false);
+                slideInput(tab === CAMERA_TAB ? 0 : 0.7);
+              }}
             />
           </Animated.View>
           {tab === CAMERA_TAB
@@ -564,7 +613,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     paddingBottom: hp(7),
-    backgroundColor: 'white',
   },
   itemInputContainer: {
     position: 'absolute',
