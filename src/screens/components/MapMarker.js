@@ -1,10 +1,14 @@
 import React from 'react';
 import {
-  StyleSheet, View, Text,
+  StyleSheet, View, Text, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { LinearGradient } from 'expo-linear-gradient';
 import ProfilePic from './ProfilePic';
-import { colors, sizes, wp } from '../../constants/theme';
+import {
+  colors, sizes, gradients, wp,
+} from '../../constants/theme';
+import { } from 'react-native-gesture-handler';
 
 const propTypes = {
   name: PropTypes.string.isRequired,
@@ -23,13 +27,20 @@ const MapMarker = ({
   name, lat, lng, userPic, category,
 }) => (
   <View style={styles.container}>
-    <View style={styles.markerContainer}>
-      <ProfilePic
-        extUrl={userPic}
-        size={imageSize}
-        style={styles.imageContainer}
-      />
-    </View>
+    <LinearGradient
+      colors={gradients.purple.colors}
+      start={gradients.purple.start}
+      end={gradients.purple.end}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.markerContainer}>
+        <ProfilePic
+          extUrl={userPic}
+          size={imageSize}
+          style={styles.imageContainer}
+        />
+      </View>
+    </LinearGradient>
     <View>
       <Text style={[styles.nameText, styles.textWithShadow]}>{name}</Text>
     </View>
@@ -44,13 +55,22 @@ const MapMarker = ({
 MapMarker.propTypes = propTypes;
 MapMarker.defaultProps = defaultProps;
 
-const markerSize = wp(12);
-const borderWidth = 2;
+const markerSize = wp(11);
+const markerWithGradientSize = markerSize + wp(1.2);
+const borderWidth = 1;
 const imageSize = markerSize - borderWidth * 4;
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  gradientContainer: {
+    height: markerWithGradientSize,
+    width: markerWithGradientSize,
+    borderRadius: markerWithGradientSize / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: wp(1),
   },
   markerContainer: {
     justifyContent: 'center',
@@ -58,10 +78,7 @@ const styles = StyleSheet.create({
     height: markerSize,
     width: markerSize,
     borderRadius: markerSize / 2,
-    borderWidth,
-    borderColor: colors.accent,
     backgroundColor: colors.white,
-    marginBottom: wp(1),
   },
   imageContainer: {
     height: imageSize,
@@ -75,6 +92,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontFamily: 'Book',
     fontSize: sizes.caption,
+    lineHeight: sizes.caption * 1.3,
   },
   textWithShadow: {
     textShadowColor: 'rgba(255, 197, 41, 0.75)',
