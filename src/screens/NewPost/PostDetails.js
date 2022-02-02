@@ -211,9 +211,9 @@ const PostDetails = ({ navigation, route }) => {
 
       // Share post to user's followers' feeds
       const userFeedsInput = {
-        SK: `#FOLLOWINGPOST#${timestamp}`,
+        SK: `#FOLLOWINGPOST#${timestamp}#${uid}`,
         LSI1: `#FOLLOWINGPOST#${hash}`,
-        LSI2: `#FOLLOWINGPOST#${placeId}`,
+        LSI2: `#FOLLOWINGPOST#${placeId}#${timestamp}`,
         LSI3: `#FOLLOWINGPOST#${uid}`,
         placeId,
         name,

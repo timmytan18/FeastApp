@@ -83,9 +83,9 @@ const FollowButton = ({
       updatedReviews.push({
         ...review,
         PK: myPK,
-        SK: `#FOLLOWINGPOST#${review.timestamp}`,
+        SK: `#FOLLOWINGPOST#${review.timestamp}#${uid}`,
         LSI1: `#FOLLOWINGPOST#${review.geo}`,
-        LSI2: `#FOLLOWINGPOST#${review.placeId}`,
+        LSI2: `#FOLLOWINGPOST#${review.placeId}#${review.timestamp}`,
         LSI3: `#FOLLOWINGPOST#${uid}`,
         placeUserInfo: {
           name,

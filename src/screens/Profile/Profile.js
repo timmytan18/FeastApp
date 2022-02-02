@@ -304,7 +304,7 @@ const Profile = ({ navigation, route }) => {
     followers.forEach(({ follower: { PK: followerPK } }) => {
       postInUserFeeds.push({
         PK: followerPK,
-        SK: `#FOLLOWINGPOST#${timestamp}`,
+        SK: `#FOLLOWINGPOST#${timestamp}#${user.uid}`,
       });
     });
 
