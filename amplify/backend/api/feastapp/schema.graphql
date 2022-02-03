@@ -84,6 +84,14 @@ type PlaceUserInfo {
   picture: String
 }
 
+type Query {
+  batchGetFeastItems(input: BatchGetFeastItemsInput!): [FeastItem]
+}
+
+input BatchGetFeastItemsInput {
+  items: [PrimaryKeyInput]
+}
+
 type Mutation {
   incrementFeastItem(input: IncrementFeastItemInput!): FeastItem
   batchCreateFollowingPosts(input: BatchCreateFollowingPostsInput!): FeastItem

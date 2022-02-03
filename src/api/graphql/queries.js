@@ -327,6 +327,8 @@ export const getFollowingPosts = /* GraphQL */ `
       sortDirection: $sortDirection
     ) {
       items {
+        PK
+        SK
         placeId
         name
         geo
@@ -364,6 +366,27 @@ export const getFollowingPostsByUser = /* GraphQL */ `
         SK
       }
       nextToken
+    }
+  }
+`;
+
+export const batchGetUserPosts = /* GraphQL */ `
+  query BatchGetFeastItems($input: BatchGetFeastItemsInput!) {
+    batchGetFeastItems(input: $input) {
+      picture
+      placeId
+      dish
+      rating {
+        overall
+        food
+        value
+        service
+        atmosphere
+      }
+      review
+      placeUserInfo {
+        uid
+      }
     }
   }
 `;

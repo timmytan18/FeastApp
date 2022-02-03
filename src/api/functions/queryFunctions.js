@@ -4,7 +4,7 @@ import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
-  getFollowingPosts, getFollowingPostsByUser, getFollowersPK,
+  getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -171,7 +171,8 @@ async function getFollowingPostsQuery({ PK }) {
   return posts;
 }
 
-// Get all posts in feed from following
+// Get all posts in feed from a following user
+// Used to delete a user's posts from feed
 async function getFollowingPostsByUserQuery({ PK, followingUID }) {
   let posts;
   try {
@@ -186,8 +187,23 @@ async function getFollowingPostsByUserQuery({ PK, followingUID }) {
   return posts;
 }
 
+// Batch get post details (get posts for specific place for stories)
+async function batchGetUserPostsQuery({ batch }) {
+  let posts;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      batchGetUserPosts,
+      { input: { items: batch } },
+    ));
+    posts = res.data.batchGetFeastItems;
+  } catch (err) {
+    console.warn('Error batch getting user posts: ', err);
+  }
+  return posts;
+}
+
 export {
   getUserProfileQuery, getUserReviewsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
   getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
-  getFollowingPostsByUserQuery,
+  getFollowingPostsByUserQuery, batchGetUserPostsQuery,
 };

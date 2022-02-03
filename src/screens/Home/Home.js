@@ -1,19 +1,23 @@
 import React, {
   useEffect, useContext, useState, useRef,
 } from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet, View, TouchableOpacity, Text,
+} from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
+import { Storage } from 'aws-amplify';
+import Modal from 'react-native-modal';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
-import { getNumFollowsQuery, getFollowingPostsQuery } from '../../api/functions/queryFunctions';
+import { getNumFollowsQuery, getFollowingPostsQuery, batchGetUserPostsQuery } from '../../api/functions/queryFunctions';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
 import { Context } from '../../Store';
 import {
-  colors, shadows, hp, wp,
+  colors, shadows, wp, hp,
 } from '../../constants/theme';
 
 const mapLessLandmarksStyle = [
@@ -60,7 +64,6 @@ const Home = ({ navigation }) => {
   //   dLng: 0.02105,
   // };
 
-  const [reviews, setReviews] = useState(null);
   const [markers, setMarkers] = useState([]);
 
   const mapRef = useRef(null);
@@ -78,6 +81,9 @@ const Home = ({ navigation }) => {
     })();
   }, [dispatch, state.user.PK, state.user.SK]);
 
+  const placePosts = useRef({}); // obj of placeId: [posts]
+  const usersNamePic = useRef({}); // obj of uid: { name, pic }
+
   useEffect(() => {
     (async () => {
       // Get user location
@@ -86,8 +92,13 @@ const Home = ({ navigation }) => {
         console.warn('Permission to access location was denied');
       }
 
-      const { coords } = await Location.getLastKnownPositionAsync({});
-      // const { coords } = await Location.getCurrentPositionAsync({});
+      let coords;
+      try {
+        ({ coords } = await Location.getLastKnownPositionAsync({}));
+      } catch {
+        ({ coords } = await Location.getCurrentPositionAsync({}));
+      }
+
       console.log('Curr location:', coords);
 
       dispatch({
@@ -98,15 +109,8 @@ const Home = ({ navigation }) => {
         },
       });
 
-      // // Get geohashes from user location
-      // const { dLat, dLng } = geoRange;
-      // const bottomLeft = { lat: coords.latitude - dLat, lng: coords.longitude - dLng };
-      // const topRight = { lat: coords.latitude + dLat, lng: coords.longitude + dLng };
-      // const precision = 3; // ~3 mile grid
-      // const hashes = geohash.bboxes(bottomLeft.lat, bottomLeft.lng, topRight.lat, topRight.lng, precision);
-      // console.log(hashes.join(' '));
-
       // Get following users' reviews
+      const placePostsUpdated = {};
       const userPlaces = {}; // obj of uid: set(placeIds)
       const placeMarkers = [{
         name: 'CURRENT_USER', lat: coords.latitude, lng: coords.longitude,
@@ -121,24 +125,44 @@ const Home = ({ navigation }) => {
           allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
           // Desconstruct attributes needed from post
           const {
+            PK, SK,
             placeId,
             coordinates: { latitude: lat, longitude: lng },
             name,
             categories,
-            placeUserInfo: { picture: userPic, uid },
+            placeUserInfo: { picture: userPic, uid, name: userName },
           } = allPosts[i];
+
+          // Create new posts array for place if not already created
+          // If created, add post to posts array
+          if (!placePostsUpdated[placeId]) {
+            placePostsUpdated[placeId] = [{ PK, SK }];
+          } else {
+            placePostsUpdated[placeId].push({ PK, SK });
+          }
+
+          // Add user name and pic to userPlaces obj if not already added
+          if (!(uid in usersNamePic.current)) {
+            usersNamePic.current[uid] = { userPic, userName };
+          }
+
           // Create new place set for user if not already created
           if (!userPlaces[uid]) {
             userPlaces[uid] = new Set();
           }
           // Add place to user's place set and placeMarkers if not already added
-          if (!(placeId in userPlaces[uid])) {
+          if (!(userPlaces[uid].has(placeId))) {
+            console.log(name);
+            console.log(placeId);
             userPlaces[uid].add(placeId);
+            console.log(userPlaces[uid]);
+            console.log(!(placeId in userPlaces[uid]));
             placeMarkers.push({
-              name, lat, lng, userPic, category: categories ? categories[0] : null,
+              name, placeId, lat, lng, userPic, category: categories ? categories[0] : null,
             });
           }
         }
+        placePosts.current = placePostsUpdated;
       } else {
         console.log(state);
       }
@@ -147,6 +171,35 @@ const Home = ({ navigation }) => {
       setMarkers(placeMarkers);
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.numFollowing]);
+
+  const [stories, setStories] = useState([]);
+
+  const getPostPictures = (item) => new Promise((resolve, reject) => {
+    Storage.get(item.picture, { level: 'protected', identityId: state.user.identityId })
+      .then((url) => {
+        item.picture = url;
+        resolve(item);
+      })
+      .catch((err) => {
+        console.warn('Error fetching post picture from S3: ', err);
+        reject();
+      });
+  });
+
+  const fetchPostDetails = async ({ placeId }) => {
+    const currPlacePosts = await batchGetUserPostsQuery(
+      { batch: placePosts.current[placeId] },
+    );
+    console.log(currPlacePosts);
+    if (currPlacePosts && currPlacePosts.length) {
+      Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
+        console.log(posts);
+        setStories(posts);
+      });
+    } else {
+      console.warn('Error fetching images for place: ', placeId);
+    }
+  };
 
   if (!state.location.latitude || !state.location.longitude) {
     return (null);
@@ -170,6 +223,13 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <View>
+        <Modal isVisible={stories.length}>
+          <View style={{ flex: 1, backgroundColor: 'red' }}>
+            <Text>I am the modal content!</Text>
+          </View>
+        </Modal>
+      </View>
       <MapView
         style={styles.map}
         region={region}
@@ -181,7 +241,7 @@ const Home = ({ navigation }) => {
       // customMapStyle={mapLessLandmarksStyle}
       >
         {markers.map(({
-          name, lat, lng, userPic, category,
+          name, placeId, lat, lng, userPic, category,
         }) => {
           if (name === 'CURRENT_USER') {
             return (
@@ -197,8 +257,19 @@ const Home = ({ navigation }) => {
             <Marker
               key={`${lat}${lng}`}
               coordinate={{ latitude: lat, longitude: lng }}
+              // onPress={}
+              onPress={() => fetchPostDetails({ placeId })}
+              isPreselected
             >
-              <MapMarker name={name} lat={lat} lng={lng} userPic={userPic} category={category} />
+              <MapMarker
+                name={name}
+                placeId={placeId}
+                lat={lat}
+                lng={lng}
+                userPic={userPic}
+                category={category}
+                fetchPostDetails={fetchPostDetails}
+              />
             </Marker>
           );
         })}
