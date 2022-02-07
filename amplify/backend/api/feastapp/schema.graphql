@@ -82,6 +82,7 @@ type PlaceUserInfo {
   uid: String
   name: String
   picture: String
+  identityId: String
 }
 
 type Query {
@@ -144,6 +145,7 @@ input PlaceUserInfoInput {
   uid: String
   name: String
   picture: String
+  identityId: String
 }
 
 input PrimaryKeyInput {

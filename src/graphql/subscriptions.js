@@ -60,6 +60,7 @@ export const onCreateFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -134,6 +135,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -208,6 +210,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {

@@ -7,8 +7,8 @@ import {
 
 const Redirect = ({ color, size }) => (
   <Svg
-    width={size || wp(5.6)}
-    height={size || wp(5.6)}
+    width={size || wp(5.4)}
+    height={size || wp(5.4)}
     viewBox="0 0 19 19"
     xmlns="http://www.w3.org/2000/svg"
   >

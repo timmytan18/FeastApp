@@ -91,6 +91,7 @@ const FollowButton = ({
           name,
           uid,
           picture,
+          identityId,
         },
       });
       delete updatedReviews[updatedReviews.length - 1].s3Photo;

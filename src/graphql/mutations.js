@@ -60,6 +60,7 @@ export const incrementFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -134,6 +135,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -208,6 +210,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -285,6 +288,7 @@ export const createFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -362,6 +366,7 @@ export const updateFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -439,6 +444,7 @@ export const deleteFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {

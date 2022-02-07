@@ -5,6 +5,7 @@ import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
+  getPlaceDetails,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -202,8 +203,24 @@ async function batchGetUserPostsQuery({ batch }) {
   return posts;
 }
 
+// Get details about a place
+async function getPlaceDetailsQuery({ placeId }) {
+  let place;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getPlaceDetails,
+      { PK: `PLACE#${placeId}`, SK: { beginsWith: '#INFO#' }, limit: 1 },
+    ));
+    console.log(res);
+    place = res.data.listFeastItems.items[0];
+  } catch (err) {
+    console.warn('Error getting place details: ', err);
+  }
+  return place;
+}
+
 export {
   getUserProfileQuery, getUserReviewsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
   getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
-  getFollowingPostsByUserQuery, batchGetUserPostsQuery,
+  getFollowingPostsByUserQuery, batchGetUserPostsQuery, getPlaceDetailsQuery,
 };

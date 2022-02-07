@@ -6,8 +6,11 @@ import {
   colors, shadows, gradients, wp, sizes,
 } from '../../../constants/theme';
 
-const LocationMapMarker = ({ isUser, userPic, name }) => {
+const LocationMapMarker = ({
+  isUser, userPic, name, mode,
+}) => {
   const gradient = isUser ? gradients.purple : gradients.orange;
+  console.log(mode);
   return (
     <View style={styles.rootContainer}>
       {userPic && (
@@ -31,7 +34,14 @@ const LocationMapMarker = ({ isUser, userPic, name }) => {
       )}
       {name && (
         <View>
-          <Text style={[styles.nameText, styles.textWithShadow]}>{name}</Text>
+          <Text
+            style={[
+              styles.nameText, styles.textWithShadow,
+              { color: mode === 'dark' ? 'white' : colors.black },
+            ]}
+          >
+            {name}
+          </Text>
         </View>
       )}
     </View>

@@ -399,9 +399,9 @@ const Profile = ({ navigation, route }) => {
                 half
                 disabled
                 spacing={wp(0.6)}
-                fullStar={<StarFull size={wp(4)} style={styles.star} />}
-                halfStar={<StarHalf size={wp(4)} style={styles.star} />}
-                emptyStar={<StarEmpty size={wp(4)} style={styles.star} />}
+                fullStar={<StarFull size={wp(4)} />}
+                halfStar={<StarHalf size={wp(4)} />}
+                emptyStar={<StarEmpty size={wp(4)} />}
               />
             </View>
             <Image

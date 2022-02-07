@@ -2,15 +2,20 @@ import React, {
   useEffect, useContext, useState, useRef,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Text,
+  StyleSheet, View, TouchableOpacity, Text, StatusBar,
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
 import { Storage } from 'aws-amplify';
-import Modal from 'react-native-modal';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
-import { getNumFollowsQuery, getFollowingPostsQuery, batchGetUserPostsQuery } from '../../api/functions/queryFunctions';
+import {
+  getNumFollowsQuery,
+  getFollowingPostsQuery,
+  batchGetUserPostsQuery,
+  getPlaceDetailsQuery,
+} from '../../api/functions/queryFunctions';
+import StoryModal from '../components/StoryModal';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
@@ -42,7 +47,6 @@ const mapLessLandmarksStyle = [
 
 const Home = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
-  const [region, setRegion] = useState(null);
   const initialDelta = {
     latitudeDelta: 0.0461, // ~3.5 miles in height
     longitudeDelta: 0.02105,
@@ -80,6 +84,10 @@ const Home = ({ navigation }) => {
       });
     })();
   }, [dispatch, state.user.PK, state.user.SK]);
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, [state.location]);
 
   const placePosts = useRef({}); // obj of placeId: [posts]
   const usersNamePic = useRef({}); // obj of uid: { name, pic }
@@ -152,13 +160,15 @@ const Home = ({ navigation }) => {
           }
           // Add place to user's place set and placeMarkers if not already added
           if (!(userPlaces[uid].has(placeId))) {
-            console.log(name);
-            console.log(placeId);
             userPlaces[uid].add(placeId);
-            console.log(userPlaces[uid]);
-            console.log(!(placeId in userPlaces[uid]));
             placeMarkers.push({
-              name, placeId, lat, lng, userPic, category: categories ? categories[0] : null,
+              name,
+              placeId,
+              lat,
+              lng,
+              userName,
+              userPic,
+              category: categories ? categories[0] : null,
             });
           }
         }
@@ -172,10 +182,13 @@ const Home = ({ navigation }) => {
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.numFollowing]);
 
-  const [stories, setStories] = useState([]);
+  const [storiesVisible, setStoriesVisible] = useState(false);
+  const stories = useRef([]);
+  const place = useRef({});
 
   const getPostPictures = (item) => new Promise((resolve, reject) => {
-    Storage.get(item.picture, { level: 'protected', identityId: state.user.identityId })
+    console.log(item);
+    Storage.get(item.picture, { level: 'protected', identityId: item.placeUserInfo.identityId })
       .then((url) => {
         item.picture = url;
         resolve(item);
@@ -187,14 +200,20 @@ const Home = ({ navigation }) => {
   });
 
   const fetchPostDetails = async ({ placeId }) => {
+    // Batch fetch stories for place
     const currPlacePosts = await batchGetUserPostsQuery(
       { batch: placePosts.current[placeId] },
     );
-    console.log(currPlacePosts);
     if (currPlacePosts && currPlacePosts.length) {
+      // Fetch place details for current stories, update when new place is selected
+      if (place.current.placeId !== placeId) {
+        place.current = await getPlaceDetailsQuery({ placeId });
+      }
+      // Fetch pictures for each post
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
-        console.log(posts);
-        setStories(posts);
+        // stories.current = posts.concat(posts);
+        stories.current = posts;
+        setStoriesVisible(true);
       });
     } else {
       console.warn('Error fetching images for place: ', placeId);
@@ -205,17 +224,12 @@ const Home = ({ navigation }) => {
     return (null);
   }
 
-  SplashScreen.hideAsync();
-
   const { latitude, longitude } = state.location;
   const initialRegion = {
     latitude,
     longitude,
     ...initialDelta,
   };
-  if (!region) {
-    setRegion(initialRegion);
-  }
 
   const animateToCurrLocation = () => {
     mapRef.current.animateToRegion(initialRegion, 350);
@@ -223,16 +237,20 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View>
-        <Modal isVisible={stories.length}>
-          <View style={{ flex: 1, backgroundColor: 'red' }}>
-            <Text>I am the modal content!</Text>
-          </View>
-        </Modal>
-      </View>
+      <StatusBar
+        animated
+        barStyle={storiesVisible ? 'light-content' : 'dark-content'}
+      />
+      <StoryModal
+        stories={stories.current}
+        storiesVisible={storiesVisible}
+        setStoriesVisible={setStoriesVisible}
+        users={usersNamePic.current}
+        place={place.current}
+      />
       <MapView
         style={styles.map}
-        region={region}
+        initialRegion={initialRegion}
         rotateEnabled={false}
         pitchEnabled={false}
         userInterfaceStyle="light"
@@ -241,7 +259,7 @@ const Home = ({ navigation }) => {
       // customMapStyle={mapLessLandmarksStyle}
       >
         {markers.map(({
-          name, placeId, lat, lng, userPic, category,
+          name, placeId, lat, lng, userName, userPic, category,
         }) => {
           if (name === 'CURRENT_USER') {
             return (
@@ -255,9 +273,8 @@ const Home = ({ navigation }) => {
           }
           return (
             <Marker
-              key={`${lat}${lng}`}
+              key={`${lat}${lng}${userName}`}
               coordinate={{ latitude: lat, longitude: lng }}
-              // onPress={}
               onPress={() => fetchPostDetails({ placeId })}
               isPreselected
             >
@@ -268,7 +285,6 @@ const Home = ({ navigation }) => {
                 lng={lng}
                 userPic={userPic}
                 category={category}
-                fetchPostDetails={fetchPostDetails}
               />
             </Marker>
           );

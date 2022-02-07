@@ -60,6 +60,7 @@ export const batchGetFeastItems = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -134,6 +135,7 @@ export const getFeastItem = /* GraphQL */ `
         uid
         name
         picture
+        identityId
       }
       dish
       rating {
@@ -219,6 +221,7 @@ export const listFeastItems = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -306,6 +309,7 @@ export const itemsByGSI1 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -393,6 +397,7 @@ export const itemsByGSI2 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -480,6 +485,7 @@ export const itemsByLSI1 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -567,6 +573,7 @@ export const itemsByLSI2 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -654,6 +661,7 @@ export const itemsByLSI3 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -741,6 +749,7 @@ export const itemsByLSI4 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {
@@ -828,6 +837,7 @@ export const itemsByLSI5 = /* GraphQL */ `
           uid
           name
           picture
+          identityId
         }
         dish
         rating {

@@ -373,6 +373,8 @@ export const getFollowingPostsByUser = /* GraphQL */ `
 export const batchGetUserPosts = /* GraphQL */ `
   query BatchGetFeastItems($input: BatchGetFeastItemsInput!) {
     batchGetFeastItems(input: $input) {
+      SK
+      name
       picture
       placeId
       dish
@@ -386,7 +388,52 @@ export const batchGetUserPosts = /* GraphQL */ `
       review
       placeUserInfo {
         uid
+        identityId
       }
+    }
+  }
+`;
+
+export const getPlaceDetails = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+        placeId
+        name
+        geo
+        placeInfo {
+          priceLvl
+          orderUrls
+          address
+          placeUrl
+          coordinates {
+            latitude
+            longitude
+          }
+          imgUrl
+          phone
+          menuUrl
+          categories
+          yelpAlias
+        }
+      }
+      nextToken
     }
   }
 `;
