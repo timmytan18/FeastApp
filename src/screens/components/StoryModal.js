@@ -60,15 +60,14 @@ const StoryModal = ({ navigation, route }) => {
   const [indexState, setIndexState] = useState(0);
   const numStories = useRef(stories.length);
 
-  const isBottom = useRef(false);
   const enablePanResponder = useRef(true);
   const [enablePanResponderState, setEnablePanResponderState] = useState(true);
   const translateVal = useRef(new Animated.Value(0)).current;
   const translateAnim = ({ value }) => {
     Animated.spring(translateVal, {
       toValue: value,
-      bounciness: 6,
-      useNativeDriver: false,
+      bounciness: 4,
+      useNativeDriver: true,
     }).start();
   };
 
@@ -77,7 +76,7 @@ const StoryModal = ({ navigation, route }) => {
   const bottomEnabled = useRef(false);
   const lastContentOffsetY = useRef(0);
   const paddingBottom = 90;
-  const paddingTop = 70;
+  const paddingTop = 50;
   const isCloseToTopBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
     let pos = null;
     if (topEnabled.current
@@ -107,18 +106,15 @@ const StoryModal = ({ navigation, route }) => {
   };
   const panToTop = () => {
     enablePanResponder.current = true;
-    isBottom.current = false;
     setEnablePanResponderState(true);
     translateAnim({ value: 0 });
   };
   const panToBottom = () => {
     enablePanResponder.current = false;
-    isBottom.current = true;
     setEnablePanResponderState(false);
     translateAnim({ value: -deviceHeight });
   };
   const closeModal = () => {
-    isBottom.current = false;
     navigation.popToTop();
   };
 
@@ -131,6 +127,7 @@ const StoryModal = ({ navigation, route }) => {
       },
       onPanResponderMove: (evt, gestureState) => {
         isTap.current = false;
+        translateVal.setValue(gestureState.dy / 3);
       },
       onPanResponderRelease: (evt, gestureState) => {
         // tap to see next/prev story
@@ -156,18 +153,12 @@ const StoryModal = ({ navigation, route }) => {
           // swipe up/down to change top/bottom view
         } else if (gestureState.dy < -100) {
           // swipe up
-          if (isBottom.current) {
-            closeModal();
-          } else {
-            panToBottom();
-          }
-        } else if (gestureState.dy > 100) {
+          panToBottom();
+        } else if (gestureState.dy / 2 > 100) {
           // swipe down
-          if (isBottom.current) {
-            panToTop();
-          } else {
-            closeModal();
-          }
+          closeModal();
+        } else {
+          panToTop();
         }
       },
     }),
@@ -233,7 +224,7 @@ const StoryModal = ({ navigation, route }) => {
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity
               onPress={fetchCurrentUser}
-              style={[styles.profilePic, { backgroundColor: 'red' }]}
+              style={styles.profilePic}
             >
               <ProfilePic
                 uid={uid}
@@ -414,8 +405,6 @@ const StoryModal = ({ navigation, route }) => {
             const pos = isCloseToTopBottom(nativeEvent);
             if (pos === 'TOP') {
               panToTop();
-            } else if (pos === 'BOTTOM') {
-              isBottom.current = false;
             }
           }}
         >
@@ -443,7 +432,7 @@ const ratingIconSize = wp(12);
 
 const styles = StyleSheet.create({
   scrollView: {
-    backgroundColor: 'white',
+    backgroundColor: '#131617',
   },
   container: {
     flex: 1,

@@ -160,8 +160,12 @@ function ProfileStackScreen() {
 const StoryModalStack = createStackNavigator();
 function StoryModalStackScreen() {
   return (
-    <StoryModalStack.Navigator>
-      <HomeStack.Screen
+    <StoryModalStack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: '#131617' },
+      }}
+    >
+      <StoryModalStack.Screen
         name="StoryModal"
         component={StoryModal}
         options={{ headerShown: false }}
@@ -205,14 +209,14 @@ const ModalTransition = {
       transform: [
         {
           scaleX: current.progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.3, 1],
+            inputRange: [0, 0.7, 1],
+            outputRange: [0, 0.3, 1],
           }),
         },
         {
           scaleY: current.progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.3, 1],
+            inputRange: [0, 0.7, 1],
+            outputRange: [0, 0.3, 1],
           }),
         },
         {
@@ -225,8 +229,8 @@ const ModalTransition = {
         },
       ],
       opacity: current.progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
+        inputRange: [0, 0.3, 0.8, 1],
+        outputRange: [0, 0.1, 0.6, 1],
       }),
     },
   }),
