@@ -4,6 +4,7 @@ import React, {
 import {
   StyleSheet, View, TouchableOpacity, Text, StatusBar,
 } from 'react-native';
+import { StackActions } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
 import { Storage } from 'aws-amplify';
@@ -183,7 +184,6 @@ const Home = ({ navigation }) => {
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.numFollowing]);
 
-  const [storiesVisible, setStoriesVisible] = useState(false);
   const stories = useRef([]);
   const place = useRef({});
 
@@ -214,7 +214,15 @@ const Home = ({ navigation }) => {
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
         // stories.current = posts.concat(posts);
         stories.current = posts;
-        setStoriesVisible(true);
+        navigation.navigate('StoryModal', {
+          screen: 'StoryModal',
+          params: {
+            stories: stories.current,
+            users: usersNamePic.current,
+            place: place.current,
+            deviceHeight: state.deviceHeight,
+          },
+        });
       });
     } else {
       console.warn('Error fetching images for place: ', placeId);
@@ -238,18 +246,6 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar
-        animated
-        barStyle={storiesVisible ? 'light-content' : 'dark-content'}
-      />
-      <StoryModal
-        stories={stories.current}
-        storiesVisible={storiesVisible}
-        setStoriesVisible={setStoriesVisible}
-        users={usersNamePic.current}
-        place={place.current}
-        deviceHeight={state.deviceHeight}
-      />
       <MapView
         style={styles.map}
         initialRegion={initialRegion}

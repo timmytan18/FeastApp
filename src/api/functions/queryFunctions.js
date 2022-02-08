@@ -10,11 +10,17 @@ import {
 import { SEARCH_TYPES } from '../../constants/constants';
 
 // Fetch user profile data
-async function getUserProfileQuery({ PK, SK }) {
+async function getUserProfileQuery({ PK, SK, uid }) {
+  let userPK = PK;
+  let userSK = SK;
+  if (uid) {
+    userPK = `USER#${uid}`;
+    userSK = '#PROFILE#';
+  }
   let user;
   try {
     const res = await API.graphql(
-      graphqlOperation(getUserProfile, { PK, SK: { beginsWith: SK } }),
+      graphqlOperation(getUserProfile, { PK: userPK, SK: { beginsWith: userSK } }),
     );
     user = res.data.listFeastItems.items[0];
   } catch (err) {
@@ -58,13 +64,17 @@ async function getFollowingQuery({ uid }) {
 }
 
 // Get whether I am following a user
-async function getIsFollowingQuery({ currentPK, myUID }) {
+async function getIsFollowingQuery({ currentPK, currentUID, myUID }) {
+  let PK = currentPK;
+  if (currentUID) {
+    PK = `USER#${currentUID}`;
+  }
   const followSK = `#FOLLOWER#${myUID}`;
   let isFollowing;
   try {
     const res = await API.graphql(graphqlOperation(
       getIsFollowing,
-      { PK: currentPK, SK: followSK },
+      { PK, SK: followSK },
     ));
     isFollowing = res.data.getFeastItem;
   } catch (err) {

@@ -1,14 +1,15 @@
 import React, {
-  useEffect, useContext, useState, useRef, useMemo,
+  useEffect, useContext, useState, useRef,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Text, ImageBackground, Animated, PanResponder, ScrollView, Dimensions,
+  StyleSheet, View, TouchableOpacity, Text, ImageBackground,
+  Animated, PanResponder, ScrollView, StatusBar,
 } from 'react-native';
-import Modal from 'react-native-modal';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
 import PlaceDetail from './PlaceDetail';
+import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import ProfilePic from './ProfilePic';
 import MapMarker from './util/icons/MapMarker';
@@ -17,6 +18,7 @@ import YumButton from './util/YumButton';
 import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
+import { Context } from '../../Store';
 import {
   colors, shadows, gradients, sizes, wp,
 } from '../../constants/theme';
@@ -32,27 +34,30 @@ const ratingColor = (rating) =>
   // }
   colors.tertiary;
 
-const StoryModal = ({
-  stories, storiesVisible, setStoriesVisible, users, place, deviceHeight,
-}) => {
-  useEffect(() => {
-    index.current = 0;
-    numStories.current = stories.length;
-    if (storiesVisible) {
-      storiesVisibleRef.current = true;
-    }
-    return () => {
-      index.current = 0;
-      translateVal.setValue(0);
-      enablePanResponder.current = true;
-      setEnablePanResponderState(true);
-      setIndexState(0);
-    };
-  }, [storiesVisible, stories]);
+const StoryModal = ({ navigation, route }) => {
+  const {
+    stories,
+    users,
+    place,
+    deviceHeight,
+  } = route.params;
+
+  const [{ user: { uid: myUID } }, dispatch] = useContext(Context);
+
+  // useEffect(() => {
+  //   index.current = 0;
+  //   numStories.current = stories.length;
+  //   return () => {
+  //     index.current = 0;
+  //     translateVal.setValue(0);
+  //     enablePanResponder.current = true;
+  //     setEnablePanResponderState(true);
+  //     setIndexState(0);
+  //   };
+  // }, [stories]);
 
   const index = useRef(0);
   const [indexState, setIndexState] = useState(0);
-  const storiesVisibleRef = useRef(storiesVisible);
   const numStories = useRef(stories.length);
 
   const isBottom = useRef(false);
@@ -114,8 +119,7 @@ const StoryModal = ({
   };
   const closeModal = () => {
     isBottom.current = false;
-    storiesVisibleRef.current = false;
-    setStoriesVisible(false);
+    navigation.popToTop();
   };
 
   const isTap = useRef(false);
@@ -178,6 +182,22 @@ const StoryModal = ({
     ({ userName, userPic } = users[uid]);
   }
 
+  const fetchCurrentUser = async () => {
+    try {
+      const currentUser = await getUserProfileQuery({ uid });
+
+      // Check if I am following the current user
+      if (currentUser.uid !== myUID) {
+        currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
+        console.log('isFollowing:', currentUser.following);
+      }
+
+      navigation.push('Profile', { user: currentUser });
+    } catch (err) {
+      console.warn('Error fetching current user: ', err);
+    }
+  };
+
   // const placeholderReview = 'Ordered so much food - overall good portions and taste was great. Definitely recommend!';
 
   // rating = {
@@ -185,242 +205,237 @@ const StoryModal = ({
   // };
 
   return (
-    <Modal
-      isVisible={storiesVisible}
-      animationIn="zoomIn"
-      animationOut="zoomOut"
-      hideModalContentWhileAnimating
-      propagateSwipe
-      deviceHeight={deviceHeight}
+    <Animated.View
+      style={[
+        styles.container,
+        { transform: [{ translateY: translateVal }] },
+      ]}
     >
-      <Animated.View
-        style={[
-          styles.container,
-          { transform: [{ translateY: translateVal }] },
-        ]}
-      >
-        <View style={styles.cardContainer} {...panResponder.panHandlers}>
-          <View style={styles.progressContainer}>
-            {stories && stories.length > 1
-              && (stories.map((story, i) => (
+      <StatusBar animated barStyle="light-content" />
+      <View style={styles.cardContainer} {...panResponder.panHandlers}>
+        <View style={styles.progressContainer}>
+          {stories && stories.length > 1
+            && (stories.map((story, i) => (
+              <View
+                key={story.SK}
+                style={[styles.progressBar, { marginHorizontal: 2 }]}
+              >
                 <View
-                  key={story.SK}
-                  style={[styles.progressBar, { marginHorizontal: 2 }]}
-                >
-                  <View
-                    style={[
-                      styles.progressBar,
-                      { backgroundColor: colors.gray, flex: i === indexState ? 1 : 0 },
-                    ]}
-                  />
-                </View>
-              )))}
-          </View>
-          <View style={styles.headerContainer}>
-            <View style={{ flexDirection: 'row' }}>
+                  style={[
+                    styles.progressBar,
+                    { backgroundColor: colors.gray, flex: i === indexState ? 1 : 0 },
+                  ]}
+                />
+              </View>
+            )))}
+        </View>
+        <View style={styles.headerContainer}>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity
+              onPress={fetchCurrentUser}
+              style={[styles.profilePic, { backgroundColor: 'red' }]}
+            >
               <ProfilePic
                 uid={uid}
                 extUrl={userPic}
                 size={wp(12.5)}
-                style={styles.profilePic}
+                style={{ flex: 1 }}
               />
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.nameText}>{userName}</Text>
-                <View style={styles.locationContainer}>
-                  <MapMarker size={wp(4.8)} color={colors.accent} />
-                  <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
-                </View>
+            </TouchableOpacity>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.nameText}>{userName}</Text>
+              <View style={styles.locationContainer}>
+                <MapMarker size={wp(4.8)} color={colors.accent} />
+                <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
               </View>
             </View>
-            <View style={styles.emojiContainer}>
-              <Text style={styles.emojiText}>😋</Text>
-            </View>
           </View>
-          <View style={styles.reviewTitleStarsContainer}>
-            <Text style={styles.reviewTitleText}>
-              Review:
-            </Text>
-            {rating && rating.overall && (
-              <View style={styles.starsContainer}>
-                <Stars
-                  default={rating.overall}
-                  count={5}
-                  half
-                  disabled
-                  spacing={wp(0.6)}
-                  fullStar={(
-                    <MaskedView
-                      maskElement={(
-                        <StarFull size={wp(5)} />
-                      )}
-                    >
-                      <LinearGradient
-                        colors={rating.overall < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
-                        start={[-0.35, 1]}
-                        end={[0.75, 1]}
-                        style={{ width: wp(5), height: wp(5) }}
-                      />
-                    </MaskedView>
-                  )}
-                  halfStar={<StarHalf size={wp(5)} />}
-                  emptyStar={<StarEmpty size={wp(5)} />}
-                />
-              </View>
-            )}
-          </View>
-          <Text style={styles.reviewText}>{review}</Text>
-          <ImageBackground
-            style={styles.imageContainer}
-            imageStyle={{ borderRadius: wp(2) }}
-            source={{ uri: picture }}
-          >
-            {dish && <Text style={styles.menuItemText}>{dish}</Text>}
-          </ImageBackground>
-          <View style={styles.ratingsContainer}>
-            {rating && rating.food && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.food > 4.5}
-                    color={ratingColor(rating.food)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.food}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Food</Text>
-              </View>
-            )}
-            {rating && rating.value && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.value > 4.5}
-                    color={ratingColor(rating.value)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.value}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Value</Text>
-              </View>
-            )}
-            {rating && rating.service && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.service > 4.5}
-                    color={ratingColor(rating.service)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.service}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Service</Text>
-              </View>
-            )}
-            {rating && rating.atmosphere && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.atmosphere > 4.5}
-                    color={ratingColor(rating.atmosphere)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.atmosphere}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Atmosphere</Text>
-              </View>
-            )}
+          <View style={styles.emojiContainer}>
+            <Text style={styles.emojiText}>😋</Text>
           </View>
         </View>
-        <View style={styles.middleContainer}>
-          <View style={styles.middleButtonsContainer}>
-            <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-              <SaveButton size={wp(10.5)} />
-            </View>
-            <View style={styles.viewPlaceBtnContainer}>
-              <SwipeUpArrow />
-              <LinearGradient
-                colors={gradients.orange.colors}
-                start={gradients.orange.start}
-                end={gradients.orange.end}
-                style={styles.viewPlaceBtnGradient}
-              >
-                <TouchableOpacity
-                  style={styles.viewPlaceBtn}
-                  onPress={() => panToBottom()}
-                  activeOpacity={1}
-                >
+        <View style={styles.reviewTitleStarsContainer}>
+          <Text style={styles.reviewTitleText}>
+            Review:
+          </Text>
+          {rating && rating.overall && (
+            <View style={styles.starsContainer}>
+              <Stars
+                default={rating.overall}
+                count={5}
+                half
+                disabled
+                spacing={wp(0.6)}
+                fullStar={(
                   <MaskedView
                     maskElement={(
-                      <View style={styles.viewPlaceBtnTextContainer}>
-                        <Text style={styles.viewPlaceBtnText}>View Place</Text>
-                      </View>
+                      <StarFull size={wp(5)} />
                     )}
                   >
                     <LinearGradient
-                      colors={gradients.orange.colors}
-                      start={gradients.orange.start}
-                      end={gradients.orange.end}
-                      style={{ width: wp(23), height: '100%' }}
+                      colors={rating.overall < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
+                      start={[-0.35, 1]}
+                      end={[0.75, 1]}
+                      style={{ width: wp(5), height: wp(5) }}
                     />
                   </MaskedView>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
-            <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
-              <YumButton size={wp(10.5)} />
-            </View>
-          </View>
-        </View>
-        <View style={[styles.bottomContainer, { height: deviceHeight, bottom: -deviceHeight }]}>
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            scrollEventThrottle={200}
-            onScroll={({ nativeEvent }) => {
-              const pos = isCloseToTopBottom(nativeEvent);
-              if (pos === 'TOP') {
-                panToTop();
-              } else if (pos === 'BOTTOM') {
-                storiesVisibleRef.current = false;
-                isBottom.current = false;
-                setStoriesVisible(false);
-              }
-            }}
-          >
-            <PlaceDetail place={place} panToTop={panToTop} />
-          </ScrollView>
-          <TouchableOpacity
-            style={styles.downArrowContainer}
-            onPress={() => panToTop()}
-            activeOpacity={0.7}
-          >
-            <View pointerEvents="none">
-              <BackArrow
-                color={colors.gray4}
-                size={wp(6)}
-                style={styles.downArrow}
+                )}
+                halfStar={<StarHalf size={wp(5)} />}
+                emptyStar={<StarEmpty size={wp(5)} />}
               />
             </View>
-          </TouchableOpacity>
+          )}
         </View>
-      </Animated.View>
-    </Modal>
+        <Text style={styles.reviewText}>{review}</Text>
+        <ImageBackground
+          style={styles.imageContainer}
+          imageStyle={{ borderRadius: wp(2) }}
+          source={{ uri: picture }}
+        >
+          {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+        </ImageBackground>
+        <View style={styles.ratingsContainer}>
+          {rating && rating.food && (
+            <View style={styles.ratingContainer}>
+              <View>
+                <Rating
+                  isGradient={rating.food > 4.5}
+                  color={ratingColor(rating.food)}
+                  size={ratingIconSize}
+                />
+                <View style={styles.ratingIconContainer}>
+                  <Text style={styles.ratingText}>
+                    {rating.food}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.ratingLabelText}>Food</Text>
+            </View>
+          )}
+          {rating && rating.value && (
+            <View style={styles.ratingContainer}>
+              <View>
+                <Rating
+                  isGradient={rating.value > 4.5}
+                  color={ratingColor(rating.value)}
+                  size={ratingIconSize}
+                />
+                <View style={styles.ratingIconContainer}>
+                  <Text style={styles.ratingText}>
+                    {rating.value}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.ratingLabelText}>Value</Text>
+            </View>
+          )}
+          {rating && rating.service && (
+            <View style={styles.ratingContainer}>
+              <View>
+                <Rating
+                  isGradient={rating.service > 4.5}
+                  color={ratingColor(rating.service)}
+                  size={ratingIconSize}
+                />
+                <View style={styles.ratingIconContainer}>
+                  <Text style={styles.ratingText}>
+                    {rating.service}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.ratingLabelText}>Service</Text>
+            </View>
+          )}
+          {rating && rating.atmosphere && (
+            <View style={styles.ratingContainer}>
+              <View>
+                <Rating
+                  isGradient={rating.atmosphere > 4.5}
+                  color={ratingColor(rating.atmosphere)}
+                  size={ratingIconSize}
+                />
+                <View style={styles.ratingIconContainer}>
+                  <Text style={styles.ratingText}>
+                    {rating.atmosphere}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.ratingLabelText}>Atmosphere</Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={styles.middleContainer}>
+        <View style={styles.middleButtonsContainer}>
+          <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
+            <SaveButton size={wp(10.5)} />
+          </View>
+          <View style={styles.viewPlaceBtnContainer}>
+            <SwipeUpArrow />
+            <LinearGradient
+              colors={gradients.orange.colors}
+              start={gradients.orange.start}
+              end={gradients.orange.end}
+              style={styles.viewPlaceBtnGradient}
+            >
+              <TouchableOpacity
+                style={styles.viewPlaceBtn}
+                onPress={() => panToBottom()}
+                activeOpacity={1}
+              >
+                <MaskedView
+                  maskElement={(
+                    <View style={styles.viewPlaceBtnTextContainer}>
+                      <Text style={styles.viewPlaceBtnText}>View Place</Text>
+                    </View>
+                  )}
+                >
+                  <LinearGradient
+                    colors={gradients.orange.colors}
+                    start={gradients.orange.start}
+                    end={gradients.orange.end}
+                    style={{ width: wp(23), height: '100%' }}
+                  />
+                </MaskedView>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+          <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
+            <YumButton size={wp(10.5)} />
+          </View>
+        </View>
+      </View>
+      <View style={[styles.bottomContainer, { height: deviceHeight, bottom: -deviceHeight }]}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={200}
+          onScroll={({ nativeEvent }) => {
+            const pos = isCloseToTopBottom(nativeEvent);
+            if (pos === 'TOP') {
+              panToTop();
+            } else if (pos === 'BOTTOM') {
+              isBottom.current = false;
+            }
+          }}
+        >
+          <PlaceDetail place={place} navigation={navigation} />
+        </ScrollView>
+        <TouchableOpacity
+          style={styles.downArrowContainer}
+          onPress={() => panToTop()}
+          activeOpacity={0.7}
+        >
+          <View pointerEvents="none">
+            <BackArrow
+              color={colors.gray4}
+              size={wp(6)}
+              style={styles.downArrow}
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
   );
 };
 
@@ -506,7 +521,6 @@ const styles = StyleSheet.create({
     marginBottom: wp(3),
   },
   profilePic: {
-    height: '90%',
     aspectRatio: 1,
     borderRadius: wp(15),
     alignSelf: 'center',

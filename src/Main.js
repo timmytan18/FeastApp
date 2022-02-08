@@ -58,11 +58,9 @@ const Main = () => {
       const cognitoUser = await Auth.currentAuthenticatedUser();
       console.log(cognitoUser);
       const id = cognitoUser.attributes.sub;
-      const pk = `USER#${id}`;
-      const sk = '#PROFILE#';
 
       // Fetch user profile from DynamoDB
-      const dynamoUser = await getUserProfileQuery({ PK: pk, SK: sk });
+      const dynamoUser = await getUserProfileQuery({ uid: id });
 
       // identityId (S3), city, picture can be null
       const {

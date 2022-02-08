@@ -2,8 +2,10 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity, Animated, SectionList, Alert,
+  StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity,
+  Animated, SectionList, Alert, StatusBar,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,6 +31,21 @@ import CenterSpinner from '../components/util/CenterSpinner';
 import {
   colors, gradients, sizes, wp, shadows,
 } from '../../constants/theme';
+
+const propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      user: PropTypes.shape({
+        PK: PropTypes.string,
+        SK: PropTypes.string,
+        identityId: PropTypes.string,
+        name: PropTypes.string,
+        uid: PropTypes.string,
+        picture: PropTypes.string,
+      }),
+    }),
+  }).isRequired,
+};
 
 const Profile = ({ navigation, route }) => {
   const [state, dispatch] = useContext(Context);
@@ -388,7 +405,8 @@ const Profile = ({ navigation, route }) => {
   // );
 
   const renderRow = (items) => (
-    <View style={styles.postsRowContainer}>
+    <SafeAreaView style={styles.postsRowContainer}>
+      <StatusBar animated barStyle="dark-content" />
       {items.map((item) => (
         <TouchableOpacity key={item.timestamp} style={{ alignItems: 'center' }} activeOpacity={0.9}>
           <View style={styles.postItem}>
@@ -415,7 +433,7 @@ const Profile = ({ navigation, route }) => {
           </Text>
         </TouchableOpacity>
       ))}
-    </View>
+    </SafeAreaView>
   );
 
   const posts = [];
@@ -450,6 +468,8 @@ const Profile = ({ navigation, route }) => {
   );
 };
 
+Profile.propTypes = propTypes;
+
 const styles = StyleSheet.create({
   topContainer: {
     overflow: 'hidden',
@@ -465,6 +485,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     alignItems: 'flex-start',
+    marginTop: wp(3),
     paddingTop: wp(3),
   },
   headerTitle: {
@@ -472,7 +493,7 @@ const styles = StyleSheet.create({
     fontSize: wp(6.2),
     color: colors.primary,
     paddingLeft: wp(5),
-    paddingTop: wp(2),
+    paddingTop: wp(1.6),
     lineHeight: wp(6.2),
   },
   backArrowContainer: {
@@ -482,7 +503,7 @@ const styles = StyleSheet.create({
   moreButton: {
     alignSelf: 'center',
     paddingRight: wp(5),
-    paddingTop: wp(1),
+    paddingTop: wp(3.2),
   },
   topProfileContainer: {
     width: '100%',

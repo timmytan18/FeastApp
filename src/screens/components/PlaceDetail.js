@@ -10,11 +10,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import PropTypes from 'prop-types';
 import link from './OpenLink';
-import { Context } from '../../Store';
+import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import LocationMapMarker from './util/LocationMapMarker';
 import BackArrow from './util/icons/BackArrow';
 import Car from './util/icons/Car';
+import LocationArrow from './util/icons/LocationArrow';
 import { DollarSign, DollarSignEmpty } from './util/icons/DollarSign';
 import Yelp from './util/icons/Yelp';
 import Redirect from './util/icons/Redirect';
@@ -32,6 +33,7 @@ import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import Ratings from './Ratings';
 import Pagination from './util/Pagination';
 import MoreView from './MoreView';
+import { Context } from '../../Store';
 import {
   colors, sizes, gradients, wp, shadows,
 } from '../../constants/theme';
@@ -61,7 +63,7 @@ const propTypes = {
   }).isRequired,
 };
 
-const PlaceDetail = React.memo(({ place, panToTop }) => {
+const PlaceDetail = React.memo(({ place, navigation }) => {
   console.log(place);
 
   const [deliveryPressed, setDeliveryPressed] = useState(false);
@@ -87,14 +89,6 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
           colors={['rgba(0,0,0,0.32)', 'transparent']}
           style={styles.gradient}
         />
-        {/* <View style={styles.downArrowContainer}>
-          <BackArrow
-            color="white"
-            size={wp(8)}
-            style={styles.downArrow}
-            pressed={() => panToTop()}
-          />
-        </View> */}
       </ImageBackground>
     </View>
   );
@@ -193,6 +187,7 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
         delivery={delivery}
         setDeliveryPressed={setDeliveryPressed}
         setMenuWebPressed={setMenuWebPressed}
+        navigation={navigation}
       />
       {deliveryItems.length !== 0
         && (
@@ -215,12 +210,12 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
 });
 
 const BodyContent = React.memo(({
-  place, scroll, delivery, setDeliveryPressed, setMenuWebPressed,
+  place, scroll, delivery, setDeliveryPressed, setMenuWebPressed, navigation,
 }) => {
   // console.log(place, delivery)
 
   const [state, dispatch] = useContext(Context);
-  const userPic = state.user.picture;
+  const { uid, picture: userPic } = state.user;
   const { latitude: userLat, longitude: userLng } = state.location;
 
   const { latitude: placeLat, longitude: placeLng } = place.placeInfo.coordinates;
@@ -379,7 +374,9 @@ const BodyContent = React.memo(({
         <View style={styles.userReviewsContainer}>
           <Text style={[
             styles.reviewTitleText,
-            { fontSize: sizes.h3, marginBottom: wp(4) },
+            {
+              fontSize: sizes.h3, marginBottom: wp(4), textAlign: 'center', paddingRight: wp(2),
+            },
           ]}
           >
             Feast User Reviews
@@ -387,52 +384,60 @@ const BodyContent = React.memo(({
           <View style={styles.ratingsContainer}>
             <Ratings food={4.5} value={4.5} service={3.5} atmosphere={3} />
           </View>
-          <Reviews />
+          <Reviews navigation={navigation} placeId={place.placeId} myUID={uid} />
         </View>
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            rotateEnabled={false}
-            pitchEnabled={false}
-            initialRegion={{
-              latitude: userLat,
-              longitude: userLng,
-              latitudeDelta: 0.0461, // ~3.5 miles in height
-              longitudeDelta: 0.02105,
-            }}
-            ref={mapRef}
-            onMapReady={fitToMarkers}
+      </View>
+      <View style={styles.breaker} />
+      <View style={styles.mapContainer}>
+        <MapView
+          style={styles.map}
+          rotateEnabled={false}
+          pitchEnabled={false}
+          initialRegion={{
+            latitude: userLat,
+            longitude: userLng,
+            latitudeDelta: 0.0461, // ~3.5 miles in height
+            longitudeDelta: 0.02105,
+          }}
+          ref={mapRef}
+          onMapReady={fitToMarkers}
+        >
+          <Marker
+            key={`${placeLat}${placeLng}`}
+            identifier={`${placeLat}${placeLng}`}
+            coordinate={{ latitude: placeLat, longitude: placeLng }}
           >
-            <Marker
-              key={`${placeLat}${placeLng}`}
-              identifier={`${placeLat}${placeLng}`}
-              coordinate={{ latitude: placeLat, longitude: placeLng }}
-            >
-              <LocationMapMarker isUser={false} name={place.name} isDarkMode={isDarkMode} />
-            </Marker>
-            <Marker
-              key={`${userLat}${userLng}`}
-              identifier={`${userLat}${userLng}`}
-              coordinate={{ latitude: userLat, longitude: userLng }}
-            >
-              <LocationMapMarker isUser userPic={userPic} name="Me" isDarkMode={isDarkMode} />
-            </Marker>
-          </MapView>
-          <TouchableOpacity
-            style={styles.openMapContainer}
-            onPress={() => Linking.openURL(mapUrl)}
-            activeOpacity={0.8}
+            <LocationMapMarker isUser={false} name={place.name} isDarkMode={isDarkMode} />
+          </Marker>
+          <Marker
+            key={`${userLat}${userLng}`}
+            identifier={`${userLat}${userLng}`}
+            coordinate={{ latitude: userLat, longitude: userLng }}
           >
-            <LinearGradient
-              colors={gradients.purple.colors}
-              start={gradients.purple.start}
-              end={gradients.purple.end}
-              style={styles.openMap}
-            >
-              <Car color="white" size={wp(5.3)} />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+            <LocationMapMarker isUser userPic={userPic} name="Me" isDarkMode={isDarkMode} />
+          </Marker>
+        </MapView>
+        <TouchableOpacity
+          style={styles.openMapContainer}
+          onPress={() => Linking.openURL(mapUrl)}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={gradients.purple.colors}
+            start={gradients.purple.start}
+            end={gradients.purple.end}
+            style={styles.openMap}
+          >
+            <Car color="white" size={wp(5.3)} />
+          </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={fitToMarkers}
+          activeOpacity={0.9}
+          style={[styles.locationBackBtnContainer, shadows.base]}
+        >
+          <LocationArrow size={wp(5)} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -442,12 +447,28 @@ const examplePfp = 'https://s3-media0.fl.yelpcdn.com/bphoto/WMojIYn70kkIVyXX1OEC
 
 Image.prefetch(examplePfp);
 
-const Reviews = () => {
+const Reviews = ({ navigation, placeId, myUID }) => {
   console.log('rerender');
+  const fetchCurrentUser = async ({ uid }) => {
+    try {
+      const currentUser = await getUserProfileQuery({ uid });
+
+      // Check if I am following the current user
+      if (currentUser.uid !== myUID) {
+        currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
+        console.log('isFollowing:', currentUser.following);
+      }
+
+      navigation.push('Profile', { user: currentUser });
+    } catch (err) {
+      console.warn('Error fetching current user: ', err);
+    }
+  };
+
   return (
     <View style={styles.userReviewsContainer}>
       <View style={styles.userReviewContainer}>
-        <TouchableOpacity style={styles.userPictureContainer}>
+        <TouchableOpacity style={styles.userPictureContainer} activeOpacity={0.7} onPress={() => fetchCurrentUser({ uid: 'c8d97d30-5d3f-44d6-84fc-1cd4d3a14e7a' })}>
           <Image style={styles.userPicture} source={{ uri: examplePfp }} />
         </TouchableOpacity>
         <View style={styles.userNameReviewContainer}>
@@ -700,9 +721,10 @@ const styles = StyleSheet.create({
     width: '95%',
     aspectRatio: 1,
     marginTop: wp(6),
-    marginBottom: wp(12),
+    marginBottom: wp(32),
     alignSelf: 'center',
     borderRadius: wp(2),
+    marginHorizontal: wp(4),
   },
   map: {
     flex: 1,
@@ -710,7 +732,7 @@ const styles = StyleSheet.create({
   },
   openMapContainer: {
     position: 'absolute',
-    top: wp(4),
+    top: wp(20.5),
     left: wp(4),
     width: wp(14),
     height: wp(14),
@@ -722,6 +744,17 @@ const styles = StyleSheet.create({
     borderRadius: wp(12.5) / 2,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  locationBackBtnContainer: {
+    position: 'absolute',
+    top: wp(4),
+    left: wp(4),
+    width: wp(12.5),
+    height: wp(12.5),
+    borderRadius: wp(6.25),
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(174, 191, 229, 0.9)',
   },
 });
 

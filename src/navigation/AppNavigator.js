@@ -10,6 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers.js';
+import StoryModal from '../screens/components/StoryModal';
 // import Discover from '../screens/Discover/Discover';
 import NewPost from '../screens/NewPost/NewPost';
 // import Groups from '../screens/Groups/Groups';
@@ -53,12 +54,12 @@ function HomeStackScreen() {
         component={SearchUsers}
         options={{ headerShown: false }}
       />
-      <ProfileStack.Screen
+      <HomeStack.Screen
         name="Profile"
         component={Profile}
         options={{ headerShown: false }}
       />
-      <ProfileStack.Screen
+      <HomeStack.Screen
         name="FollowsList"
         component={FollowsList}
         options={{
@@ -76,18 +77,6 @@ function HomeStackScreen() {
     </HomeStack.Navigator>
   );
 }
-
-// const DiscoverStack = createStackNavigator();
-// function DiscoverStackScreen() {
-//     return (
-//         <DiscoverStack.Navigator>
-//             <DiscoverStack.Screen
-//                 name="Discover"
-//                 component={Discover}
-//             />
-//         </DiscoverStack.Navigator>
-//     );
-// }
 
 const NewPostStack = createStackNavigator();
 function NewPostStackScreen() {
@@ -124,22 +113,6 @@ function NewPostStackScreen() {
   );
 }
 
-// const GroupsStack = createStackNavigator();
-// function GroupsStackScreen() {
-//     return (
-//         <GroupsStack.Navigator>
-//             <GroupsStack.Screen
-//                 name="Groups"
-//                 component={Groups}
-//             />
-//             <GroupsStack.Screen
-//                 name="Group"
-//                 component={Group}
-//             />
-//         </GroupsStack.Navigator>
-//     );
-// }
-
 const ProfileStack = createStackNavigator();
 function ProfileStackScreen() {
   return (
@@ -149,21 +122,6 @@ function ProfileStackScreen() {
         component={Profile}
         options={{ headerShown: false }}
       />
-      {/* <ProfileStack.Screen
-                name="RestaurantList"
-                component={RestaurantList}
-                options={{
-                    headerLeft: ({ onPress }) => (
-                        <BackArrow
-                            color={colors.black}
-                            size={wp(6.2)}
-                            style={{ flex: 1 }}
-                            pressed={onPress}
-                        />
-                    ),
-                    headerLeftContainerStyle: { paddingLeft: sizes.margin }
-                }}
-            /> */}
       <ProfileStack.Screen
         name="Settings"
         component={Settings}
@@ -199,16 +157,29 @@ function ProfileStackScreen() {
   );
 }
 
-const ModalStack = createStackNavigator();
-function ModalStackScreen() {
+const StoryModalStack = createStackNavigator();
+function StoryModalStackScreen() {
   return (
-    <ModalStack.Navigator>
-      <ModalStack.Screen
-        name="DetailCard"
-        component={DetailCard}
+    <StoryModalStack.Navigator>
+      <HomeStack.Screen
+        name="StoryModal"
+        component={StoryModal}
         options={{ headerShown: false }}
       />
-    </ModalStack.Navigator>
+      <StoryModalStack.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          title: '',
+          headerStyle: {
+            backgroundColor: 'white',
+            shadowOffset: { width: 0, height: 0 },
+            height: wp(10),
+          },
+          headerLeft: null,
+        }}
+      />
+    </StoryModalStack.Navigator>
   );
 }
 
@@ -217,9 +188,9 @@ const animConfig = {
   config: {
     stiffness: 320,
     damping: 20,
-    mass: 0.9,
+    mass: 0.5,
     restDisplacementThreshold: wp(25),
-    restSpeedThreshold: 100,
+    restSpeedThreshold: 500,
   },
 };
 
@@ -388,8 +359,6 @@ const TabNavigator = ({ picture }) => {
   );
 };
 
-// const TabBar = <MyTabBar {...props} picture={state.user.picture} />;
-
 export default function AppNavigator() {
   const [state, dispatch] = useContext(Context);
   console.log('App navigator state: ', state);
@@ -405,11 +374,11 @@ export default function AppNavigator() {
         >
           {() => <TabNavigator picture={state.user.picture} />}
         </RootStack.Screen>
-        {/* <RootStack.Screen
-                name="CardModal"
-                component={ModalStackScreen}
-                options={{ headerShown: false, ...ModalTransition }}
-            /> */}
+        <RootStack.Screen
+          name="StoryModal"
+          component={StoryModalStackScreen}
+          options={{ headerShown: false, ...ModalTransition }}
+        />
         <RootStack.Screen
           name="NewPostModal"
           component={NewPostStackScreen}
