@@ -160,7 +160,7 @@ const UploadImages = ({ navigation, route }) => {
   const inputAnim = useRef(new Animated.Value(0)).current;
   const inputTranslate = inputAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -hp(18)],
+    outputRange: [0, -wp(36)],
   });
   function slideInput(up) {
     Animated.spring(inputAnim, {
@@ -521,15 +521,15 @@ const styles = StyleSheet.create({
   },
   camToolsContainer: {
     flex: 0.18,
-    paddingVertical: hp(1),
+    paddingVertical: wp(2),
   },
   camTool: {
     alignItems: 'center',
-    paddingVertical: hp(0.5),
+    paddingVertical: wp(1),
   },
   xContainer: {
     position: 'absolute',
-    top: hp(2),
+    top: wp(4),
     left: wp(2.5),
   },
   bottomContainer: {
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    paddingBottom: hp(7),
+    paddingBottom: wp(20),
   },
   itemInputContainer: {
     position: 'absolute',
@@ -545,13 +545,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     width: '90%',
-    height: hp(5.7),
+    height: wp(11.4),
     opacity: 0.7,
     borderRadius: 10,
     backgroundColor: colors.gray3,
     paddingHorizontal: wp(4),
     paddingTop: wp(0.5),
-    marginTop: hp(3),
+    marginTop: wp(6),
   },
   dishIconContainer: {
     opacity: 0.85,
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    marginTop: hp(8),
+    marginTop: wp(16),
   },
   takePhotoBtnInner: {
     width: wp(16),
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     width: '100%',
-    height: hp(7),
+    height: wp(20),
     position: 'absolute',
     bottom: 0,
     backgroundColor: colors.gray2,
@@ -593,6 +593,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flex: 0.5,
     alignItems: 'center',
+    paddingBottom: wp(4.6),
     justifyContent: 'center',
     flexDirection: 'row',
   },

@@ -15,15 +15,18 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ttan18.feast"
+      "bundleIdentifier": "com.ttan18.feast",
+      "userInterfaceStyle": "automatic"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png"
       },
-      "package": "com.ttan18.feast"
+      "package": "com.ttan18.feast",
+      "userInterfaceStyle": "automatic"
     },
     "web": {
       "favicon": "./assets/icon.png"

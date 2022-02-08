@@ -99,18 +99,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Semi',
     fontSize: wp(7),
     color: colors.tertiary,
-    marginTop: hp(4),
+    marginTop: wp(8),
     textAlign: 'center',
   },
   subHeaderText: {
     fontFamily: 'Book',
     fontSize: wp(4.7),
     color: colors.tertiary,
-    marginTop: hp(1),
+    marginTop: wp(2),
     textAlign: 'center',
   },
   resendText: {
-    marginTop: hp(2),
+    marginTop: wp(4),
     alignSelf: 'center',
     fontFamily: 'Book',
     fontSize: sizes.b1,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     height: wp(28),
     width: wp(45),
-    marginTop: hp(10),
+    marginTop: wp(20),
     alignSelf: 'center',
   },
 });

@@ -61,7 +61,7 @@ const LogIn = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <View>
           {!verified && <BackArrow color={colors.tertiary} size={wp(9.6)} pressed={() => navigation.goBack()} />}
-          <Text style={[styles.headerText, { marginTop: verified ? hp(4) : hp(5) }]}>
+          <Text style={[styles.headerText, { marginTop: verified ? wp(8) : wp(10) }]}>
             Log In
           </Text>
           {verified
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   troubleText: {
-    marginTop: hp(2),
+    marginTop: wp(4),
     alignSelf: 'flex-end',
     fontFamily: 'Book',
     fontSize: sizes.b2,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     height: wp(28),
     width: wp(45),
-    marginTop: hp(10),
+    marginTop: wp(20),
     alignSelf: 'center',
   },
 });

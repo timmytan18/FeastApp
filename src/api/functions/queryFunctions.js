@@ -31,7 +31,9 @@ async function getUserReviewsQuery({ PK, hash, withUserInfo }) {
   try {
     const res = await API.graphql(graphqlOperation(
       withUserInfo ? getUserReviewsWithUserInfo : getUserReviews,
-      { PK, SK: { beginsWith: SK }, limit: 50 },
+      {
+        PK, SK: { beginsWith: SK }, limit: 50, sortDirection: 'DESC',
+      },
     ));
     userReviews = res.data.listFeastItems.items;
   } catch (err) {

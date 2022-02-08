@@ -46,6 +46,7 @@ const mapLessLandmarksStyle = [
 ];
 
 const Home = ({ navigation }) => {
+  console.log('HEIGHT: ', hp(100));
   const [state, dispatch] = useContext(Context);
   const initialDelta = {
     latitudeDelta: 0.0461, // ~3.5 miles in height
@@ -247,6 +248,7 @@ const Home = ({ navigation }) => {
         setStoriesVisible={setStoriesVisible}
         users={usersNamePic.current}
         place={place.current}
+        deviceHeight={state.deviceHeight}
       />
       <MapView
         style={styles.map}
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
   },
   searchBtnContainer: {
     position: 'absolute',
-    top: hp(8),
+    top: wp(16),
     right: wp(9),
   },
   searchBtn: {
@@ -334,7 +336,7 @@ const styles = StyleSheet.create({
   },
   locationBackBtnContainer: {
     position: 'absolute',
-    bottom: hp(5),
+    bottom: wp(9),
     right: wp(9.5),
     width: wp(13),
     height: wp(13),

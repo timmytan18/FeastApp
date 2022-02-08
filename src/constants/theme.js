@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 
 import {
-  heightPercentageToDP as hp,
   widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
 const colors = {

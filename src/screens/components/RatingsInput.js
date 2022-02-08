@@ -53,10 +53,10 @@ export default RatingsInput;
 
 const styles = StyleSheet.create({
   ratingsContainer: {
-    height: hp(40),
+    height: wp(80),
     width: '100%',
-    paddingTop: hp(2),
-    marginBottom: hp(4),
+    paddingTop: wp(4),
+    marginBottom: wp(8),
   },
   thumbContainer: {
     backgroundColor: colors.accent,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   numbersContainer: {
     alignSelf: 'flex-end',
     width: wp(52),
-    height: hp(3.2),
+    height: wp(7.5),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: hp(1.2),
+    marginBottom: wp(1.7),
   },
   ratingText: {
     fontFamily: 'Semi',

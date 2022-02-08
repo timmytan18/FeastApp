@@ -8,10 +8,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers.js';
 // import Discover from '../screens/Discover/Discover';
@@ -40,7 +36,7 @@ import BackArrow from '../screens/components/util/icons/BackArrow';
 // import CenterSpinner from '../screens/components/util/CenterSpinner';
 import { Context } from '../Store';
 import {
-  colors, gradients, sizes, header,
+  colors, gradients, sizes, header, wp, hp,
 } from '../constants/theme';
 
 const HomeStack = createStackNavigator();
@@ -274,7 +270,7 @@ const newPostAnim = {
   },
 };
 
-const NewPostTransition = {
+const newPostTransition = ({ height }) => ({
   transitionSpec: {
     open: newPostAnim,
     close: newPostAnim,
@@ -285,13 +281,13 @@ const NewPostTransition = {
         {
           translateY: current.progress.interpolate({
             inputRange: [0, 1],
-            outputRange: [hp(100), 0],
+            outputRange: [height, 0],
           }),
         },
       ],
     },
   }),
-};
+});
 
 const MyTabBar = ({
   state, descriptors, navigation, picture,
@@ -417,7 +413,10 @@ export default function AppNavigator() {
         <RootStack.Screen
           name="NewPostModal"
           component={NewPostStackScreen}
-          options={{ headerShown: false, ...NewPostTransition }}
+          options={{
+            headerShown: false,
+            ...newPostTransition({ height: state.deviceHeight }),
+          }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
@@ -445,7 +444,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 0.20,
-    paddingTop: hp(1),
+    paddingTop: wp(2.2),
     justifyContent: 'center',
     alignItems: 'center',
   },

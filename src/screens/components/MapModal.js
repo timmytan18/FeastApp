@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   map: {
     width: '90%',
     height: '60%',
-    marginBottom: hp(10),
+    marginBottom: wp(18),
     borderRadius: sizes.radius * 2,
   },
 });

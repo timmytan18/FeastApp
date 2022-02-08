@@ -1,5 +1,10 @@
 const Reducer = (state, action) => {
   switch (action.type) {
+    case 'SET_DEVICE_HEIGHT':
+      return {
+        ...state,
+        deviceHeight: action.payload,
+      };
     case 'SET_USER':
       return {
         ...state,

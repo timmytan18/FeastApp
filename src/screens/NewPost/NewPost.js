@@ -20,7 +20,7 @@ import Redirect from '../components/util/icons/Redirect';
 import MapMarker from '../components/util/icons/MapMarker';
 import { RATING_CATEGORIES } from '../../constants/constants';
 import {
-  colors, gradients, shadows, sizes, wp, hp,
+  colors, gradients, shadows, sizes, wp,
 } from '../../constants/theme';
 
 // Tests
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   topTextContainer: {
     alignSelf: 'flex-start',
-    marginTop: hp(2.5),
+    marginTop: wp(5),
     marginLeft: sizes.margin,
   },
   topText: {

@@ -15,7 +15,7 @@ const Ratings = ({
     <View>
       <ProgressBar
         progress={rating / 5}
-        width={wp(60)}
+        width={wp(55)}
         height={wp(4.3)}
         borderRadius={wp(4.3) / 2}
         color={colors.secondary}
@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginVertical: wp(2),
+    marginRight: wp(2),
   },
   typeText: {
     fontFamily: 'Medium',

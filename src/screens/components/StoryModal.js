@@ -2,7 +2,7 @@ import React, {
   useEffect, useContext, useState, useRef, useMemo,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Text, ImageBackground, Animated, PanResponder, ScrollView,
+  StyleSheet, View, TouchableOpacity, Text, ImageBackground, Animated, PanResponder, ScrollView, Dimensions,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,8 +16,9 @@ import Rating from './util/icons/Rating';
 import YumButton from './util/YumButton';
 import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
+import BackArrow from './util/icons/BackArrow';
 import {
-  colors, shadows, gradients, sizes, wp, hp,
+  colors, shadows, gradients, sizes, wp,
 } from '../../constants/theme';
 
 const ratingColor = (rating) =>
@@ -32,7 +33,7 @@ const ratingColor = (rating) =>
   colors.tertiary;
 
 const StoryModal = ({
-  stories, storiesVisible, setStoriesVisible, users, place,
+  stories, storiesVisible, setStoriesVisible, users, place, deviceHeight,
 }) => {
   useEffect(() => {
     index.current = 0;
@@ -65,32 +66,32 @@ const StoryModal = ({
       useNativeDriver: false,
     }).start();
   };
-  const bottomHeight = hp(100);
 
   // Calculate scroll thresholds to animate between top/bottom or exit modal
   const topEnabled = useRef(true);
   const bottomEnabled = useRef(false);
   const lastContentOffsetY = useRef(0);
-  const paddingBottom = 80;
-  const paddingTop = 60;
+  const paddingBottom = 90;
+  const paddingTop = 70;
   const isCloseToTopBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
     let pos = null;
-    if (bottomEnabled.current
-      && (layoutMeasurement.height + contentOffset.y
-        >= contentSize.height + paddingBottom)
-      && lastContentOffsetY.current < contentOffset.y) {
-      pos = 'BOTTOM';
-    } else if (topEnabled.current
+    if (topEnabled.current
       && contentOffset.y <= -paddingTop
       && lastContentOffsetY.current > contentOffset.y) {
       pos = 'TOP';
     }
-    if (layoutMeasurement.height + contentOffset.y
-      >= contentSize.height - paddingBottom) {
-      bottomEnabled.current = true;
-    } else {
-      bottomEnabled.current = false;
-    }
+    // else if (bottomEnabled.current
+    //   && (layoutMeasurement.height + contentOffset.y
+    //     >= contentSize.height + paddingBottom)
+    //   && lastContentOffsetY.current < contentOffset.y) {
+    //   pos = 'BOTTOM';
+    // }
+    // if (layoutMeasurement.height + contentOffset.y
+    //   >= contentSize.height - paddingBottom) {
+    //   bottomEnabled.current = true;
+    // } else {
+    //   bottomEnabled.current = false;
+    // }
     if (contentOffset.y <= paddingTop) {
       topEnabled.current = true;
     } else {
@@ -109,7 +110,7 @@ const StoryModal = ({
     enablePanResponder.current = false;
     isBottom.current = true;
     setEnablePanResponderState(false);
-    translateAnim({ value: -bottomHeight });
+    translateAnim({ value: -deviceHeight });
   };
   const closeModal = () => {
     isBottom.current = false;
@@ -148,6 +149,7 @@ const StoryModal = ({
             console.log('large image');
             // open up larger image ?
           }
+          // swipe up/down to change top/bottom view
         } else if (gestureState.dy < -100) {
           // swipe up
           if (isBottom.current) {
@@ -189,14 +191,17 @@ const StoryModal = ({
       animationOut="zoomOut"
       hideModalContentWhileAnimating
       propagateSwipe
+      deviceHeight={deviceHeight}
     >
       <Animated.View
-        style={[styles.container, { transform: [{ translateY: translateVal }] }]}
-        {...panResponder.panHandlers}
+        style={[
+          styles.container,
+          { transform: [{ translateY: translateVal }] },
+        ]}
       >
-        <View style={styles.cardContainer}>
+        <View style={styles.cardContainer} {...panResponder.panHandlers}>
           <View style={styles.progressContainer}>
-            {stories && stories.length
+            {stories && stories.length > 1
               && (stories.map((story, i) => (
                 <View
                   key={story.SK}
@@ -345,7 +350,7 @@ const StoryModal = ({
         <View style={styles.middleContainer}>
           <View style={styles.middleButtonsContainer}>
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-              <SaveButton size={wp(11)} />
+              <SaveButton size={wp(10.5)} />
             </View>
             <View style={styles.viewPlaceBtnContainer}>
               <SwipeUpArrow />
@@ -378,15 +383,15 @@ const StoryModal = ({
               </LinearGradient>
             </View>
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
-              <YumButton size={wp(11)} />
+              <YumButton size={wp(10.5)} />
             </View>
           </View>
         </View>
-        <View style={[styles.bottomContainer, { height: bottomHeight, bottom: -bottomHeight }]}>
+        <View style={[styles.bottomContainer, { height: deviceHeight, bottom: -deviceHeight }]}>
           <ScrollView
             style={styles.scrollView}
-            scrollEventThrottle={200}
             showsVerticalScrollIndicator={false}
+            scrollEventThrottle={200}
             onScroll={({ nativeEvent }) => {
               const pos = isCloseToTopBottom(nativeEvent);
               if (pos === 'TOP') {
@@ -400,6 +405,19 @@ const StoryModal = ({
           >
             <PlaceDetail place={place} panToTop={panToTop} />
           </ScrollView>
+          <TouchableOpacity
+            style={styles.downArrowContainer}
+            onPress={() => panToTop()}
+            activeOpacity={0.7}
+          >
+            <View pointerEvents="none">
+              <BackArrow
+                color={colors.gray4}
+                size={wp(6)}
+                style={styles.downArrow}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
       </Animated.View>
     </Modal>
@@ -425,7 +443,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: sizes.margin,
   },
   progressContainer: {
-    height: wp(10),
+    height: wp(9),
     alignItems: 'center',
     flexDirection: 'row',
   },
@@ -481,7 +499,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0.5,
   },
   headerContainer: {
-    height: hp(7.2),
+    height: wp(15.5),
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -595,6 +613,22 @@ const styles = StyleSheet.create({
   bottomContainer: {
     width: '100%',
     position: 'absolute',
+  },
+  downArrowContainer: {
+    position: 'absolute',
+    right: wp(10),
+    bottom: wp(17),
+    width: wp(15),
+    height: wp(15),
+    borderRadius: wp(7.5),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.tertiary,
+    opacity: 0.9,
+    ...shadows.even,
+  },
+  downArrow: {
+    transform: [{ rotate: '90deg' }],
   },
 });
 

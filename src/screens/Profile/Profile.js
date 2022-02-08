@@ -27,7 +27,7 @@ import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
 import BackArrow from '../components/util/icons/BackArrow';
 import CenterSpinner from '../components/util/CenterSpinner';
 import {
-  colors, gradients, sizes, wp, hp, shadows,
+  colors, gradients, sizes, wp, shadows,
 } from '../../constants/theme';
 
 const Profile = ({ navigation, route }) => {
@@ -148,7 +148,7 @@ const Profile = ({ navigation, route }) => {
                 colors={gradients.orange.colors}
                 start={gradients.orange.start}
                 end={gradients.orange.end}
-                style={{ width: user.name.length * wp(5), height: hp(3.78) }}
+                style={{ width: user.name.length * wp(5), height: wp(8.9) }}
               />
             </MaskedView>
           </View>
@@ -420,9 +420,8 @@ const Profile = ({ navigation, route }) => {
 
   const posts = [];
   const size = 2;
-  const reversedReviews = reviews.reverse();
-  for (let i = 0; i < reversedReviews.length; i += size) {
-    posts.push(reversedReviews.slice(i, i + size));
+  for (let i = 0; i < reviews.length; i += size) {
+    posts.push(reviews.slice(i, i + size));
   }
   const data = [{ title: 'profile', data: posts }];
 
@@ -434,6 +433,7 @@ const Profile = ({ navigation, route }) => {
         setEditPressed={setEditPressed}
         user={user}
         dispatch={dispatch}
+        deviceHeight={state.deviceHeight}
       />
       <SectionList
         sections={data}
@@ -465,14 +465,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     alignItems: 'flex-start',
-    paddingTop: hp(1.5),
+    paddingTop: wp(3),
   },
   headerTitle: {
     fontFamily: 'Semi',
     fontSize: wp(6.2),
     color: colors.primary,
     paddingLeft: wp(5),
-    paddingTop: hp(0.7),
+    paddingTop: wp(2),
     lineHeight: wp(6.2),
   },
   backArrowContainer: {
@@ -493,14 +493,14 @@ const styles = StyleSheet.create({
   },
   pfpContainer: {
     paddingTop: wp(6),
-    paddingBottom: hp(1.5),
+    paddingBottom: wp(3.5),
     marginLeft: wp(1),
     flex: 0.3,
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   userPicture: {
-    marginBottom: hp(1.1),
+    marginBottom: wp(2.5),
   },
   locationText: {
     fontFamily: 'Medium',
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     flex: 0.7,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: hp(1.4) + 0.35 * sizes.b2,
+    paddingBottom: wp(3.4) + 0.35 * sizes.b2,
   },
   followContainer: {
     flexDirection: 'row',
@@ -539,11 +539,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingTop: wp(3) + hp(0.2),
+    paddingTop: wp(3.8),
   },
   editContainer: {
-    width: '73%',
-    height: hp(3) + wp(3.6),
+    width: '70%',
+    height: wp(10.5),
     borderRadius: wp(2),
     alignItems: 'center',
     justifyContent: 'center',
@@ -555,12 +555,12 @@ const styles = StyleSheet.create({
     paddingTop: wp(0.3),
   },
   socialContainer: {
-    width: hp(3) + wp(5),
-    height: hp(3) + wp(5),
+    width: wp(6) + wp(5),
+    height: wp(6) + wp(5),
     marginLeft: wp(2.5),
   },
   tabContainer: {
-    marginTop: hp(1.5),
+    marginTop: wp(5),
     marginHorizontal: wp(6),
     flexDirection: 'row',
   },
@@ -603,8 +603,11 @@ const styles = StyleSheet.create({
   postNameText: {
     fontFamily: 'Medium',
     fontSize: sizes.b3,
+    textAlign: 'center',
     color: colors.black,
     marginTop: wp(1),
+    width: wp(43.5),
+    overflow: 'hidden',
   },
   starsContainer: {
     position: 'absolute',

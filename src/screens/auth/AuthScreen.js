@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ImageBackground, Button, Image, Text, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet, View, ImageBackground, Button, Image, Text, TouchableOpacity,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
 import Amplify, { Auth } from 'aws-amplify';
 import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
-import awsconfig from '../components/util/Link';
-import { colors, sizes, wp, hp, gradients } from '../../constants/theme';
 import { FontAwesome } from '@expo/vector-icons';
+import awsconfig from '../components/util/Link';
+import {
+  colors, sizes, wp, hp, gradients,
+} from '../../constants/theme';
 import Logo from '../components/util/icons/Logo';
 import CenterSpinner from '../components/util/CenterSpinner';
 
 const AuthScreen = ({ navigation }) => {
-
   SplashScreen.hideAsync();
 
   const [isLoading, setLoading] = useState(false);
@@ -35,16 +38,16 @@ const AuthScreen = ({ navigation }) => {
   // }, [])
 
   if (isLoading) {
-    return <CenterSpinner />
+    return <CenterSpinner />;
   }
 
   return (
     <ImageBackground
       style={styles.container}
       source={require('../../../assets/authbackground.jpg')}
-      resizeMode='cover'
+      resizeMode="cover"
     >
-      <Logo style={styles.logoIcon} large={true} />
+      <Logo style={styles.logoIcon} large />
       <MaskedView
         maskElement={
           <Text style={styles.titleText}>Feast</Text>
@@ -54,7 +57,7 @@ const AuthScreen = ({ navigation }) => {
           colors={gradients.orange.colors}
           start={gradients.orange.start}
           end={gradients.orange.end}
-          style={{ width: wp(30), height: hp(7.5) }}
+          style={{ width: wp(30), height: wp(15) }}
         />
       </MaskedView>
       <Text style={styles.subTitleText}>
@@ -107,7 +110,7 @@ const AuthScreen = ({ navigation }) => {
             /> */}
     </ImageBackground>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -116,8 +119,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   logoIcon: {
-    marginTop: hp(18),
-    marginBottom: hp(1),
+    marginTop: wp(36),
+    marginBottom: wp(2),
   },
   titleText: {
     color: colors.primary,
@@ -130,12 +133,12 @@ const styles = StyleSheet.create({
     color: colors.tertiary,
     fontFamily: 'Medium',
     fontSize: sizes.h4,
-    marginTop: hp(-0.5)
+    marginTop: -wp(1),
   },
   facebookLoginContainer: {
     width: wp(82),
     height: wp(15),
-    marginVertical: hp(6),
+    marginVertical: wp(12),
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -152,15 +155,15 @@ const styles = StyleSheet.create({
     width: wp(100),
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: hp(1),
-    alignItems: 'flex-end'
+    marginTop: wp(2),
+    alignItems: 'flex-end',
   },
   logInText: {
     alignSelf: 'center',
     color: colors.tertiary,
     fontFamily: 'Book',
     fontSize: sizes.b2,
-    marginTop: hp(1.5),
+    marginTop: wp(3),
   },
   logInBtnText: {
     color: colors.tertiary,
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
   facebookIcon: {
     fontSize: wp(11),
     marginRight: wp(6),
-    color: 'white'
+    color: 'white',
   },
   orText: {
     color: colors.white,
@@ -180,9 +183,9 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     flex: 1,
-    marginTop: hp(8),
+    marginTop: wp(16),
     justifyContent: 'flex-start',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   signUpContainer: {
     width: wp(70),
@@ -196,8 +199,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Medium',
     fontSize: sizes.caption,
     textDecorationLine: 'underline',
-    paddingBottom: hp(2.5),
-  }
+    paddingBottom: wp(5),
+  },
 });
 
 export default AuthScreen;

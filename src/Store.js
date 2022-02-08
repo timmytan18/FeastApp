@@ -11,6 +11,7 @@ const initialState = {
   restaurants: [],
   headerHeight: null,
   error: null,
+  deviceHeight: null,
 };
 
 const Store = ({ children }) => {

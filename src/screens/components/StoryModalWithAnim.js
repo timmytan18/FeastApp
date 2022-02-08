@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     paddingBottom: 1,
   },
   headerContainer: {
-    height: hp(7.2),
+    height: wp(15.5),
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',

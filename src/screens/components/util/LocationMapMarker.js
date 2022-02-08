@@ -7,10 +7,9 @@ import {
 } from '../../../constants/theme';
 
 const LocationMapMarker = ({
-  isUser, userPic, name, mode,
+  isUser, userPic, name, isDarkMode,
 }) => {
   const gradient = isUser ? gradients.purple : gradients.orange;
-  console.log(mode);
   return (
     <View style={styles.rootContainer}>
       {userPic && (
@@ -37,7 +36,7 @@ const LocationMapMarker = ({
           <Text
             style={[
               styles.nameText, styles.textWithShadow,
-              { color: mode === 'dark' ? 'white' : colors.black },
+              { color: isDarkMode ? 'white' : colors.black },
             ]}
           >
             {name}

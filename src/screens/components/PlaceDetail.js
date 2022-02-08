@@ -3,13 +3,13 @@ import React, {
 } from 'react';
 import {
   Text, SafeAreaView, View, StyleSheet, ImageBackground, Animated,
-  PanResponder, TouchableOpacity, Image, Platform, Linking,
+  PanResponder, TouchableOpacity, Image, Platform, Linking, useColorScheme,
 } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import PropTypes from 'prop-types';
-import { link } from './OpenLink';
+import link from './OpenLink';
 import { Context } from '../../Store';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import LocationMapMarker from './util/LocationMapMarker';
@@ -30,11 +30,10 @@ import Doordash from './util/icons/delivery/Doordash';
 import Chownow from './util/icons/delivery/Chownow';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import Ratings from './Ratings';
-import ProfileIcon from '../../navigation/icons/Profile';
 import Pagination from './util/Pagination';
 import MoreView from './MoreView';
 import {
-  colors, sizes, gradients, wp, hp, shadows,
+  colors, sizes, gradients, wp, shadows,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -64,14 +63,20 @@ const propTypes = {
 
 const PlaceDetail = React.memo(({ place, panToTop }) => {
   console.log(place);
-  const images = [place.placeInfo.imgUrl];
 
   const [deliveryPressed, setDeliveryPressed] = useState(false);
   const [menuWebPressed, setMenuWebPressed] = useState(false);
 
+  if (!place) {
+    return <View />;
+  }
+
+  const images = [place.placeInfo.imgUrl];
+
   const renderPage = (item) => (
     <View
       style={{ flex: 1 }}
+      key={item}
     >
       <ImageBackground
         source={{ uri: item }}
@@ -82,14 +87,14 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
           colors={['rgba(0,0,0,0.32)', 'transparent']}
           style={styles.gradient}
         />
-        <View style={styles.downArrowContainer}>
+        {/* <View style={styles.downArrowContainer}>
           <BackArrow
             color="white"
             size={wp(8)}
             style={styles.downArrow}
             pressed={() => panToTop()}
           />
-        </View>
+        </View> */}
       </ImageBackground>
     </View>
   );
@@ -106,7 +111,7 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
   }, [scroll]);
 
   const opacity = scroll.interpolate({
-    inputRange: [0, hp(20), hp(50)],
+    inputRange: [0, wp(45), wp(100)],
     outputRange: [1, 0.7, 0],
     extrapolate: 'clamp',
   });
@@ -121,8 +126,7 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
   const delivery = place.placeInfo.orderUrls === '{}'
     ? null : JSON.parse(place.placeInfo.orderUrls);
 
-  const getDeliveryIcon = (_type) => {
-    const type = _type.replace(/\s+/g, '').toLowerCase();
+  const getDeliveryIcon = (type) => {
     if (type === 'ubereats') {
       return <Ubereats />;
     } if (type === 'trycaviar') {
@@ -143,7 +147,8 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
 
   const deliveryItems = [];
   if (delivery) {
-    Object.entries(delivery).forEach(([type, url]) => {
+    Object.entries(delivery).forEach(([_type, url]) => {
+      const type = _type.replace(/\s+/g, '').toLowerCase();
       deliveryItems.push({
         onPress: () => link(type, url),
         icon: (
@@ -151,7 +156,7 @@ const PlaceDetail = React.memo(({ place, panToTop }) => {
             {getDeliveryIcon(type)}
           </View>
         ),
-        label: type,
+        label: _type,
       });
     });
   }
@@ -225,17 +230,17 @@ const BodyContent = React.memo(({
 
   let priceInd = 0;
   const price = place.placeInfo.priceLvl
-    ? Array.apply(0, new Array(4)).map((i) => {
+    ? Array.apply(0, new Array(4)).map(() => {
       priceInd += 1;
       if (priceInd <= place.placeInfo.priceLvl) {
         return (
-          <View key={i} style={{ marginHorizontal: wp(0.3) }}>
+          <View key={priceInd} style={{ marginHorizontal: wp(0.3) }}>
             <DollarSign />
           </View>
         );
       }
       return (
-        <View key={i} style={{ marginHorizontal: wp(0.3) }}>
+        <View key={priceInd} style={{ marginHorizontal: wp(0.3) }}>
           <DollarSignEmpty />
         </View>
       );
@@ -248,12 +253,22 @@ const BodyContent = React.memo(({
   const mapUrl = Platform.OS === 'ios'
     ? `${scheme}${label}&ll=${latLng}`
     : `${scheme}${latLng}(${label})`;
+  const isDarkMode = useColorScheme() === 'dark';
+
+  const markers = [
+    { lat: userLat, lng: userLng },
+    { lat: placeLat, lng: placeLng },
+  ];
+  const mapRef = useRef(null);
+  const fitToMarkers = () => {
+    mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`), { animated: false });
+  };
 
   return (
     <View style={styles.rootInfoContainer}>
       <View style={{ height: wp(5), width: wp(100), backgroundColor: 'white' }} />
       <View style={styles.titleTextContainer}>
-        {Platform.OS === 'android' && <View style={{ height: hp(1), width: wp(100) }} />}
+        {Platform.OS === 'android' && <View style={{ height: wp(2), width: wp(100) }} />}
         <Text
           style={styles.titleText}
           numberOfLines={2}
@@ -332,25 +347,22 @@ const BodyContent = React.memo(({
                 <Redirect color={colors.gray} />
               </View>
             )}
-            {delivery && (
-              <TouchableOpacity
-                style={styles.orderButtonContainer}
-                onPress={() => setDeliveryPressed(true)}
+            <TouchableOpacity
+              style={[styles.orderButtonContainer]}
+              onPress={() => setDeliveryPressed(true)}
+              disabled={!delivery}
+            >
+              {delivery && <Order />}
+              {!delivery && <OrderNull />}
+              <Text
+                style={[
+                  styles.orderButtonText,
+                  { color: delivery ? colors.black : colors.gray },
+                ]}
               >
-                <Order />
-                <Text style={styles.orderButtonText}>Order Now</Text>
-              </TouchableOpacity>
-            )}
-            {!delivery && (
-              <View
-                style={styles.orderButtonContainer}
-              >
-                <Order />
-                <Text style={[styles.orderButtonText, { color: colors.gray }]}>
-                  Order Now
-                </Text>
-              </View>
-            )}
+                Order Now
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
         {(categories != null || place.description != null) && (
@@ -380,36 +392,44 @@ const BodyContent = React.memo(({
         <View style={styles.mapContainer}>
           <MapView
             style={styles.map}
+            rotateEnabled={false}
+            pitchEnabled={false}
             initialRegion={{
-              latitude: placeLat,
-              longitude: placeLng,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
+              latitude: userLat,
+              longitude: userLng,
+              latitudeDelta: 0.0461, // ~3.5 miles in height
+              longitudeDelta: 0.02105,
             }}
+            ref={mapRef}
+            onMapReady={fitToMarkers}
           >
             <Marker
               key={`${placeLat}${placeLng}`}
               identifier={`${placeLat}${placeLng}`}
               coordinate={{ latitude: placeLat, longitude: placeLng }}
             >
-              <LocationMapMarker isUser={false} name={place.name} mode="dark" />
+              <LocationMapMarker isUser={false} name={place.name} isDarkMode={isDarkMode} />
             </Marker>
             <Marker
               key={`${userLat}${userLng}`}
               identifier={`${userLat}${userLng}`}
               coordinate={{ latitude: userLat, longitude: userLng }}
             >
-              <LocationMapMarker isUser userPic={userPic} name="Me" mode="dark" />
+              <LocationMapMarker isUser userPic={userPic} name="Me" isDarkMode={isDarkMode} />
             </Marker>
           </MapView>
-          <TouchableOpacity style={styles.openMapContainer} onPress={() => Linking.openURL(mapUrl)}>
+          <TouchableOpacity
+            style={styles.openMapContainer}
+            onPress={() => Linking.openURL(mapUrl)}
+            activeOpacity={0.8}
+          >
             <LinearGradient
               colors={gradients.purple.colors}
               start={gradients.purple.start}
               end={gradients.purple.end}
               style={styles.openMap}
             >
-              <Car color="white" size={wp(6)} />
+              <Car color="white" size={wp(5.3)} />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -475,7 +495,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     zIndex: 1,
-    height: hp(50),
+    height: wp(100),
     width: wp(100),
   },
   imageContainer: {
@@ -505,7 +525,7 @@ const styles = StyleSheet.create({
   rootInfoContainer: {
     width: '100%',
     flexDirection: 'column',
-    paddingTop: hp(50),
+    paddingTop: wp(100),
     paddingBottom: wp(6),
     backgroundColor: 'white',
   },
@@ -547,7 +567,7 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     width: '100%',
-    height: hp(14),
+    height: wp(28),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: wp(0.5),
@@ -563,7 +583,7 @@ const styles = StyleSheet.create({
   distancePriceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: hp(1),
+    paddingBottom: wp(2.1),
   },
   distanceText: {
     opacity: 0.9,
@@ -677,19 +697,16 @@ const styles = StyleSheet.create({
     color: colors.black,
   },
   mapContainer: {
-    height: hp(44),
-    width: '100%',
-    marginVertical: hp(3),
+    width: '95%',
+    aspectRatio: 1,
+    marginTop: wp(6),
+    marginBottom: wp(12),
+    alignSelf: 'center',
     borderRadius: wp(2),
   },
   map: {
     flex: 1,
     borderRadius: wp(2),
-  },
-  calloutImage: {
-    width: wp(10),
-    height: wp(10),
-    borderRadius: wp(5) / 2,
   },
   openMapContainer: {
     position: 'absolute',
@@ -700,9 +717,9 @@ const styles = StyleSheet.create({
     borderRadius: wp(14) / 2,
   },
   openMap: {
-    width: wp(14),
-    height: wp(14),
-    borderRadius: wp(14) / 2,
+    width: wp(12.5),
+    height: wp(12.5),
+    borderRadius: wp(12.5) / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

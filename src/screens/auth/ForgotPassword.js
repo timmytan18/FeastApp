@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Semi',
     fontSize: wp(8),
     color: colors.tertiary,
-    marginTop: hp(4),
+    marginTop: wp(8),
   },
   subHeaderText: {
     fontFamily: 'Book',
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     height: wp(28),
     width: wp(45),
-    marginTop: hp(10),
+    marginTop: wp(20),
     alignSelf: 'center',
   },
 });

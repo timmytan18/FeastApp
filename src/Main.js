@@ -4,6 +4,7 @@ import { View, Image } from 'react-native';
 import Amplify, {
   Auth, Hub, API, graphqlOperation,
 } from 'aws-amplify';
+import { useSafeAreaFrame } from 'react-native-safe-area-context'; // device height
 import awsconfig from './aws-exports';
 
 import { getUserProfileQuery } from './api/functions/queryFunctions';
@@ -17,6 +18,7 @@ Amplify.configure(awsconfig);
 
 const Main = () => {
   const [state, dispatch] = useContext(Context);
+  const frame = useSafeAreaFrame();
 
   useEffect(() => {
     // listen to changes in sign in status
@@ -32,6 +34,9 @@ const Main = () => {
           break;
       }
     });
+
+    // set device height
+    dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
 
     async function updateIdentityId(PK, SK) {
       const currentCreds = await Auth.currentCredentials();

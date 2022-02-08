@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: hp(1),
+    paddingTop: wp(2),
     backgroundColor: 'white',
   },
   cancelContainer: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     paddingBottom: wp(2),
   },
   tabContainer: {
-    height: hp(7),
+    height: wp(14),
     width: '100%',
     backgroundColor: 'white',
     flexDirection: 'row',

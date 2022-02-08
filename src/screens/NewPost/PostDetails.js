@@ -332,7 +332,7 @@ const PostDetails = ({ navigation, route }) => {
           bottom: 10,
           zIndex: 1,
           width: wp(100),
-          height: hp(90),
+          height: 0.9 * state.deviceHeight,
           alignSelf: 'center',
         }, { transform: [{ translateY: translateAnim }], opacity: opacityAnim }]}
         pointerEvents={emojiOpen ? 'auto' : 'none'}
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   postHeader: {
-    height: hp(7.2),
+    height: wp(15),
     width: '100%',
     flexDirection: 'row',
   },
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     backgroundColor: colors.gray4,
     borderRadius: wp(2),
-    height: hp(10),
+    height: wp(18),
   },
   emojiInput: {
     flex: 0.1,
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.gray4,
     borderRadius: wp(2),
-    height: hp(10),
+    height: wp(18),
     paddingHorizontal: wp(3),
     paddingVertical: wp(2),
     marginVertical: wp(3),
@@ -517,6 +517,7 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     justifyContent: 'flex-end',
+    marginTop: wp(1),
     marginBottom: wp(8),
   },
   menuItemText: {
@@ -529,7 +530,7 @@ const styles = StyleSheet.create({
   },
   ratingsContainer: {
     paddingHorizontal: wp(1),
-    marginBottom: hp(5),
+    marginBottom: wp(8),
   },
   ratingTitle: {
     fontFamily: 'Semi',

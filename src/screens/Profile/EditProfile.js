@@ -12,7 +12,7 @@ import {
 } from '../../constants/theme';
 
 const EditProfile = ({
-  editPressed, setEditPressed, user, dispatch,
+  editPressed, setEditPressed, user, dispatch, deviceHeight,
 }) => {
   const [photo, setPhoto] = useState(user.picture ? user.picture : null);
   const isLocal = useRef(false);
@@ -77,6 +77,7 @@ const EditProfile = ({
       swipeDirection="down"
       onSwipeComplete={hideModal}
       onBackdropPress={hideModal}
+      deviceHeight={deviceHeight}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
       <View style={styles.container}>
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: wp(10),
     height: wp(1.2),
-    marginVertical: hp(2),
+    marginVertical: wp(4),
     borderRadius: wp(0.6),
     backgroundColor: colors.black,
   },
@@ -142,13 +143,13 @@ const styles = StyleSheet.create({
     flex: 0.3,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: hp(1.4),
+    paddingBottom: wp(2.8),
   },
   userPicture: {
     width: wp(26),
     height: wp(26),
     borderRadius: wp(26) / 2,
-    marginBottom: hp(2),
+    marginBottom: wp(4),
   },
   changePfpText: {
     fontFamily: 'Medium',
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     alignSelf: 'center',
-    marginTop: hp(2),
+    marginTop: wp(4),
     color: 'red',
     fontFamily: 'Book',
     fontSize: sizes.b2,

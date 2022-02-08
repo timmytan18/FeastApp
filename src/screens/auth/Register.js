@@ -143,12 +143,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Semi',
     fontSize: wp(9),
     color: colors.tertiary,
-    marginTop: hp(5),
+    marginTop: wp(10),
   },
   buttonContainer: {
     height: wp(28),
     width: wp(45),
-    marginTop: hp(10),
+    marginTop: wp(20),
     alignSelf: 'center',
   },
 });
