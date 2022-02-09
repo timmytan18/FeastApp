@@ -173,15 +173,7 @@ function StoryModalStackScreen() {
       <StoryModalStack.Screen
         name="Profile"
         component={Profile}
-        options={{
-          title: '',
-          headerStyle: {
-            backgroundColor: 'white',
-            shadowOffset: { width: 0, height: 0 },
-            height: wp(10),
-          },
-          headerLeft: null,
-        }}
+        options={{ headerShown: false }}
       />
     </StoryModalStack.Navigator>
   );
@@ -210,13 +202,13 @@ const ModalTransition = {
         {
           scaleX: current.progress.interpolate({
             inputRange: [0, 0.7, 1],
-            outputRange: [0, 0.3, 1],
+            outputRange: [0, 0.6, 1],
           }),
         },
         {
           scaleY: current.progress.interpolate({
             inputRange: [0, 0.7, 1],
-            outputRange: [0, 0.3, 1],
+            outputRange: [0, 0.6, 1],
           }),
         },
         {
@@ -229,8 +221,8 @@ const ModalTransition = {
         },
       ],
       opacity: current.progress.interpolate({
-        inputRange: [0, 0.3, 0.8, 1],
-        outputRange: [0, 0.1, 0.6, 1],
+        inputRange: [0.2, 0.8, 1],
+        outputRange: [0, 0.5, 1],
       }),
     },
   }),
@@ -365,8 +357,6 @@ const TabNavigator = ({ picture }) => {
 
 export default function AppNavigator() {
   const [state, dispatch] = useContext(Context);
-  console.log('App navigator state: ', state);
-
   const RootStack = createStackNavigator();
 
   return (

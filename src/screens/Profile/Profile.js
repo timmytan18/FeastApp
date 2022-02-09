@@ -2,9 +2,10 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, SafeAreaView, View, Image, TouchableOpacity,
+  StyleSheet, Text, View, Image, TouchableOpacity,
   Animated, SectionList, Alert, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -405,7 +406,7 @@ const Profile = ({ navigation, route }) => {
   // );
 
   const renderRow = (items) => (
-    <SafeAreaView style={styles.postsRowContainer}>
+    <View style={styles.postsRowContainer}>
       <StatusBar animated barStyle="dark-content" />
       {items.map((item) => (
         <TouchableOpacity key={item.timestamp} style={{ alignItems: 'center' }} activeOpacity={0.9}>
@@ -433,7 +434,7 @@ const Profile = ({ navigation, route }) => {
           </Text>
         </TouchableOpacity>
       ))}
-    </SafeAreaView>
+    </View>
   );
 
   const posts = [];
@@ -444,7 +445,7 @@ const Profile = ({ navigation, route }) => {
   const data = [{ title: 'profile', data: posts }];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={[8, 1, 1, 1]}>
       <MoreView items={moreItems} morePressed={morePressed} setMorePressed={setMorePressed} />
       <EditProfile
         editPressed={editPressed}
@@ -486,7 +487,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-start',
     marginTop: wp(3),
-    paddingTop: wp(3),
   },
   headerTitle: {
     fontFamily: 'Semi',
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   moreButton: {
     alignSelf: 'center',
     paddingRight: wp(5),
-    paddingTop: wp(3.2),
+    paddingTop: wp(0.2),
   },
   topProfileContainer: {
     width: '100%',

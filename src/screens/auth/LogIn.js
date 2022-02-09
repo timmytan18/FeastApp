@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, SafeAreaView, View, Text, TouchableOpacity, KeyboardAvoidingView, Keyboard,
 } from 'react-native';
-import { Auth, nav } from 'aws-amplify';
+import { Auth } from 'aws-amplify';
 import BackArrow from '../components/util/icons/BackArrow';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';

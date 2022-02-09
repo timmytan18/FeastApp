@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, SafeAreaView, View, Text, Keyboard,
 } from 'react-native';
-import { Auth } from 'aws-amplify';
 import BackArrow from '../components/util/icons/BackArrow';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';
 import { NameInput } from './Input';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp,
 } from '../../constants/theme';
 
 const NameForm = ({ navigation }) => {

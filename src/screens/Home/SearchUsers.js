@@ -2,9 +2,9 @@ import React, {
   useState, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, SafeAreaView, View, TouchableOpacity, Animated, FlatList, Keyboard,
+  StyleSheet, Text, View, TouchableOpacity, Animated, FlatList, Keyboard,
 } from 'react-native';
-import { API, graphqlOperation } from 'aws-amplify';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Context } from '../../Store';
 import { getUserProfileQuery, searchQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
 import DismissKeyboardView from '../components/util/DismissKeyboard';

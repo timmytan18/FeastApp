@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIndicator } from 'react-native-indicators';
 import ProfilePic from './ProfilePic';
 import {
   colors, sizes, gradients, wp,
@@ -24,7 +25,7 @@ const defaultProps = {
 };
 
 const MapMarker = ({
-  name, lat, lng, userPic, category,
+  name, placeId, lat, lng, userPic, category, loadingStories,
 }) => (
   <View style={styles.container}>
     <LinearGradient
@@ -33,6 +34,16 @@ const MapMarker = ({
       end={gradients.purple.end}
       style={styles.gradientContainer}
     >
+      {loadingStories && loadingStories === placeId && (
+        <MaterialIndicator
+          style={{
+            position: 'absolute', zIndex: 1,
+          }}
+          size={markerWithGradientSize}
+          color={colors.white}
+          trackWidth={gradientSize}
+        />
+      )}
       <View style={styles.markerContainer}>
         <ProfilePic
           extUrl={userPic}
@@ -52,11 +63,22 @@ const MapMarker = ({
   </View>
 );
 
+function areEqual(prevProps, nextProps) {
+  // Rerender if marker is currently loading or if marker was previously loading and now is not
+  if ((nextProps.placeId === nextProps.loadingStories)
+    || (prevProps.placeId === prevProps.loadingStories
+      && nextProps.loadingStories === 'none')) {
+    return false;
+  }
+  return true;
+}
+
 MapMarker.propTypes = propTypes;
 MapMarker.defaultProps = defaultProps;
 
 const markerSize = wp(11);
-const markerWithGradientSize = markerSize + wp(1.2);
+const gradientSize = wp(1.2);
+const markerWithGradientSize = markerSize + gradientSize;
 const borderWidth = 1;
 const imageSize = markerSize - borderWidth * 4;
 const styles = StyleSheet.create({
@@ -101,4 +123,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapMarker;
+export default React.memo(MapMarker, areEqual);

@@ -2,7 +2,7 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput,
+  StyleSheet, Text, View, TouchableOpacity, TextInput,
   ScrollView, Keyboard, Alert, ImageBackground, Animated,
 } from 'react-native';
 import PropTypes from 'prop-types';

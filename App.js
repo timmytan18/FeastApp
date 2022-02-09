@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import {
-  Platform, SafeAreaView, StatusBar, View, Image,
+  Platform, StatusBar, View, Image,
 } from 'react-native';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
@@ -66,15 +66,8 @@ const App = () => {
   }
 
   return (
-    <View
-      style={{ flex: 1 }}
-    // onLayout={({ nativeEvent }) => {
-    //   const windowHeight = nativeEvent.layout.height;
-    //   this.setState({ windowHeight });
-    // }}
-    >
+    <View style={{ flex: 1 }}>
       {Platform.OS === 'ios' && <StatusBar barStyle="dark-content" />}
-      {/* <SafeAreaView style={{ flex: 0, backgroundColor: 'transparent' }} /> */}
       <SafeAreaProvider>
         <Store>
           <Main />

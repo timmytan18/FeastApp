@@ -4,7 +4,6 @@ import React, {
 import {
   StyleSheet, View, TouchableOpacity, Text, StatusBar,
 } from 'react-native';
-import { StackActions } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
 import { Storage } from 'aws-amplify';
@@ -186,6 +185,7 @@ const Home = ({ navigation }) => {
 
   const stories = useRef([]);
   const place = useRef({});
+  const [loadingStories, setLoadingStories] = useState('none');
 
   const getPostPictures = (item) => new Promise((resolve, reject) => {
     console.log(item);
@@ -201,6 +201,7 @@ const Home = ({ navigation }) => {
   });
 
   const fetchPostDetails = async ({ placeId }) => {
+    setLoadingStories(placeId);
     // Batch fetch stories for place
     const currPlacePosts = await batchGetUserPostsQuery(
       { batch: placePosts.current[placeId] },
@@ -214,6 +215,7 @@ const Home = ({ navigation }) => {
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
         // stories.current = posts.concat(posts);
         stories.current = posts;
+        setLoadingStories('none');
         navigation.navigate('StoryModal', {
           screen: 'StoryModal',
           params: {
@@ -225,6 +227,7 @@ const Home = ({ navigation }) => {
         });
       });
     } else {
+      setLoadingStories('none');
       console.warn('Error fetching images for place: ', placeId);
     }
   };
@@ -283,6 +286,7 @@ const Home = ({ navigation }) => {
                 lng={lng}
                 userPic={userPic}
                 category={category}
+                loadingStories={loadingStories}
               />
             </Marker>
           );
