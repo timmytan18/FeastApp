@@ -10,6 +10,7 @@ import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
 import PlaceDetail from './PlaceDetail';
 import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
+import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import ProfilePic from './ProfilePic';
 import MapMarker from './util/icons/MapMarker';
@@ -164,14 +165,17 @@ const StoryModal = ({ navigation, route }) => {
     }),
   ).current;
 
-  let uid; let placeId; let name; let picture; let dish; let rating; let review;
+  let uid; let placeId; let name; let picture; let dish; let rating; let review; let timestamp;
   let userName; let userPic;
   if (stories && stories.length && index.current < stories.length) {
     ({
-      placeUserInfo: { uid }, placeId, name, picture, dish, rating, review,
+      placeUserInfo: { uid }, placeId, name, picture, dish, rating, review, timestamp,
     } = stories[index.current]);
     ({ userName, userPic } = users[uid]);
   }
+
+  const elapsedTime = getElapsedTime(timestamp);
+  console.log(elapsedTime);
 
   const fetchCurrentUser = async () => {
     try {
@@ -234,7 +238,10 @@ const StoryModal = ({ navigation, route }) => {
               />
             </TouchableOpacity>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.nameText}>{userName}</Text>
+              <View style={styles.nameElapsedTimeContainer}>
+                <Text style={styles.nameText}>{userName}</Text>
+                <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
+              </View>
               <View style={styles.locationContainer}>
                 <MapMarker size={wp(4.8)} color={colors.accent} />
                 <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
@@ -519,11 +526,23 @@ const styles = StyleSheet.create({
     marginTop: wp(1.3),
     marginBottom: wp(0.7),
   },
+  nameElapsedTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   nameText: {
     fontFamily: 'Medium',
     fontSize: sizes.h4,
     color: colors.black,
     paddingLeft: wp(3),
+  },
+  elapsedTimeText: {
+    fontFamily: 'Book',
+    fontSize: sizes.b2,
+    color: colors.tertiary,
+    opacity: 0.6,
+    paddingLeft: wp(2),
+    paddingTop: 1,
   },
   locationContainer: {
     flexDirection: 'row',

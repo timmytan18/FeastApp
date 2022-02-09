@@ -175,7 +175,12 @@ async function getFollowingPostsQuery({ PK }) {
   try {
     const res = await API.graphql(graphqlOperation(
       getFollowingPosts,
-      { PK, SK: { beginsWith: '#FOLLOWINGPOST#' }, limit: 1000 },
+      {
+        PK,
+        SK: { beginsWith: '#FOLLOWINGPOST#' },
+        sortDirection: 'DESC',
+        limit: 1000,
+      },
     ));
     posts = res.data.listFeastItems.items;
   } catch (err) {

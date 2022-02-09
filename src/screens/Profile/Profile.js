@@ -186,7 +186,7 @@ const Profile = ({ navigation, route }) => {
                 uid={user.uid}
                 extUrl={user.picture}
                 isMe={isMe}
-                size={wp(19)}
+                size={wp(22)}
                 style={styles.userPicture}
               />
               <Text style={styles.locationText}>Atlanta, GA</Text>
@@ -511,17 +511,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: wp(4),
     borderBottomRightRadius: wp(4),
     flexDirection: 'column',
+    marginTop: -wp(1.5),
   },
   pfpContainer: {
     paddingTop: wp(6),
-    paddingBottom: wp(3.5),
+    paddingBottom: wp(5.5),
     marginLeft: wp(1),
     flex: 0.3,
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
   userPicture: {
-    marginBottom: wp(2.5),
+    marginBottom: wp(2),
   },
   locationText: {
     fontFamily: 'Medium',
@@ -531,8 +532,8 @@ const styles = StyleSheet.create({
   infoContainer: {
     flex: 0.7,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: wp(3.4) + 0.35 * sizes.b2,
+    justifyContent: 'space-evenly',
+    paddingVertical: wp(3.4) + 0.35 * sizes.b2,
   },
   followContainer: {
     flexDirection: 'row',
@@ -540,7 +541,7 @@ const styles = StyleSheet.create({
     marginRight: wp(3),
   },
   followButton: {
-    width: '33%',
+    width: '30%',
     alignItems: 'center',
   },
   followCountText: {
@@ -581,7 +582,7 @@ const styles = StyleSheet.create({
     marginLeft: wp(2.5),
   },
   tabContainer: {
-    marginTop: wp(5),
+    marginTop: wp(1),
     marginHorizontal: wp(6),
     flexDirection: 'row',
   },

@@ -390,6 +390,7 @@ export const batchGetUserPosts = /* GraphQL */ `
         uid
         identityId
       }
+      timestamp
     }
   }
 `;
