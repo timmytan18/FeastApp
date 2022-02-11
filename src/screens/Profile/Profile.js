@@ -2,12 +2,13 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, Image, TouchableOpacity,
-  Animated, SectionList, Alert, StatusBar,
+  StyleSheet, Text, View, ImageBackground, TouchableOpacity,
+  Animated, Alert, StatusBar, FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
+import MapView, { Marker } from 'react-native-maps';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
@@ -16,6 +17,7 @@ import { getUserReviewsQuery, getNumFollowsQuery, getFollowersQuery } from '../.
 import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
+import LocationMapMarker from '../components/util/LocationMapMarker';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
 import FollowButton from '../components/FollowButton';
@@ -28,6 +30,7 @@ import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
 import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
 import BackArrow from '../components/util/icons/BackArrow';
+import Yum from '../components/util/icons/Yum';
 import CenterSpinner from '../components/util/CenterSpinner';
 import {
   colors, gradients, sizes, wp, shadows,
@@ -59,7 +62,7 @@ const Profile = ({ navigation, route }) => {
   const [editPressed, setEditPressed] = useState(false);
 
   const onTab = !(route && route.params && route.params.user);
-  const isMe = !(!onTab && route.params.user.PK != state.user.PK);
+  const isMe = !(!onTab && route.params.user.PK !== state.user.PK);
   const user = isMe ? state.user : route.params.user;
 
   const [numFollows, setNumFollows] = useState([0, state.numFollowing]);
@@ -110,12 +113,53 @@ const Profile = ({ navigation, route }) => {
     })();
   }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK, user.identityId]);
 
+  const [mapOpen, setMapOpen] = useState(false);
   const position = useRef(new Animated.Value(0)).current;
-
-  const translate = position.interpolate({
+  const translateTabBar = position.interpolate({
     inputRange: [0, 1],
     outputRange: [0, wp(100) / 2 - wp(3) * 2],
   });
+  const translateContent = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -wp(100)],
+  });
+  const translateListContentOpacity = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+  const translateMapContentOpacity = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+  const translateMapContentZIndex = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-1, -1],
+  });
+
+  const flatListRef = useRef(null);
+  const insets = useSafeAreaInsets();
+
+  const { latitude, longitude } = state.location;
+  const initialDelta = {
+    latitudeDelta: 0.0461, // ~3.5 miles in height
+    longitudeDelta: 0.02105,
+  };
+  const initialRegion = {
+    latitude,
+    longitude,
+    ...initialDelta,
+  };
+  const mapRef = useRef(null);
+  const markers = [
+    { name: 'CURRENT_USER', lat: latitude, lng: longitude },
+    // { name: placeName, lat: placeLat, lng: placeLng },
+  ];
+  const animateToCurrLocation = () => {
+    mapRef.current.animateToRegion(initialRegion, 350);
+  };
+  const fitToMarkers = () => {
+    mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
+  };
 
   if (isLoading) {
     return <CenterSpinner />;
@@ -142,146 +186,277 @@ const Profile = ({ navigation, route }) => {
 
   const renderTopContainer = () => (
     <View style={styles.topContainer}>
-      <View style={{ ...shadows.lighter }}>
-        <View style={[styles.headerContainer, { height: headerHeight }]}>
-          <View style={styles.headerTitleContainer}>
-            {!onTab && (
-              <View style={styles.backArrowContainer}>
-                <BackArrow
-                  color={colors.black}
-                  size={wp(5.5)}
-                  style={{ flex: 1 }}
-                  pressed={() => navigation.goBack()}
-                />
-              </View>
+      <View style={[styles.headerContainer, { height: headerHeight }]}>
+        <View style={styles.headerTitleContainer}>
+          {!onTab && (
+            <View style={styles.backArrowContainer}>
+              <BackArrow
+                color={colors.black}
+                size={wp(5.5)}
+                style={{ flex: 1 }}
+                pressed={() => navigation.goBack()}
+              />
+            </View>
+          )}
+          <MaskedView
+            maskElement={(
+              <Text style={styles.headerTitle}>
+                {user.name}
+              </Text>
             )}
-            <MaskedView
-              maskElement={(
-                <Text style={styles.headerTitle}>
-                  {user.name}
-                </Text>
-              )}
-            >
-              <LinearGradient
-                colors={gradients.orange.colors}
-                start={gradients.orange.start}
-                end={gradients.orange.end}
-                style={{ width: user.name.length * wp(5), height: wp(8.9) }}
-              />
-            </MaskedView>
-          </View>
-          <TouchableOpacity
-            style={styles.moreButton}
-            onPress={() => setMorePressed(true)}
           >
-            <View style={{ paddingTop: 2 }}>
-              {isMe ? <More /> : <ThreeDots rotated size={wp(4.6)} />}
-            </View>
-          </TouchableOpacity>
+            <LinearGradient
+              colors={gradients.orange.colors}
+              start={gradients.orange.start}
+              end={gradients.orange.end}
+              style={{ width: user.name.length * wp(5), height: wp(8.9) }}
+            />
+          </MaskedView>
         </View>
-        <View style={styles.topProfileContainer}>
-          <View style={{ flexDirection: 'row', flex: 0.7, justifyContent: 'center' }}>
-            <View style={styles.pfpContainer}>
-              <ProfilePic
-                uid={user.uid}
-                extUrl={user.picture}
-                isMe={isMe}
-                size={wp(22)}
-                style={styles.userPicture}
-              />
-              <Text style={styles.locationText}>Atlanta, GA</Text>
-            </View>
-            <View style={styles.infoContainer}>
-              <View style={styles.followContainer}>
-                <TouchableOpacity
-                  style={styles.followButton}
-                  onPress={() => navigation.push(
-                    'FollowsList',
-                    { PK: user.PK, uid: user.uid, type: 'Followers' },
-                  )}
-                >
-                  <Text style={styles.followCountText}>{numFollows[0]}</Text>
-                  <Text style={styles.followText}>Followers</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.followButton}
-                  onPress={() => navigation.push(
-                    'FollowsList',
-                    {
-                      PK: user.PK, uid: user.uid, identityId: user.identityId, type: 'Following',
-                    },
-                  )}
-                >
-                  <Text style={styles.followCountText}>{numFollows[1]}</Text>
-                  <Text style={styles.followText}>Following</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.followButton}
-                >
-                  <Text style={styles.followCountText}>{reviews.length}</Text>
-                  <Text style={styles.followText}>Reviews</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.actionsContainer}>
-                {isMe
-                  && (
-                    <TouchableOpacity
-                      style={[styles.editContainer, { backgroundColor: colors.gray3 }]}
-                      onPress={() => setEditPressed(true)}
-                    >
-                      <Text style={[styles.editText, { color: colors.black }]}>Edit Profile</Text>
-                    </TouchableOpacity>
-                  )}
-                {!isMe
-                  && (
-                    <FollowButton
-                      currentUser={user}
-                      myUser={state.user}
-                      reviews={reviews}
-                      dispatch={dispatch}
-                      numFollowing={state.numFollowing}
-                      containerStyle={styles.editContainer}
-                      textStyle={styles.editText}
-                    />
-                  )}
-              </View>
-            </View>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => setMorePressed(true)}
+        >
+          <View style={{ paddingTop: 2 }}>
+            {isMe ? <More /> : <ThreeDots rotated size={wp(4.6)} />}
           </View>
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.tab}
-              onPress={() => {
-                Animated.spring(position, {
-                  toValue: 0,
-                  speed: 40,
-                  bounciness: 2,
-                  useNativeDriver: true,
-                }).start();
-              }}
-            >
-              <View style={styles.tabIcon}><Utensils /></View>
-              <Animated.View style={[styles.slider, { transform: [{ translateX: translate }] }]} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.tab}
-              onPress={() => {
-                Animated.spring(position, {
-                  toValue: 1,
-                  speed: 40,
-                  bounciness: 2,
-                  useNativeDriver: true,
-                }).start();
-              }}
-            >
-              <View style={styles.tabIcon}><MapMarker /></View>
-            </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.topProfileContainer}>
+        <View style={{ flexDirection: 'row', flex: 0.7, justifyContent: 'center' }}>
+          <View style={styles.pfpContainer}>
+            <ProfilePic
+              uid={user.uid}
+              extUrl={user.picture}
+              isMe={isMe}
+              size={wp(22)}
+              style={styles.userPicture}
+            />
+            <Text style={styles.locationText}>Atlanta, GA</Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <View style={styles.followContainer}>
+              <TouchableOpacity
+                style={styles.followButton}
+                onPress={() => navigation.push(
+                  'FollowsList',
+                  { PK: user.PK, uid: user.uid, type: 'Followers' },
+                )}
+              >
+                <Text style={styles.followCountText}>{numFollows[0]}</Text>
+                <Text style={styles.followText}>Followers</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.followButton}
+                onPress={() => navigation.push(
+                  'FollowsList',
+                  {
+                    PK: user.PK, uid: user.uid, identityId: user.identityId, type: 'Following',
+                  },
+                )}
+              >
+                <Text style={styles.followCountText}>{numFollows[1]}</Text>
+                <Text style={styles.followText}>Following</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.followButton}
+              >
+                <Text style={styles.followCountText}>{reviews.length}</Text>
+                <Text style={styles.followText}>Reviews</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.actionsContainer}>
+              {isMe
+                && (
+                  <TouchableOpacity
+                    style={[styles.editContainer, { backgroundColor: colors.gray3 }]}
+                    onPress={() => setEditPressed(true)}
+                  >
+                    <Text style={[styles.editText, { color: colors.black }]}>Edit Profile</Text>
+                  </TouchableOpacity>
+                )}
+              {!isMe
+                && (
+                  <FollowButton
+                    currentUser={user}
+                    myUser={state.user}
+                    reviews={reviews}
+                    dispatch={dispatch}
+                    numFollowing={state.numFollowing}
+                    containerStyle={styles.editContainer}
+                    textStyle={styles.editText}
+                  />
+                )}
+            </View>
           </View>
         </View>
       </View>
     </View>
   );
+
+  // const renderItem = (item) => (
+  //   <View style={{ flexDirection: 'row' }}>
+  //     <View style={{ flex: 0.8, paddingLeft: wp(5) }}>
+  //       <Text style={styles.userText}>
+  //         {item.name}
+  //       </Text>
+  //       <Text style={styles.userText}>
+  //         {item.review}
+  //       </Text>
+  //       <Text style={styles.userText}>
+  //         Overall:
+  //         {' '}
+  //         {item.rating.overall}
+  //         {' '}
+  //         Food:
+  //         {item.rating.overall}
+  //         {' '}
+  //         Value:
+  //         {item.rating.value}
+  //         {' '}
+  //         Service:
+  //         {item.rating.service}
+  //         {' '}
+  //         Atmosphere:
+  //         {item.rating.atmosphere}
+  //       </Text>
+  //       <Text style={styles.userText} />
+  //     </View>
+  //     <View style={{ width: wp(18), height: wp(18) }}>
+  //       <Image
+  //         resizeMode="cover"
+  //         style={{ flex: 1, width: '100%', height: '100%' }}
+  //         source={{ uri: item.s3Photo }}
+  //       />
+  //       <Text>{item.dish}</Text>
+  //     </View>
+  //     {isMe && (
+  //       <View style={{
+  //         flex: 0.2, justifyContent: 'center', alignItems: 'center',
+  //       }}
+  //       >
+  //         <TouchableOpacity onPress={() => {
+  //           TwoButtonAlert({
+  //             title: 'Delete Post',
+  //             yesButton: 'Confirm',
+  //             pressed: () => {
+  //               deletePost({ timestamp: item.timestamp, s3Key: item.picture });
+  //             },
+  //           });
+  //         }}
+  //         >
+  //           <Text style={{ color: 'blue' }}>Delete</Text>
+  //         </TouchableOpacity>
+  //       </View>
+  //     )}
+  //   </View>
+  // );
+
+  const leftTabPressed = () => {
+    setMapOpen(false);
+    flatListRef.current.scrollToIndex({ animated: true, index: 0 });
+    Animated.spring(position, {
+      toValue: 0,
+      speed: 40,
+      bounciness: 2,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const rightTabPressed = () => {
+    setMapOpen(true);
+    flatListRef.current.scrollToIndex({ animated: true, index: 1 });
+    Animated.spring(position, {
+      toValue: 1,
+      speed: 40,
+      bounciness: 2,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const renderRow = (items) => {
+    if (items[0].name) {
+      return (
+        <Animated.View
+          style={[
+            styles.postsRowContainer,
+            { transform: [{ translateX: translateContent }], opacity: translateListContentOpacity },
+          ]}
+        >
+          {items.map((item) => (
+            <TouchableOpacity
+              key={item.timestamp}
+              style={styles.postItem}
+              activeOpacity={0.9}
+            >
+              <ImageBackground
+                resizeMode="cover"
+                style={styles.postImage}
+                source={{ uri: item.s3Photo }}
+              >
+                <View style={styles.gradientContainer}>
+                  <LinearGradient
+                    colors={['rgba(0,0,0,0.32)', 'transparent']}
+                    style={styles.gradient}
+                  />
+                </View>
+                <View style={styles.yumContainer}>
+                  <Yum size={wp(4.8)} />
+                  <Text style={styles.yumTextContainer}>21 Yums</Text>
+                </View>
+              </ImageBackground>
+              <View style={styles.postBottomContainer}>
+                <Text style={styles.postNameText} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                {item.categories && item.categories[0]
+                  && (
+                    <Text style={styles.postCategoryText}>
+                      {item.categories[0]}
+                    </Text>
+                  )}
+                <View style={styles.starsContainer}>
+                  <Stars
+                    default={item.rating.overall}
+                    count={5}
+                    half
+                    disabled
+                    spacing={wp(0.6)}
+                    fullStar={<StarFull size={wp(3.8)} />}
+                    halfStar={<StarHalf size={wp(3.8)} />}
+                    emptyStar={<StarEmpty size={wp(3.8)} />}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </Animated.View>
+      );
+    }
+    return (
+      <View style={{ overflow: 'hidden', paddingBottom: 3 }}>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.tab}
+            onPress={leftTabPressed}
+          >
+            <View style={styles.tabIcon}><Utensils /></View>
+            <Animated.View
+              style={[styles.slider, { transform: [{ translateX: translateTabBar }] }]}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.tab}
+            onPress={rightTabPressed}
+          >
+            <View style={styles.tabIcon}><MapMarker /></View>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   const deletePost = async ({ timestamp, s3Key }) => {
     // Delete post from user's profile
@@ -347,106 +522,28 @@ const Profile = ({ navigation, route }) => {
     setRefreshing(true);
   };
 
-  // const renderItem = (item) => (
-  //   <View style={{ flexDirection: 'row' }}>
-  //     <View style={{ flex: 0.8, paddingLeft: wp(5) }}>
-  //       <Text style={styles.userText}>
-  //         {item.name}
-  //       </Text>
-  //       <Text style={styles.userText}>
-  //         {item.review}
-  //       </Text>
-  //       <Text style={styles.userText}>
-  //         Overall:
-  //         {' '}
-  //         {item.rating.overall}
-  //         {' '}
-  //         Food:
-  //         {item.rating.overall}
-  //         {' '}
-  //         Value:
-  //         {item.rating.value}
-  //         {' '}
-  //         Service:
-  //         {item.rating.service}
-  //         {' '}
-  //         Atmosphere:
-  //         {item.rating.atmosphere}
-  //       </Text>
-  //       <Text style={styles.userText} />
-  //     </View>
-  //     <View style={{ width: wp(18), height: wp(18) }}>
-  //       <Image
-  //         resizeMode="cover"
-  //         style={{ flex: 1, width: '100%', height: '100%' }}
-  //         source={{ uri: item.s3Photo }}
-  //       />
-  //       <Text>{item.dish}</Text>
-  //     </View>
-  //     {isMe && (
-  //       <View style={{
-  //         flex: 0.2, justifyContent: 'center', alignItems: 'center',
-  //       }}
-  //       >
-  //         <TouchableOpacity onPress={() => {
-  //           TwoButtonAlert({
-  //             title: 'Delete Post',
-  //             yesButton: 'Confirm',
-  //             pressed: () => {
-  //               deletePost({ timestamp: item.timestamp, s3Key: item.picture });
-  //             },
-  //           });
-  //         }}
-  //         >
-  //           <Text style={{ color: 'blue' }}>Delete</Text>
-  //         </TouchableOpacity>
-  //       </View>
-  //     )}
-  //   </View>
-  // );
-
-  const renderRow = (items) => (
-    <View style={styles.postsRowContainer}>
-      <StatusBar animated barStyle="dark-content" />
-      {items.map((item) => (
-        <TouchableOpacity key={item.timestamp} style={{ alignItems: 'center' }} activeOpacity={0.9}>
-          <View style={styles.postItem}>
-            <View style={styles.starsContainer}>
-              <Stars
-                default={item.rating.overall}
-                count={5}
-                half
-                disabled
-                spacing={wp(0.6)}
-                fullStar={<StarFull size={wp(4)} />}
-                halfStar={<StarHalf size={wp(4)} />}
-                emptyStar={<StarEmpty size={wp(4)} />}
-              />
-            </View>
-            <Image
-              resizeMode="cover"
-              style={styles.postImage}
-              source={{ uri: item.s3Photo }}
-            />
-          </View>
-          <Text style={styles.postNameText}>
-            {item.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-
-  const posts = [];
+  const posts = [[{}]];
   const size = 2;
   for (let i = 0; i < reviews.length; i += size) {
     posts.push(reviews.slice(i, i + size));
   }
-  const data = [{ title: 'profile', data: posts }];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={[8, 1, 1, 1]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
+      <StatusBar animated barStyle="dark-content" />
       <MoreView items={moreItems} morePressed={morePressed} setMorePressed={setMorePressed} />
+      {mapOpen && (
+        <>
+          <TouchableOpacity
+            style={[styles.mapViewTabButtonOverlay, { top: insets.top, left: wp(2.5) }]}
+            onPress={leftTabPressed}
+          />
+          <TouchableOpacity
+            style={[styles.mapViewTabButtonOverlay, { top: insets.top, right: wp(2.5) }]}
+            onPress={rightTabPressed}
+          />
+        </>
+      )}
       <EditProfile
         editPressed={editPressed}
         setEditPressed={setEditPressed}
@@ -454,17 +551,68 @@ const Profile = ({ navigation, route }) => {
         dispatch={dispatch}
         deviceHeight={state.deviceHeight}
       />
-      <SectionList
-        sections={data}
-        keyExtractor={(item, index) => index}
-        renderItem={({ item }) => renderRow(item)}
-        renderSectionHeader={renderTopContainer}
+      <FlatList
+        pointerEvents={mapOpen ? 'none' : 'auto'}
+        scrollEnabled={!mapOpen}
+        data={posts}
         refreshing={refreshing}
+        renderItem={({ item }) => renderRow(item)}
+        keyExtractor={(item, index) => index}
         onRefresh={() => {
           numRefresh.current += 1;
           setRefreshing(true);
         }}
+        ref={flatListRef}
+        ListHeaderComponent={renderTopContainer()}
+        stickyHeaderIndices={[1]}
+        contentContainerStyle={{ paddingBottom: wp(1) }}
       />
+      <Animated.View
+        style={[
+          styles.mapContainer,
+          { top: insets.top },
+          {
+            transform: [{ translateX: translateContent }],
+            opacity: translateMapContentOpacity,
+            zIndex: translateMapContentZIndex,
+          },
+        ]}
+      >
+        <MapView
+          style={styles.map}
+          initialRegion={initialRegion}
+          rotateEnabled={false}
+          pitchEnabled={false}
+          userInterfaceStyle="light"
+          ref={mapRef}
+          onMapReady={fitToMarkers}
+        >
+          {markers.map(({
+            name, lat, lng,
+          }) => {
+            if (name === 'CURRENT_USER') {
+              return (
+                <Marker
+                  key={`${lat}${lng}`}
+                  identifier={`${lat}${lng}`}
+                  coordinate={{ latitude: lat, longitude: lng }}
+                >
+                  <LocationMapMarker name="Me" />
+                </Marker>
+              );
+            }
+            return (
+              <Marker
+                key={`${lat}${lng}`}
+                identifier={`${lat}${lng}`}
+                coordinate={{ latitude: lat, longitude: lng }}
+              >
+                <LocationMapMarker isUser={false} name={name} />
+              </Marker>
+            );
+          })}
+        </MapView>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -475,7 +623,13 @@ const styles = StyleSheet.create({
   topContainer: {
     overflow: 'hidden',
     flex: 1,
-    paddingBottom: wp(2.4),
+  },
+  mapViewTabButtonOverlay: {
+    position: 'absolute',
+    zIndex: 2,
+    height: wp(11.6),
+    width: wp(47.5),
+    opacity: 0,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -508,15 +662,13 @@ const styles = StyleSheet.create({
   topProfileContainer: {
     width: '100%',
     backgroundColor: 'white',
-    borderBottomLeftRadius: wp(4),
-    borderBottomRightRadius: wp(4),
     flexDirection: 'column',
     marginTop: -wp(1.5),
   },
   pfpContainer: {
-    paddingTop: wp(6),
-    paddingBottom: wp(5.5),
-    marginLeft: wp(1),
+    paddingTop: wp(5),
+    paddingBottom: wp(4),
+    marginLeft: wp(3),
     flex: 0.3,
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -533,7 +685,7 @@ const styles = StyleSheet.create({
     flex: 0.7,
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    paddingVertical: wp(3.4) + 0.35 * sizes.b2,
+    paddingVertical: wp(1.5) + 0.35 * sizes.b2,
   },
   followContainer: {
     flexDirection: 'row',
@@ -582,9 +734,14 @@ const styles = StyleSheet.create({
     marginLeft: wp(2.5),
   },
   tabContainer: {
-    marginTop: wp(1),
-    marginHorizontal: wp(6),
+    paddingTop: wp(3),
+    paddingHorizontal: wp(6),
+    marginBottom: wp(2),
+    borderBottomLeftRadius: wp(4),
+    borderBottomRightRadius: wp(4),
     flexDirection: 'row',
+    backgroundColor: 'white',
+    ...shadows.lighter,
   },
   tab: {
     flex: 0.5,
@@ -607,42 +764,91 @@ const styles = StyleSheet.create({
   postsRowContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    marginHorizontal: wp(5),
+    marginHorizontal: wp(4),
     marginBottom: wp(2.5),
     flexDirection: 'row',
   },
   postItem: {
-    width: wp(43.5),
-    height: wp(43.5),
+    width: wp(45),
+    height: wp(57),
+    backgroundColor: 'white',
+    borderRadius: wp(3),
+    ...shadows.lighter,
   },
   postImage: {
-    flex: 1,
+    flex: 0.62,
     width: '100%',
     height: '100%',
-    borderRadius: wp(2),
+    borderTopLeftRadius: wp(4),
+    borderTopRightRadius: wp(4),
     backgroundColor: colors.gray3,
+    overflow: 'hidden',
+  },
+  gradientContainer: {
+    overflow: 'hidden',
+    borderTopLeftRadius: wp(4),
+    borderTopRightRadius: wp(4),
+    height: '30%',
+    width: '100%',
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '100%',
+    width: '100%',
+  },
+  yumContainer: {
+    position: 'absolute',
+    top: wp(3.2),
+    left: wp(3.5),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  yumTextContainer: {
+    fontFamily: 'Book',
+    fontSize: sizes.b3,
+    color: 'white',
+    paddingLeft: wp(1.5),
+    paddingTop: wp(0.3),
+  },
+  postBottomContainer: {
+    flex: 0.38,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   postNameText: {
-    fontFamily: 'Medium',
+    fontFamily: 'Semi',
     fontSize: sizes.b3,
     textAlign: 'center',
     color: colors.black,
-    marginTop: wp(1),
-    width: wp(43.5),
+    paddingHorizontal: wp(2),
+  },
+  postCategoryText: {
+    fontFamily: 'Book',
+    fontSize: wp(3.1),
+    textAlign: 'center',
+    color: colors.black,
     overflow: 'hidden',
   },
   starsContainer: {
-    position: 'absolute',
-    top: wp(3),
-    right: wp(3),
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    paddingHorizontal: wp(1.7),
-    paddingVertical: wp(1.5),
-    borderRadius: wp(1.3),
-    zIndex: 1,
+    paddingTop: wp(1.5),
+    marginBottom: wp(1),
   },
   style: {
     marginHorizontal: wp(0.5),
+  },
+  mapContainer: {
+    position: 'absolute',
+    // top: wp(5.5),
+    left: wp(100),
+    width: '100%',
+    height: '100%',
+  },
+  map: {
+    width: '100%',
+    height: '100%',
   },
 });
 

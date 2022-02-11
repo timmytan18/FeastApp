@@ -256,7 +256,7 @@ const BodyContent = React.memo(({
   ];
   const mapRef = useRef(null);
   const fitToMarkers = () => {
-    mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`), { animated: false });
+    mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
   };
 
   return (
