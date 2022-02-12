@@ -11,33 +11,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers.js';
 import StoryModal from '../screens/components/StoryModal';
-// import Discover from '../screens/Discover/Discover';
 import NewPost from '../screens/NewPost/NewPost';
-// import Groups from '../screens/Groups/Groups';
-// import Group from '../screens/Groups/Group';
 import Profile from '../screens/Profile/Profile';
 import FollowsList from '../screens/Profile/FollowsList';
-// import DetailCard from '../screens/components/DetailCard';
-// import RestaurantList from '../screens/components/RestaurantList';
 import Settings from '../screens/Profile/Settings';
 import UploadImages from '../screens/NewPost/UploadImages';
 import PostDetails from '../screens/NewPost/PostDetails';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
-// import { DiscoverIcon, DiscoverFilledIcon } from './icons/Discover';
 import NewPostIcon from './icons/NewPost';
-// import { GroupsIcon, GroupsFilledIcon } from './icons/Groups';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import Logo from '../screens/components/util/icons/Logo';
 import BackArrow from '../screens/components/util/icons/BackArrow';
-// import SearchButton from '../screens/components/util/SearchButton';
-// import gql from 'graphql-tag';
-// import { listRestaurants } from '../graphql/queries';
-// import { useQuery } from '@apollo/react-hooks';
-// import CenterSpinner from '../screens/components/util/CenterSpinner';
 import { Context } from '../Store';
 import {
-  colors, gradients, sizes, header, wp, hp,
+  colors, sizes, header, wp,
 } from '../constants/theme';
 
 const HomeStack = createStackNavigator();
@@ -298,9 +286,6 @@ const MyTabBar = ({
         let icon;
 
         if (index === 0) {
-          // icon = isFocused
-          //     ? <TabIcon icon={<DiscoverFilledIcon />} />
-          //     : <TabIcon icon={<DiscoverIcon />} />
           icon = isFocused
             ? <TabIcon icon={<HomeFilledIcon />} />
             : <TabIcon icon={<HomeIcon />} />;
@@ -311,23 +296,6 @@ const MyTabBar = ({
             ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
             : <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />;
         }
-        // if (index === 0) {
-        //   icon = isFocused
-        //       ? <TabIcon icon={<HomeFilledIcon />} />
-        //       : <TabIcon icon={<HomeIcon />} />
-        // } else if (index === 1) {
-        //     icon = isFocused
-        //         ? <TabIcon icon={<DiscoverFilledIcon />} />
-        //         : <TabIcon icon={<DiscoverIcon />} />
-        // } else if (index === 2) {
-        //     icon = <TabIcon icon={<NewPostIcon />} />
-        // } else if (index === 3) {
-        //     icon = isFocused
-        //         ? <TabIcon icon={<GroupsFilledIcon />} />
-        //         : <TabIcon icon={<GroupsIcon />} />
-        // } else if (index === 4) {
-        //     icon = <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />
-        // }
 
         return (
           <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8} key={index}>
