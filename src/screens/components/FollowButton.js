@@ -35,12 +35,15 @@ const propTypes = {
     picture: PropTypes.string,
     s3Picture: PropTypes.string,
   }).isRequired,
-  reviews: PropTypes.arrayOf(PropTypes.shape({
-    placeId: PropTypes.string,
-    name: PropTypes.string,
-    geo: PropTypes.string,
-    timestamp: PropTypes.string,
-  })).isRequired,
+  reviews:
+    PropTypes.objectOf(
+      PropTypes.arrayOf(PropTypes.shape({
+        placeId: PropTypes.string,
+        name: PropTypes.string,
+        geo: PropTypes.string,
+        timestamp: PropTypes.string,
+      })),
+    ).isRequired,
   numFollowing: PropTypes.number.isRequired,
 };
 
@@ -79,22 +82,24 @@ const FollowButton = ({
 
   useEffect(() => {
     const updatedReviews = [];
-    reviews.forEach((review) => {
-      updatedReviews.push({
-        ...review,
-        PK: myPK,
-        SK: `#FOLLOWINGPOST#${review.timestamp}#${uid}`,
-        LSI1: `#FOLLOWINGPOST#${review.geo}`,
-        LSI2: `#FOLLOWINGPOST#${review.placeId}#${review.timestamp}`,
-        LSI3: `#FOLLOWINGPOST#${uid}`,
-        placeUserInfo: {
-          name,
-          uid,
-          picture,
-          identityId,
-        },
+    Object.values(reviews).forEach((places) => {
+      places.forEach((review) => {
+        updatedReviews.push({
+          ...review,
+          PK: myPK,
+          SK: `#FOLLOWINGPOST#${review.timestamp}#${uid}`,
+          LSI1: `#FOLLOWINGPOST#${review.geo}`,
+          LSI2: `#FOLLOWINGPOST#${review.placeId}#${review.timestamp}`,
+          LSI3: `#FOLLOWINGPOST#${uid}`,
+          placeUserInfo: {
+            name,
+            uid,
+            picture,
+            identityId,
+          },
+        });
+        delete updatedReviews[updatedReviews.length - 1].s3Photo;
       });
-      delete updatedReviews[updatedReviews.length - 1].s3Photo;
     });
     reviewsForFeed.current = updatedReviews;
   }, [reviews, myPK, name, uid, picture]);

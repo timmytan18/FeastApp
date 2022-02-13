@@ -156,7 +156,7 @@ function StoryModalStackScreen() {
       <StoryModalStack.Screen
         name="StoryModal"
         component={StoryModal}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, ...ModalTransition }}
       />
       <StoryModalStack.Screen
         name="Profile"

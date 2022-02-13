@@ -7,13 +7,17 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
-import { API, Storage, graphqlOperation } from 'aws-amplify';
+import {
+  API, Storage, graphqlOperation, nav,
+} from 'aws-amplify';
 import MapView, { Marker } from 'react-native-maps';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
 import Stars from 'react-native-stars';
-import { getUserReviewsQuery, getNumFollowsQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
+import {
+  getUserReviewsQuery, getNumFollowsQuery, getFollowersQuery, getPlaceDetailsQuery,
+} from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
@@ -53,7 +57,7 @@ const propTypes = {
 
 const Profile = ({ navigation, route }) => {
   const [state, dispatch] = useContext(Context);
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(true);
   const headerHeight = state.headerHeight - getStatusBarHeight();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -66,9 +70,14 @@ const Profile = ({ navigation, route }) => {
   const user = isMe ? state.user : route.params.user;
 
   const [numFollows, setNumFollows] = useState([0, state.numFollowing]);
-  const [reviews, setReviews] = useState([]);
+  const [reviews, setReviews] = useState(null);
+  const numReviews = useRef(0);
 
   useEffect(() => {
+    // if (reviews == null && !isLoading) {
+    //   setLoading(true);
+    // }
+
     // Get number of followers and following
     (async () => {
       const num = await getNumFollowsQuery({ PK: user.PK, SK: user.SK });
@@ -87,6 +96,7 @@ const Profile = ({ navigation, route }) => {
       Storage.get(item.picture, { level: 'protected', identityId: user.identityId })
         .then((url) => {
           item.s3Photo = url;
+          item.placeUserInfo = { uid: user.uid }; // attach placeUserInfo property for StoryModal
           resolve(item);
         })
         .catch((err) => {
@@ -96,20 +106,31 @@ const Profile = ({ navigation, route }) => {
     });
 
     // Get reviews for current user
-    let userReviews;
     (async () => {
-      userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
-      console.log('User Reviews: ', userReviews);
-      if (userReviews) {
+      const userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
+      const placePosts = {};
+      if (userReviews && userReviews.length) {
         Promise.all(userReviews.map(getPostPictures)).then((posts) => {
-          setReviews(posts);
-          console.log(posts);
+          console.log('User Reviews: ', posts);
+          numReviews.current = posts.length;
+          for (let i = 0; i < posts.length; i += 1) {
+            const { placeId } = posts[i];
+            if (!placePosts[placeId]) {
+              placePosts[placeId] = [posts[i]];
+            } else {
+              placePosts[placeId].push(posts[i]);
+            }
+          }
+          setReviews(placePosts);
           setRefreshing(false);
         });
       } else {
         setReviews([]);
         setRefreshing(false);
       }
+      // if (isLoading) {
+      //   setLoading(false);
+      // }
     })();
   }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK, user.identityId]);
 
@@ -161,9 +182,11 @@ const Profile = ({ navigation, route }) => {
     mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
   };
 
-  if (isLoading) {
-    return <CenterSpinner />;
-  }
+  const place = useRef({});
+
+  // if (isLoading || !reviews) {
+  //   return <CenterSpinner />;
+  // }
 
   const moreItems = [
     {
@@ -183,6 +206,19 @@ const Profile = ({ navigation, route }) => {
       end: true,
     },
   ];
+
+  const posts = [[]];
+  if (reviews) {
+    const placeIdKeys = Object.keys(reviews);
+    for (let i = 0; i < placeIdKeys.length; i += 2) {
+      if (i + 1 < placeIdKeys.length) {
+        posts.push([reviews[placeIdKeys[i]], reviews[placeIdKeys[i + 1]]]);
+      } else {
+        posts.push([reviews[placeIdKeys[i]]]);
+      }
+    }
+    console.log(posts);
+  }
 
   const renderTopContainer = () => (
     <View style={styles.topContainer}>
@@ -261,7 +297,7 @@ const Profile = ({ navigation, route }) => {
               <TouchableOpacity
                 style={styles.followButton}
               >
-                <Text style={styles.followCountText}>{reviews.length}</Text>
+                <Text style={styles.followCountText}>{numReviews.current}</Text>
                 <Text style={styles.followText}>Reviews</Text>
               </TouchableOpacity>
             </View>
@@ -275,7 +311,7 @@ const Profile = ({ navigation, route }) => {
                     <Text style={[styles.editText, { color: colors.black }]}>Edit Profile</Text>
                   </TouchableOpacity>
                 )}
-              {!isMe
+              {!isMe && reviews
                 && (
                   <FollowButton
                     currentUser={user}
@@ -354,7 +390,7 @@ const Profile = ({ navigation, route }) => {
 
   const leftTabPressed = () => {
     setMapOpen(false);
-    flatListRef.current.scrollToIndex({ animated: true, index: 0 });
+    flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
     Animated.spring(position, {
       toValue: 0,
       speed: 40,
@@ -364,18 +400,62 @@ const Profile = ({ navigation, route }) => {
   };
 
   const rightTabPressed = () => {
-    setMapOpen(true);
-    flatListRef.current.scrollToIndex({ animated: true, index: 1 });
-    Animated.spring(position, {
-      toValue: 1,
-      speed: 40,
-      bounciness: 2,
-      useNativeDriver: true,
-    }).start();
+    if (numReviews.current !== 0) {
+      // try/catch to prevent error when switching to map view when flatlist hasn't loaded
+      try {
+        flatListRef.current.scrollToIndex({ animated: true, index: 1 });
+        setMapOpen(true);
+        Animated.spring(position, {
+          toValue: 1,
+          speed: 40,
+          bounciness: 2,
+          useNativeDriver: true,
+        }).start();
+      } catch (e) {
+        leftTabPressed();
+      }
+    } else {
+      console.log('no reviews');
+      setMapOpen(true);
+      Animated.spring(position, {
+        toValue: 1,
+        speed: 40,
+        bounciness: 2,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
-  const renderRow = (items) => {
-    if (items[0].name) {
+  const openPlacePosts = async ({ stories }) => {
+    const { placeId } = stories[0];
+    if (place.current.placeId !== placeId) {
+      place.current = await getPlaceDetailsQuery({ placeId });
+    }
+    const { uid, name: userName, picture: userPic } = user;
+    // Check if current navigation stack contains StoryModal
+    // Pass in params in params object if it doesn't
+    if (navigation.getState().routeNames.includes('StoryModal')) {
+      navigation.push('StoryModal', {
+        stories,
+        users: { [uid]: { userName, userPic } },
+        place: place.current,
+        deviceHeight: state.deviceHeight,
+      });
+    } else {
+      navigation.push('StoryModal', {
+        screen: 'StoryModal',
+        params: {
+          stories,
+          users: { [uid]: { userName, userPic } },
+          place: place.current,
+          deviceHeight: state.deviceHeight,
+        },
+      });
+    }
+  };
+
+  const renderRow = (row) => {
+    if (row !== 'LOADING' && row.length) {
       return (
         <Animated.View
           style={[
@@ -383,53 +463,57 @@ const Profile = ({ navigation, route }) => {
             { transform: [{ translateX: translateContent }], opacity: translateListContentOpacity },
           ]}
         >
-          {items.map((item) => (
-            <TouchableOpacity
-              key={item.timestamp}
-              style={styles.postItem}
-              activeOpacity={0.9}
-            >
-              <ImageBackground
-                resizeMode="cover"
-                style={styles.postImage}
-                source={{ uri: item.s3Photo }}
+          {row.map((placePosts) => {
+            const item = placePosts[0];
+            return (
+              <TouchableOpacity
+                key={item.timestamp}
+                style={styles.postItem}
+                activeOpacity={0.9}
+                onPress={() => openPlacePosts({ stories: placePosts })}
               >
-                <View style={styles.gradientContainer}>
-                  <LinearGradient
-                    colors={['rgba(0,0,0,0.32)', 'transparent']}
-                    style={styles.gradient}
-                  />
+                <ImageBackground
+                  resizeMode="cover"
+                  style={styles.postImage}
+                  source={{ uri: item.s3Photo }}
+                >
+                  <View style={styles.gradientContainer}>
+                    <LinearGradient
+                      colors={['rgba(0,0,0,0.32)', 'transparent']}
+                      style={styles.gradient}
+                    />
+                  </View>
+                  <View style={styles.yumContainer}>
+                    <Yum size={wp(4.8)} />
+                    <Text style={styles.yumTextContainer}>21 Yums</Text>
+                  </View>
+                </ImageBackground>
+                <View style={styles.postBottomContainer}>
+                  <Text style={styles.postNameText} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  {item.categories && item.categories[0]
+                    && (
+                      <Text style={styles.postCategoryText}>
+                        {item.categories[0]}
+                      </Text>
+                    )}
+                  <View style={styles.starsContainer}>
+                    <Stars
+                      default={item.rating.overall}
+                      count={5}
+                      half
+                      disabled
+                      spacing={wp(0.6)}
+                      fullStar={<StarFull size={wp(3.8)} />}
+                      halfStar={<StarHalf size={wp(3.8)} />}
+                      emptyStar={<StarEmpty size={wp(3.8)} />}
+                    />
+                  </View>
                 </View>
-                <View style={styles.yumContainer}>
-                  <Yum size={wp(4.8)} />
-                  <Text style={styles.yumTextContainer}>21 Yums</Text>
-                </View>
-              </ImageBackground>
-              <View style={styles.postBottomContainer}>
-                <Text style={styles.postNameText} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                {item.categories && item.categories[0]
-                  && (
-                    <Text style={styles.postCategoryText}>
-                      {item.categories[0]}
-                    </Text>
-                  )}
-                <View style={styles.starsContainer}>
-                  <Stars
-                    default={item.rating.overall}
-                    count={5}
-                    half
-                    disabled
-                    spacing={wp(0.6)}
-                    fullStar={<StarFull size={wp(3.8)} />}
-                    halfStar={<StarHalf size={wp(3.8)} />}
-                    emptyStar={<StarEmpty size={wp(3.8)} />}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </Animated.View>
       );
     }
@@ -454,6 +538,7 @@ const Profile = ({ navigation, route }) => {
             <View style={styles.tabIcon}><MapMarker /></View>
           </TouchableOpacity>
         </View>
+        {row === 'LOADING' && <CenterSpinner style={{ marginTop: wp(10) }} />}
       </View>
     );
   };
@@ -522,12 +607,6 @@ const Profile = ({ navigation, route }) => {
     setRefreshing(true);
   };
 
-  const posts = [[{}]];
-  const size = 2;
-  for (let i = 0; i < reviews.length; i += size) {
-    posts.push(reviews.slice(i, i + size));
-  }
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
       <StatusBar animated barStyle="dark-content" />
@@ -535,11 +614,23 @@ const Profile = ({ navigation, route }) => {
       {mapOpen && (
         <>
           <TouchableOpacity
-            style={[styles.mapViewTabButtonOverlay, { top: insets.top, left: wp(2.5) }]}
+            style={[
+              styles.mapViewTabButtonOverlay,
+              {
+                top: numReviews.current === 0 ? insets.top + wp(48.8) : insets.top,
+                left: wp(2.5),
+              },
+            ]}
             onPress={leftTabPressed}
           />
           <TouchableOpacity
-            style={[styles.mapViewTabButtonOverlay, { top: insets.top, right: wp(2.5) }]}
+            style={[
+              styles.mapViewTabButtonOverlay,
+              {
+                top: numReviews.current === 0 ? insets.top + wp(48.8) : insets.top,
+                right: wp(2.5),
+              },
+            ]}
             onPress={rightTabPressed}
           />
         </>
@@ -554,7 +645,7 @@ const Profile = ({ navigation, route }) => {
       <FlatList
         pointerEvents={mapOpen ? 'none' : 'auto'}
         scrollEnabled={!mapOpen}
-        data={posts}
+        data={reviews ? posts : ['LOADING']}
         refreshing={refreshing}
         renderItem={({ item }) => renderRow(item)}
         keyExtractor={(item, index) => index}
@@ -562,10 +653,11 @@ const Profile = ({ navigation, route }) => {
           numRefresh.current += 1;
           setRefreshing(true);
         }}
+        initialScrollIndex={0}
         ref={flatListRef}
         ListHeaderComponent={renderTopContainer()}
         stickyHeaderIndices={[1]}
-        contentContainerStyle={{ paddingBottom: wp(1) }}
+        contentContainerStyle={{ paddingBottom: posts.length > 3 ? wp(1) : wp(50) }}
       />
       <Animated.View
         style={[
@@ -737,8 +829,8 @@ const styles = StyleSheet.create({
     paddingTop: wp(3),
     paddingHorizontal: wp(6),
     marginBottom: wp(2),
-    borderBottomLeftRadius: wp(4),
-    borderBottomRightRadius: wp(4),
+    borderBottomLeftRadius: wp(3),
+    borderBottomRightRadius: wp(3),
     flexDirection: 'row',
     backgroundColor: 'white',
     ...shadows.lighter,
@@ -779,15 +871,15 @@ const styles = StyleSheet.create({
     flex: 0.62,
     width: '100%',
     height: '100%',
-    borderTopLeftRadius: wp(4),
-    borderTopRightRadius: wp(4),
+    borderTopLeftRadius: wp(3),
+    borderTopRightRadius: wp(3),
     backgroundColor: colors.gray3,
     overflow: 'hidden',
   },
   gradientContainer: {
     overflow: 'hidden',
-    borderTopLeftRadius: wp(4),
-    borderTopRightRadius: wp(4),
+    borderTopLeftRadius: wp(3),
+    borderTopRightRadius: wp(3),
     height: '30%',
     width: '100%',
   },

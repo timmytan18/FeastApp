@@ -170,6 +170,7 @@ const Home = ({ navigation }) => {
               userName,
               userPic,
               category: categories ? categories[0] : null,
+              visible: true,
             });
           }
         }
@@ -191,7 +192,7 @@ const Home = ({ navigation }) => {
     console.log(item);
     Storage.get(item.picture, { level: 'protected', identityId: item.placeUserInfo.identityId })
       .then((url) => {
-        item.picture = url;
+        item.s3Photo = url;
         resolve(item);
       })
       .catch((err) => {
@@ -213,10 +214,9 @@ const Home = ({ navigation }) => {
       }
       // Fetch pictures for each post
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
-        // stories.current = posts.concat(posts);
         stories.current = posts;
         setLoadingStories('none');
-        navigation.navigate('StoryModal', {
+        navigation.push('StoryModal', {
           screen: 'StoryModal',
           params: {
             stories: stories.current,
@@ -256,11 +256,12 @@ const Home = ({ navigation }) => {
         pitchEnabled={false}
         userInterfaceStyle="light"
         ref={mapRef}
+        onRegionChangeComplete={() => { }}
       // provider={PROVIDER_GOOGLE}
       // customMapStyle={mapLessLandmarksStyle}
       >
         {markers.map(({
-          name, placeId, lat, lng, userName, userPic, category,
+          name, placeId, lat, lng, userName, userPic, category, visible,
         }) => {
           if (name === 'CURRENT_USER') {
             return (
@@ -271,25 +272,27 @@ const Home = ({ navigation }) => {
                 <LocationMapMarker isUser />
               </Marker>
             );
+          } if (visible) {
+            return (
+              <Marker
+                key={`${lat}${lng}${userName}`}
+                coordinate={{ latitude: lat, longitude: lng }}
+                onPress={() => fetchPostDetails({ placeId })}
+                isPreselected
+              >
+                <MapMarker
+                  name={name}
+                  placeId={placeId}
+                  lat={lat}
+                  lng={lng}
+                  userPic={userPic}
+                  category={category}
+                  loadingStories={loadingStories}
+                />
+              </Marker>
+            );
           }
-          return (
-            <Marker
-              key={`${lat}${lng}${userName}`}
-              coordinate={{ latitude: lat, longitude: lng }}
-              onPress={() => fetchPostDetails({ placeId })}
-              isPreselected
-            >
-              <MapMarker
-                name={name}
-                placeId={placeId}
-                lat={lat}
-                lng={lng}
-                userPic={userPic}
-                category={category}
-                loadingStories={loadingStories}
-              />
-            </Marker>
-          );
+          return null;
         })}
       </MapView>
       <View style={[styles.searchBtnContainer, shadows.base]}>
