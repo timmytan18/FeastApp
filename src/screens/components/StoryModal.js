@@ -1,10 +1,11 @@
 import React, {
-  useEffect, useContext, useState, useRef,
+  useEffect, useContext, useState, useRef, useCallback,
 } from 'react';
 import {
   StyleSheet, View, TouchableOpacity, Text, ImageBackground,
-  Animated, PanResponder, ScrollView, StatusBar,
+  Animated, PanResponder, ScrollView, StatusBar, Easing,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
@@ -45,21 +46,64 @@ const StoryModal = ({ navigation, route }) => {
 
   const [{ user: { uid: myUID } }, dispatch] = useContext(Context);
 
-  // useEffect(() => {
-  //   index.current = 0;
-  //   numStories.current = stories.length;
-  //   return () => {
-  //     index.current = 0;
-  //     translateVal.setValue(0);
-  //     enablePanResponder.current = true;
-  //     setEnablePanResponderState(true);
-  //     setIndexState(0);
-  //   };
-  // }, [stories]);
-
   const index = useRef(0);
   const [indexState, setIndexState] = useState(0);
   const numStories = useRef(stories.length);
+
+  // animation for bar
+  const [inputAnim] = useState(new Animated.Value(0));
+  const inputTranslate = inputAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['5%', '100%'],
+  });
+
+  // options
+  const barAnimOptions = {
+    toValue: 1,
+    easing: Easing.linear,
+    duration: 6000,
+    useNativeDriver: false,
+  };
+
+  const startBarAnimation = () => {
+    // reset to beginning
+    inputAnim.setValue(0);
+
+    // start animation
+    Animated.timing(inputAnim, barAnimOptions).start(({ finished }) => {
+      if (finished) goToNextStory();
+    });
+  };
+
+  // restart animation when current story index changes
+  useEffect(() => {
+    Animated.timing(inputAnim).stop();
+    startBarAnimation();
+  }, [indexState]);
+
+  // restart animation when screen in focus
+  useFocusEffect(
+    useCallback(() => {
+      // focus
+      startBarAnimation();
+
+      // blur
+      return () => {
+        Animated.timing(inputAnim).stop();
+      };
+    }, []),
+  );
+
+  // story progression handlers
+  const goToNextStory = () => {
+    if (index.current === numStories.current - 1) closeModal();
+    else setIndexState(++index.current);
+  };
+
+  const goToPrevStory = () => {
+    if (index.current === 0) startBarAnimation();
+    else setIndexState(--index.current);
+  };
 
   const enablePanResponder = useRef(true);
   const [enablePanResponderState, setEnablePanResponderState] = useState(true);
@@ -109,73 +153,103 @@ const StoryModal = ({ navigation, route }) => {
     enablePanResponder.current = true;
     setEnablePanResponderState(true);
     translateAnim({ value: 0 });
+    startBarAnimation();
   };
   const panToBottom = () => {
     enablePanResponder.current = false;
     setEnablePanResponderState(false);
     translateAnim({ value: -deviceHeight });
+    Animated.timing(inputAnim).stop();
   };
   const closeModal = () => {
-    navigation.popToTop();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   };
 
-  const isTap = useRef(false);
+  const movementType = useRef('');
+  const continueBarAnimation = () => {
+    // const currAnimVal = parseInt(JSON.stringify(inputAnim), 10);
+    const currAnimVal = inputAnim._value; // could be better way to get current animation
+    const duration = 6000 - currAnimVal * 6000;
+    const options = {
+      ...barAnimOptions,
+      duration,
+    };
+    Animated.timing(inputAnim, options).start(({ finished }) => {
+      if (finished) goToNextStory();
+    });
+  };
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => enablePanResponder.current,
-      onPanResponderStart: (e, gestureState) => {
-        isTap.current = true;
+      onPanResponderGrant: () => {
+        Animated.timing(inputAnim).stop();
+        setTimeout(() => {
+          if (movementType.current !== 'swipe') movementType.current = 'hold';
+        }, 300);
       },
-      onPanResponderMove: (evt, gestureState) => {
-        isTap.current = false;
+      onPanResponderStart: () => {
+        movementType.current = 'tap';
+      },
+      onPanResponderMove: (_, gestureState) => {
+        movementType.current = 'swipe';
         translateVal.setValue(gestureState.dy / 3);
       },
-      onPanResponderRelease: (evt, gestureState) => {
-        // tap to see next/prev story
-        if (isTap.current) {
-          if (gestureState.x0 > 250) {
-            if (index.current < numStories.current - 1) {
-              index.current += 1;
-              setIndexState(index.current);
+      onPanResponderRelease: (_, gestureState) => {
+        // three different types of movements: tap, hold, swipe
+        switch (movementType.current) {
+          case 'tap':
+            if (gestureState.x0 > 250) {
+              // stop current animation in place
+              Animated.timing(inputAnim).stop();
+
+              // options
+              const options = { ...barAnimOptions, duration: 50 };
+
+              // start animation, always jump to next story
+              Animated.timing(inputAnim, options).start(goToNextStory);
+            } else if (gestureState.x0 < 150) {
+              goToPrevStory();
             } else {
-              closeModal();
+              console.log('large image');
+              // open up larger image ?
             }
-          } else if (gestureState.x0 < 150) {
-            if (index.current > 0) {
-              index.current -= 1;
-              setIndexState(index.current);
+            break;
+          case 'hold':
+            continueBarAnimation();
+            break;
+          case 'swipe':
+            if (gestureState.dy < -100) {
+              // swipe up
+              panToBottom();
+            } else if (gestureState.dy / 2 > 100) {
+              // swipe down
+              closeModal();
             } else {
-              closeModal();
+              translateAnim({ value: 0 });
+              continueBarAnimation();
             }
-          } else {
-            console.log('large image');
-            // open up larger image ?
-          }
-          // swipe up/down to change top/bottom view
-        } else if (gestureState.dy < -100) {
-          // swipe up
-          panToBottom();
-        } else if (gestureState.dy / 2 > 100) {
-          // swipe down
-          closeModal();
-        } else {
-          panToTop();
+            break;
+          default:
+            break;
         }
       },
     }),
   ).current;
 
-  let uid; let placeId; let name; let picture; let dish; let rating; let review; let timestamp;
+  const scrollRef = useRef();
+
+  let uid; let placeId; let name; let s3Photo; let dish; let rating; let review; let timestamp;
   let userName; let userPic;
   if (stories && stories.length && index.current < stories.length) {
     ({
-      placeUserInfo: { uid }, placeId, name, picture, dish, rating, review, timestamp,
+      placeUserInfo: { uid }, placeId, name, s3Photo, dish, rating, review, timestamp,
     } = stories[index.current]);
     ({ userName, userPic } = users[uid]);
   }
 
   const elapsedTime = getElapsedTime(timestamp);
-  console.log(elapsedTime);
 
   const fetchCurrentUser = async () => {
     try {
@@ -209,18 +283,28 @@ const StoryModal = ({ navigation, route }) => {
       <StatusBar animated barStyle="light-content" />
       <View style={styles.cardContainer} {...panResponder.panHandlers}>
         <View style={styles.progressContainer}>
-          {stories && stories.length > 1
+          {stories
             && (stories.map((story, i) => (
               <View
                 key={story.SK}
-                style={[styles.progressBar, { marginHorizontal: 2 }]}
+                style={[styles.progressBar, { marginHorizontal: 2, flex: 1 }]}
               >
-                <View
-                  style={[
+                {i < indexState && (
+                  <View style={[
                     styles.progressBar,
-                    { backgroundColor: colors.gray, flex: i === indexState ? 1 : 0 },
+                    { backgroundColor: colors.gray, flex: 1 },
                   ]}
-                />
+                  />
+                )}
+                {i === indexState
+                  && (
+                    <Animated.View
+                      style={[
+                        styles.progressBar,
+                        { backgroundColor: colors.gray, width: inputTranslate },
+                      ]}
+                    />
+                  )}
               </View>
             )))}
         </View>
@@ -228,6 +312,7 @@ const StoryModal = ({ navigation, route }) => {
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity
               onPress={fetchCurrentUser}
+              activeOpacity={0.8}
               style={styles.profilePic}
             >
               <ProfilePic
@@ -239,7 +324,9 @@ const StoryModal = ({ navigation, route }) => {
             </TouchableOpacity>
             <View style={styles.headerTextContainer}>
               <View style={styles.nameElapsedTimeContainer}>
-                <Text style={styles.nameText}>{userName}</Text>
+                <TouchableOpacity onPress={fetchCurrentUser} activeOpacity={0.8}>
+                  <Text style={styles.nameText}>{userName}</Text>
+                </TouchableOpacity>
                 <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
               </View>
               <View style={styles.locationContainer}>
@@ -288,7 +375,7 @@ const StoryModal = ({ navigation, route }) => {
         <ImageBackground
           style={styles.imageContainer}
           imageStyle={{ borderRadius: wp(2) }}
-          source={{ uri: picture }}
+          source={{ uri: s3Photo }}
         >
           {dish && <Text style={styles.menuItemText}>{dish}</Text>}
         </ImageBackground>
@@ -406,6 +493,7 @@ const StoryModal = ({ navigation, route }) => {
       <View style={[styles.bottomContainer, { height: deviceHeight, bottom: -deviceHeight }]}>
         <ScrollView
           style={styles.scrollView}
+          ref={scrollRef}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={200}
           onScroll={({ nativeEvent }) => {
@@ -419,7 +507,13 @@ const StoryModal = ({ navigation, route }) => {
         </ScrollView>
         <TouchableOpacity
           style={styles.downArrowContainer}
-          onPress={() => panToTop()}
+          onPress={() => {
+            scrollRef.current?.scrollTo({
+              y: 0,
+              animated: true,
+            });
+            panToTop();
+          }}
           activeOpacity={0.7}
         >
           <View pointerEvents="none">
@@ -459,9 +553,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   progressBar: {
-    height: wp(0.9),
-    borderRadius: wp(0.45),
-    flex: 1,
+    height: wp(0.7),
+    borderRadius: wp(0.35),
     flexDirection: 'row',
     backgroundColor: colors.gray2,
   },
