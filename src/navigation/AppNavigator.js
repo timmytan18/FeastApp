@@ -324,7 +324,7 @@ const TabNavigator = ({ picture }) => {
 };
 
 export default function AppNavigator() {
-  const [state, dispatch] = useContext(Context);
+  const [state] = useContext(Context);
   const RootStack = createStackNavigator();
 
   return (

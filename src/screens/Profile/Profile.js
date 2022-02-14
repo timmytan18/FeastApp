@@ -3,22 +3,19 @@ import React, {
 } from 'react';
 import {
   StyleSheet, Text, View, ImageBackground, TouchableOpacity,
-  Animated, Alert, StatusBar, FlatList,
+  Animated, StatusBar, FlatList,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
-import {
-  API, Storage, graphqlOperation, nav,
-} from 'aws-amplify';
+import { Storage } from 'aws-amplify';
 import MapView, { Marker } from 'react-native-maps';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
 import Stars from 'react-native-stars';
 import {
-  getUserReviewsQuery, getNumFollowsQuery, getFollowersQuery, getPlaceDetailsQuery,
+  getUserReviewsQuery, getNumFollowsQuery, getPlaceDetailsQuery,
 } from '../../api/functions/queryFunctions';
-import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import { Context } from '../../Store';
 import EditProfile from './EditProfile';
 import LocationMapMarker from '../components/util/LocationMapMarker';
@@ -128,9 +125,6 @@ const Profile = ({ navigation, route }) => {
         setReviews([]);
         setRefreshing(false);
       }
-      // if (isLoading) {
-      //   setLoading(false);
-      // }
     })();
   }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK, user.identityId]);
 
@@ -543,70 +537,6 @@ const Profile = ({ navigation, route }) => {
     );
   };
 
-  const deletePost = async ({ timestamp, s3Key }) => {
-    // Delete post from user's profile
-    const input = { PK: user.PK, SK: `#PLACE#${timestamp}` };
-    try {
-      await API.graphql(graphqlOperation(
-        deleteFeastItem,
-        { input },
-      ));
-    } catch (err) {
-      console.warn('Error deleting post from user profile:', err);
-      Alert.alert(
-        'Error',
-        'Could not delete post',
-        [{ text: 'OK' }],
-        { cancelable: false },
-      );
-      return;
-    }
-
-    // Delete post image from S3
-    try {
-      await Storage.remove(s3Key, { level: 'protected' });
-    } catch (err) {
-      console.warn('Error deleting post image from S3:', err);
-      Alert.alert(
-        'Error',
-        'Could not delete post',
-        [{ text: 'OK' }],
-        { cancelable: false },
-      );
-      return;
-    }
-
-    // Remove user's post from followers' feeds in batches
-    const followers = await getFollowersQuery({ PK: user.PK, onlyReturnUIDs: true });
-    const postInUserFeeds = [];
-    followers.forEach(({ follower: { PK: followerPK } }) => {
-      postInUserFeeds.push({
-        PK: followerPK,
-        SK: `#FOLLOWINGPOST#${timestamp}#${user.uid}`,
-      });
-    });
-
-    console.log(postInUserFeeds);
-    if (postInUserFeeds.length) {
-      let i; let j;
-      const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
-      for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
-        const batch = postInUserFeeds.slice(i, i + BATCH_NUM);
-        try {
-          await API.graphql(graphqlOperation(
-            batchDeleteFollowingPosts,
-            { input: { posts: batch } },
-          ));
-        } catch (err) {
-          console.warn("Error removing followed user's posts from feed", err);
-        }
-      }
-    }
-    // Refresh user posts list
-    numRefresh.current += 1;
-    setRefreshing(true);
-  };
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
       <StatusBar animated barStyle="dark-content" />
@@ -657,7 +587,10 @@ const Profile = ({ navigation, route }) => {
         ref={flatListRef}
         ListHeaderComponent={renderTopContainer()}
         stickyHeaderIndices={[1]}
-        contentContainerStyle={{ paddingBottom: posts.length > 3 ? wp(1) : wp(50) }}
+        contentContainerStyle={{
+          paddingBottom: posts.length > 3
+            ? wp(1) : wp(50) + wp(57) * (3 - posts.length),
+        }}
       />
       <Animated.View
         style={[

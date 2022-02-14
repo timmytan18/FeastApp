@@ -2,7 +2,7 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, Image, TouchableOpacity, FlatList,
+  StyleSheet, Text, View, TouchableOpacity, FlatList,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { Context } from '../../Store';
@@ -21,20 +21,31 @@ const MoreItem = ({ item, setMorePressed }) => (
       }}
     >
       {item.icon}
-      <Text style={styles.moreText}>{item.label}</Text>
+      <Text
+        style={[styles.moreText, { paddingLeft: item.icon ? wp(5) : wp(1) }]}
+      >
+        {item.label}
+      </Text>
     </TouchableOpacity>
     {!item.end && <Line length={wp(100) - (sizes.margin * 2)} color={colors.gray2} />}
   </View>
 );
 
-const MoreView = ({ morePressed, setMorePressed, items }) => {
+const MoreView = ({
+  morePressed, setMorePressed, items, onDismiss,
+}) => {
   const [state, dispatch] = useContext(Context);
   return (
     <Modal
       isVisible={morePressed}
       backdropOpacity={0.5}
       backdropTransitionOutTiming={0}
-      onBackdropPress={() => setMorePressed(false)}
+      onBackdropPress={() => {
+        setMorePressed(false);
+        if (onDismiss) {
+          onDismiss();
+        }
+      }}
       deviceHeight={state.deviceHeight}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
@@ -84,7 +95,6 @@ const styles = StyleSheet.create({
     fontSize: sizes.b2,
     letterSpacing: 0.5,
     color: colors.black,
-    paddingLeft: wp(5),
     paddingTop: wp(0.5),
   },
 });

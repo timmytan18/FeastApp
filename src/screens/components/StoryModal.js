@@ -3,14 +3,20 @@ import React, {
 } from 'react';
 import {
   StyleSheet, View, TouchableOpacity, Text, ImageBackground,
-  Animated, PanResponder, ScrollView, StatusBar, Easing,
+  Animated, PanResponder, ScrollView, StatusBar, Easing, Alert,
 } from 'react-native';
+import {
+  API, Storage, graphqlOperation,
+} from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
+import TwoButtonAlert from './util/TwoButtonAlert';
 import PlaceDetail from './PlaceDetail';
-import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
+import MoreView from './MoreView';
+import { getUserProfileQuery, getIsFollowingQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
+import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import ProfilePic from './ProfilePic';
@@ -20,10 +26,12 @@ import YumButton from './util/YumButton';
 import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
+import ThreeDots from './util/icons/ThreeDots';
 import { Context } from '../../Store';
 import {
   colors, shadows, gradients, sizes, wp,
 } from '../../constants/theme';
+import CenterSpinner from './util/CenterSpinner';
 
 const ratingColor = (rating) =>
   // switch (rating) {
@@ -36,6 +44,8 @@ const ratingColor = (rating) =>
   // }
   colors.tertiary;
 
+const storyDuration = 6000;
+
 const StoryModal = ({ navigation, route }) => {
   const {
     stories,
@@ -44,7 +54,7 @@ const StoryModal = ({ navigation, route }) => {
     deviceHeight,
   } = route.params;
 
-  const [{ user: { uid: myUID } }, dispatch] = useContext(Context);
+  const [{ user: { uid: myUID, PK: myPK } }, dispatch] = useContext(Context);
 
   const index = useRef(0);
   const [indexState, setIndexState] = useState(0);
@@ -61,7 +71,7 @@ const StoryModal = ({ navigation, route }) => {
   const barAnimOptions = {
     toValue: 1,
     easing: Easing.linear,
-    duration: 6000,
+    duration: storyDuration,
     useNativeDriver: false,
   };
 
@@ -171,7 +181,7 @@ const StoryModal = ({ navigation, route }) => {
   const continueBarAnimation = () => {
     // const currAnimVal = parseInt(JSON.stringify(inputAnim), 10);
     const currAnimVal = inputAnim._value; // could be better way to get current animation
-    const duration = 6000 - currAnimVal * 6000;
+    const duration = storyDuration - currAnimVal * storyDuration;
     const options = {
       ...barAnimOptions,
       duration,
@@ -205,7 +215,7 @@ const StoryModal = ({ navigation, route }) => {
               Animated.timing(inputAnim).stop();
 
               // options
-              const options = { ...barAnimOptions, duration: 50 };
+              const options = { ...barAnimOptions, duration: 75 };
 
               // start animation, always jump to next story
               Animated.timing(inputAnim, options).start(goToNextStory);
@@ -240,16 +250,114 @@ const StoryModal = ({ navigation, route }) => {
 
   const scrollRef = useRef();
 
-  let uid; let placeId; let name; let s3Photo; let dish; let rating; let review; let timestamp;
+  let uid; let placeId; let name; let s3Photo; let picture;
+  let dish; let rating; let review; let timestamp;
   let userName; let userPic;
   if (stories && stories.length && index.current < stories.length) {
     ({
-      placeUserInfo: { uid }, placeId, name, s3Photo, dish, rating, review, timestamp,
+      placeUserInfo: { uid }, placeId, name, s3Photo, picture, dish, rating, review, timestamp,
     } = stories[index.current]);
     ({ userName, userPic } = users[uid]);
   }
-
   const elapsedTime = getElapsedTime(timestamp);
+
+  const [loading, setLoading] = useState(false);
+
+  const deletePostConfirmation = () => {
+    TwoButtonAlert({
+      title: 'Delete Post',
+      yesButton: 'Confirm',
+      pressed: async () => {
+        await deletePost({ currTimestamp: timestamp, s3Key: picture });
+        closeModal();
+      },
+      onCancel: () => {
+        continueBarAnimation();
+      },
+    });
+  };
+
+  const deletePost = async ({ currTimestamp, s3Key }) => {
+    setLoading(true);
+    enablePanResponder.current = false;
+
+    // Delete post from user's profile
+    const input = { PK: myPK, SK: `#PLACE#${currTimestamp}` };
+    try {
+      await API.graphql(graphqlOperation(
+        deleteFeastItem,
+        { input },
+      ));
+    } catch (err) {
+      console.warn('Error deleting post from user profile:', err);
+      Alert.alert(
+        'Error',
+        'Could not delete post',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+      return;
+    }
+
+    // Delete post image from S3
+    try {
+      await Storage.remove(s3Key, { level: 'protected' });
+    } catch (err) {
+      console.warn('Error deleting post image from S3:', err);
+      Alert.alert(
+        'Error',
+        'Could not delete post',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+      return;
+    }
+
+    // Remove user's post from followers' feeds in batches
+    const followers = await getFollowersQuery({ PK: myPK, onlyReturnUIDs: true });
+    const postInUserFeeds = [];
+    followers.forEach(({ follower: { PK: followerPK } }) => {
+      postInUserFeeds.push({
+        PK: followerPK,
+        SK: `#FOLLOWINGPOST#${currTimestamp}#${myUID}`,
+      });
+    });
+
+    console.log(postInUserFeeds);
+    if (postInUserFeeds.length) {
+      let i; let j;
+      const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
+      for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
+        const batch = postInUserFeeds.slice(i, i + BATCH_NUM);
+        try {
+          await API.graphql(graphqlOperation(
+            batchDeleteFollowingPosts,
+            { input: { posts: batch } },
+          ));
+        } catch (err) {
+          console.warn("Error removing followed user's posts from feed", err);
+        }
+      }
+    }
+  };
+
+  const reportPost = async ({ currTimestamp, s3Key }) => {
+  };
+
+  const isMe = uid === myUID;
+  const [morePressed, setMorePressed] = useState(false);
+  const moreItems = isMe
+    ? [
+      {
+        onPress: deletePostConfirmation,
+        label: 'Delete Post',
+      },
+    ] : [
+      {
+        onPress: () => reportPost({ currTimestamp: timestamp, s3Key: picture }),
+        label: 'Report Post',
+      },
+    ];
 
   const fetchCurrentUser = async () => {
     try {
@@ -277,10 +385,33 @@ const StoryModal = ({ navigation, route }) => {
     <Animated.View
       style={[
         styles.container,
-        { transform: [{ translateY: translateVal }] },
+        {
+          transform: [{ translateY: translateVal }],
+          opacity: loading ? 0.6 : 1,
+        },
       ]}
     >
       <StatusBar animated barStyle="light-content" />
+      <MoreView
+        items={moreItems}
+        morePressed={morePressed}
+        setMorePressed={setMorePressed}
+        onDismiss={() => continueBarAnimation()}
+      />
+      {loading
+        && (
+          <View style={{
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1,
+          }}
+          >
+            <CenterSpinner />
+          </View>
+        )}
       <View style={styles.cardContainer} {...panResponder.panHandlers}>
         <View style={styles.progressContainer}>
           {stories
@@ -309,7 +440,7 @@ const StoryModal = ({ navigation, route }) => {
             )))}
         </View>
         <View style={styles.headerContainer}>
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', flex: 0.9 }}>
             <TouchableOpacity
               onPress={fetchCurrentUser}
               activeOpacity={0.8}
@@ -335,9 +466,15 @@ const StoryModal = ({ navigation, route }) => {
               </View>
             </View>
           </View>
-          <View style={styles.emojiContainer}>
-            <Text style={styles.emojiText}>😋</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => {
+              setMorePressed(true);
+              Animated.timing(inputAnim).stop();
+            }}
+            style={styles.moreContainer}
+          >
+            <ThreeDots rotated size={wp(5)} />
+          </TouchableOpacity>
         </View>
         <View style={styles.reviewTitleStarsContainer}>
           <Text style={styles.reviewTitleText}>
@@ -377,6 +514,9 @@ const StoryModal = ({ navigation, route }) => {
           imageStyle={{ borderRadius: wp(2) }}
           source={{ uri: s3Photo }}
         >
+          <View style={styles.emojiContainer}>
+            <Text style={styles.emojiText}>😋</Text>
+          </View>
           {dish && <Text style={styles.menuItemText}>{dish}</Text>}
         </ImageBackground>
         <View style={styles.ratingsContainer}>
@@ -640,7 +780,7 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: 'row',
     paddingLeft: wp(2.2),
-    width: '90%',
+    width: wp(60),
     alignItems: 'flex-start',
   },
   locationText: {
@@ -652,26 +792,32 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     paddingLeft: wp(1.2),
   },
-  emojiContainer: {
+  moreContainer: {
     alignSelf: 'center',
-    marginRight: wp(5),
-  },
-  emojiText: {
-    fontSize: sizes.h1,
+    marginRight: wp(0.5),
+    padding: wp(2),
   },
   imageContainer: {
     width: '100%',
     aspectRatio: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     marginTop: wp(3),
+  },
+  emojiContainer: {
+    alignSelf: 'flex-end',
+    marginTop: wp(5),
+    marginRight: wp(5),
+  },
+  emojiText: {
+    fontSize: sizes.h1,
   },
   menuItemText: {
     fontFamily: 'Medium',
     fontSize: wp(5.6),
     color: 'white',
     width: wp(50),
-    paddingBottom: wp(5),
-    paddingLeft: wp(5),
+    marginBottom: wp(5),
+    marginLeft: wp(5),
   },
   reviewTitleStarsContainer: {
     flexDirection: 'row',
