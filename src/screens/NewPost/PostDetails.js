@@ -19,7 +19,7 @@ import RatingsInput from '../components/RatingsInput';
 import { RATING_CATEGORIES } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp, hp, header, shadows,
+  colors, sizes, wp, header, shadows,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -234,7 +234,10 @@ const PostDetails = ({ navigation, route }) => {
       };
       // Created all post items for each follower
       const followers = await getFollowersQuery({ PK: userPK, onlyReturnUIDs: true });
-      const allUserFeedPosts = [];
+      const allUserFeedPosts = [{
+        ...userFeedsInput,
+        PK: userPK,
+      }];
       followers.forEach(({ follower: { PK: followerPK } }) => {
         allUserFeedPosts.push({
           ...userFeedsInput,
@@ -260,6 +263,9 @@ const PostDetails = ({ navigation, route }) => {
           }
         }
       }
+
+      // Update app state to trigger map re-render
+      dispatch({ type: 'SET_RELOAD_MAP' });
 
       // Clear and reset review and ratings
       dispatch({
@@ -307,7 +313,6 @@ const PostDetails = ({ navigation, route }) => {
   };
 
   const handleEmojiSelect = (emojiObject) => {
-    console.log(emojiObject);
     setEmoji(emojiObject);
     handleOpenCloseEmoji(false);
   };
@@ -326,15 +331,11 @@ const PostDetails = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Animated.View
-        style={[{
-          position: 'absolute',
-          backgroundColor: 'transparent',
-          bottom: 10,
-          zIndex: 1,
-          width: wp(100),
+        style={[styles.emojiAnimatedContainer, {
           height: 0.9 * state.deviceHeight,
-          alignSelf: 'center',
-        }, { transform: [{ translateY: translateAnim }], opacity: opacityAnim }]}
+          transform: [{ translateY: translateAnim }],
+          opacity: opacityAnim,
+        }]}
         pointerEvents={emojiOpen ? 'auto' : 'none'}
       >
         <EmojiModal
@@ -346,15 +347,7 @@ const PostDetails = ({ navigation, route }) => {
             height: '100%',
           }}
           scrollContentContainerStyle={{ alignItems: 'center', padding: 0, margin: 0 }}
-          containerStyle={[shadows.darker, {
-            width: '100%',
-            height: wp(103),
-            borderRadius: 0,
-            borderTopLeftRadius: wp(4),
-            borderTopRightRadius: wp(4),
-            justifyContent: 'flex-start',
-            paddingTop: wp(3),
-          }]}
+          containerStyle={[styles.emojiContainer, shadows.darker]}
           backgroundStyle={{ opacity: 0.3, backgroundColor: emojiOpen ? colors.gray4 : 'transparent' }}
         />
       </Animated.View>
@@ -422,6 +415,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  emojiAnimatedContainer: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    bottom: 10,
+    zIndex: 1,
+    width: wp(100),
+    alignSelf: 'center',
+  },
+  emojiContainer: {
+    width: '100%',
+    height: wp(103),
+    borderRadius: 0,
+    borderTopLeftRadius: wp(4),
+    borderTopRightRadius: wp(4),
+    justifyContent: 'flex-start',
+    paddingTop: wp(3),
   },
   shareButtonContainer: {
     flex: 1,

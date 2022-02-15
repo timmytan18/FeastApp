@@ -66,7 +66,7 @@ const Profile = ({ navigation, route }) => {
   const isMe = !(!onTab && route.params.user.PK !== state.user.PK);
   const user = isMe ? state.user : route.params.user;
 
-  const [numFollows, setNumFollows] = useState([0, state.numFollowing]);
+  const [numFollows, setNumFollows] = useState([0, 0]);
   const [reviews, setReviews] = useState(null);
   const numReviews = useRef(0);
 
@@ -80,13 +80,6 @@ const Profile = ({ navigation, route }) => {
       const num = await getNumFollowsQuery({ PK: user.PK, SK: user.SK });
       setNumFollows(num);
       setRefreshing(false);
-      const numFollowing = num[1];
-      if (isMe && numFollowing !== state.numFollowing) {
-        dispatch({
-          type: 'SET_NUM_FOLLOWING',
-          payload: { num: numFollowing },
-        });
-      }
     })();
 
     const getPostPictures = (item) => new Promise((resolve, reject) => {
@@ -126,7 +119,7 @@ const Profile = ({ navigation, route }) => {
         setRefreshing(false);
       }
     })();
-  }, [numRefresh.current, dispatch, isMe, state.numFollowing, user.PK, user.SK, user.identityId]);
+  }, [numRefresh.current, dispatch, isMe, user.PK, user.SK, user.identityId]);
 
   const [mapOpen, setMapOpen] = useState(false);
   const position = useRef(new Animated.Value(0)).current;
@@ -312,7 +305,6 @@ const Profile = ({ navigation, route }) => {
                     myUser={state.user}
                     reviews={reviews}
                     dispatch={dispatch}
-                    numFollowing={state.numFollowing}
                     containerStyle={styles.editContainer}
                     textStyle={styles.editText}
                   />
@@ -323,64 +315,6 @@ const Profile = ({ navigation, route }) => {
       </View>
     </View>
   );
-
-  // const renderItem = (item) => (
-  //   <View style={{ flexDirection: 'row' }}>
-  //     <View style={{ flex: 0.8, paddingLeft: wp(5) }}>
-  //       <Text style={styles.userText}>
-  //         {item.name}
-  //       </Text>
-  //       <Text style={styles.userText}>
-  //         {item.review}
-  //       </Text>
-  //       <Text style={styles.userText}>
-  //         Overall:
-  //         {' '}
-  //         {item.rating.overall}
-  //         {' '}
-  //         Food:
-  //         {item.rating.overall}
-  //         {' '}
-  //         Value:
-  //         {item.rating.value}
-  //         {' '}
-  //         Service:
-  //         {item.rating.service}
-  //         {' '}
-  //         Atmosphere:
-  //         {item.rating.atmosphere}
-  //       </Text>
-  //       <Text style={styles.userText} />
-  //     </View>
-  //     <View style={{ width: wp(18), height: wp(18) }}>
-  //       <Image
-  //         resizeMode="cover"
-  //         style={{ flex: 1, width: '100%', height: '100%' }}
-  //         source={{ uri: item.s3Photo }}
-  //       />
-  //       <Text>{item.dish}</Text>
-  //     </View>
-  //     {isMe && (
-  //       <View style={{
-  //         flex: 0.2, justifyContent: 'center', alignItems: 'center',
-  //       }}
-  //       >
-  //         <TouchableOpacity onPress={() => {
-  //           TwoButtonAlert({
-  //             title: 'Delete Post',
-  //             yesButton: 'Confirm',
-  //             pressed: () => {
-  //               deletePost({ timestamp: item.timestamp, s3Key: item.picture });
-  //             },
-  //           });
-  //         }}
-  //         >
-  //           <Text style={{ color: 'blue' }}>Delete</Text>
-  //         </TouchableOpacity>
-  //       </View>
-  //     )}
-  //   </View>
-  // );
 
   const leftTabPressed = () => {
     setMapOpen(false);

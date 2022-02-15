@@ -76,18 +76,18 @@ const Home = ({ navigation }) => {
   const [markers, setMarkers] = useState([]);
   const mapRef = useRef(null);
 
-  useEffect(() => {
-    (async () => {
-      // Get following users
-      const num = await getNumFollowsQuery({ PK: state.user.PK, SK: state.user.SK });
-      const numFollowing = num[1];
-      console.log('Number of following users:', numFollowing);
-      dispatch({
-        type: 'SET_NUM_FOLLOWING',
-        payload: { num: numFollowing },
-      });
-    })();
-  }, [dispatch, state.user.PK, state.user.SK]);
+  // useEffect(() => {
+  //   (async () => {
+  //     // Get following users
+  //     const num = await getNumFollowsQuery({ PK: state.user.PK, SK: state.user.SK });
+  //     const numFollowing = num[1];
+  //     console.log('Number of following users:', numFollowing);
+  //     dispatch({
+  //       type: 'SET_NUM_FOLLOWING',
+  //       payload: { num: numFollowing },
+  //     });
+  //   })();
+  // }, [dispatch, state.user.PK, state.user.SK]);
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -176,66 +176,62 @@ const Home = ({ navigation }) => {
         CURRENT_USER: { lat: coords.latitude, lng: coords.longitude },
       }; // place marker for user location
 
-      // Fetch all posts from following users
-      if (state.numFollowing) {
-        console.log('FETCHING FOLLOWING POSTS...');
-        const allPosts = await getFollowingPostsQuery({ PK: state.user.PK });
-        console.log('All feed posts: ', allPosts);
-        for (let i = 0; i < allPosts.length; i += 1) {
-          allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
-          // Desconstruct attributes needed from post
-          const {
-            PK, SK,
-            placeId,
-            coordinates: { latitude: lat, longitude: lng },
-            name,
-            categories,
-            placeUserInfo: { picture: userPic, uid, name: userName },
-          } = allPosts[i];
+      // Fetch all posts for map feed from following users
+      console.log('FETCHING FOLLOWING POSTS...');
+      const allPosts = await getFollowingPostsQuery({ PK: state.user.PK });
+      console.log('All feed posts: ', allPosts);
+      for (let i = 0; i < allPosts.length; i += 1) {
+        allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
+        // Desconstruct attributes needed from post
+        const {
+          PK, SK,
+          placeId,
+          coordinates: { latitude: lat, longitude: lng },
+          name,
+          categories,
+          placeUserInfo: { picture: userPic, uid, name: userName },
+        } = allPosts[i];
 
-          // Create new posts array for place if not already created
-          // If created, add post to posts array
-          if (!placePostsUpdated[placeId]) {
-            placePostsUpdated[placeId] = [{ PK, SK }];
-          } else {
-            placePostsUpdated[placeId].push({ PK, SK });
-          }
-
-          // Add user name and pic to userPlaces obj if not already added
-          if (!(uid in usersNamePic.current)) {
-            usersNamePic.current[uid] = { userPic, userName };
-          }
-
-          // Create new place set for user if not already created
-          if (!userPlaces[uid]) {
-            userPlaces[uid] = new Set();
-          }
-          // Add place to user's place set and placeMarkers if not already added
-          if (!(userPlaces[uid].has(placeId))) {
-            userPlaces[uid].add(placeId);
-          }
-          if (!(placeId in placeMarkers)) {
-            placeMarkers[placeId] = {
-              name,
-              placeId,
-              lat,
-              lng,
-              userName,
-              userPic,
-              category: categories ? categories[0] : null,
-              visible: true,
-              numOtherMarkers: 0,
-            };
-          }
+        // Create new posts array for place if not already created
+        // If created, add post to posts array
+        if (!placePostsUpdated[placeId]) {
+          placePostsUpdated[placeId] = [{ PK, SK }];
+        } else {
+          placePostsUpdated[placeId].push({ PK, SK });
         }
-        placePosts.current = placePostsUpdated;
-      } else {
-        console.log(state);
+
+        // Add user name and pic to userPlaces obj if not already added
+        if (!(uid in usersNamePic.current)) {
+          usersNamePic.current[uid] = { userPic, userName };
+        }
+
+        // Create new place set for user if not already created
+        if (!userPlaces[uid]) {
+          userPlaces[uid] = new Set();
+        }
+        // Add place to user's place set and placeMarkers if not already added
+        if (!(userPlaces[uid].has(placeId))) {
+          userPlaces[uid].add(placeId);
+        }
+        if (!(placeId in placeMarkers)) {
+          placeMarkers[placeId] = {
+            name,
+            placeId,
+            lat,
+            lng,
+            userName,
+            userPic,
+            category: categories ? categories[0] : null,
+            visible: true,
+            numOtherMarkers: 0,
+          };
+        }
       }
+      placePosts.current = placePostsUpdated;
       await onRegionChanged({ markersCopy: placeMarkers });
       console.log('Map Markers: ', markers);
     })();
-  }, [dispatch, state.user.PK, state.user.uid, state.numFollowing]);
+  }, [dispatch, state.user.PK, state.user.uid, state.reloadMapTrigger]);
 
   const stories = useRef([]);
   const place = useRef({});
@@ -321,7 +317,7 @@ const Home = ({ navigation }) => {
                 key={`${lat}${lng}`}
                 coordinate={{ latitude: lat, longitude: lng }}
               >
-                <LocationMapMarker isUser />
+                <LocationMapMarker />
               </Marker>
             );
           }

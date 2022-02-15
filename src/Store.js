@@ -4,7 +4,7 @@ import { RATING_CATEGORIES } from './constants/constants';
 
 const initialState = {
   user: null,
-  numFollowing: null,
+  reloadMapTrigger: false,
   review: null,
   ratings: { ...RATING_CATEGORIES },
   location: { longitude: null, latitude: null },

@@ -44,11 +44,10 @@ const propTypes = {
         timestamp: PropTypes.string,
       })),
     ).isRequired,
-  numFollowing: PropTypes.number.isRequired,
 };
 
 const FollowButton = ({
-  currentUser, myUser, reviews, numFollowing, dispatch, containerStyle, textStyle,
+  currentUser, myUser, reviews, dispatch, containerStyle, textStyle,
 }) => {
   // Destructure current user (profile user is viewing) object
   const {
@@ -118,8 +117,8 @@ const FollowButton = ({
         },
       });
     } else {
-      changeFollowing();
       addPostsToFeed();
+      changeFollowing();
     }
   };
 
@@ -163,11 +162,8 @@ const FollowButton = ({
         incrementFeastItem,
         { input: { PK: myPK, SK: mySK, numFollowing: one } },
       ));
-      // Update app state with new num following count
-      dispatch({
-        type: 'SET_NUM_FOLLOWING',
-        payload: { num: numFollowing + one },
-      });
+      // Update app state to trigger map re-render
+      dispatch({ type: 'SET_RELOAD_MAP' });
     } catch (err) {
       console.warn('Error update follower/following counts: ', err);
     }

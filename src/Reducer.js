@@ -18,10 +18,10 @@ const Reducer = (state, action) => {
           latitude: action.payload.latitude,
         },
       };
-    case 'SET_NUM_FOLLOWING':
+    case 'SET_RELOAD_MAP':
       return {
         ...state,
-        numFollowing: action.payload.num,
+        reloadMapTrigger: !state.reloadMapTrigger,
       };
     case 'SET_REVIEW_RATINGS':
       return {
