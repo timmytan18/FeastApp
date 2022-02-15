@@ -71,10 +71,6 @@ const Profile = ({ navigation, route }) => {
   const numReviews = useRef(0);
 
   useEffect(() => {
-    // if (reviews == null && !isLoading) {
-    //   setLoading(true);
-    // }
-
     // Get number of followers and following
     (async () => {
       const num = await getNumFollowsQuery({ PK: user.PK, SK: user.SK });
@@ -99,6 +95,7 @@ const Profile = ({ navigation, route }) => {
     (async () => {
       const userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
       const placePosts = {};
+      const placePostsOverallRatingSum = {};
       if (userReviews && userReviews.length) {
         Promise.all(userReviews.map(getPostPictures)).then((posts) => {
           console.log('User Reviews: ', posts);
@@ -107,10 +104,16 @@ const Profile = ({ navigation, route }) => {
             const { placeId } = posts[i];
             if (!placePosts[placeId]) {
               placePosts[placeId] = [posts[i]];
+              placePostsOverallRatingSum[placeId] = posts[i].rating.overall;
             } else {
               placePosts[placeId].push(posts[i]);
+              placePostsOverallRatingSum[placeId] += posts[i].rating.overall;
             }
           }
+          Object.entries(placePostsOverallRatingSum).forEach(([placeId, sum]) => {
+            const avg = sum / placePosts[placeId].length;
+            placePosts[placeId][0].avgOverallRating = Math.round(avg * 2) / 2;
+          });
           setReviews(placePosts);
           setRefreshing(false);
         });
@@ -170,10 +173,6 @@ const Profile = ({ navigation, route }) => {
   };
 
   const place = useRef({});
-
-  // if (isLoading || !reviews) {
-  //   return <CenterSpinner />;
-  // }
 
   const moreItems = [
     {
@@ -428,7 +427,7 @@ const Profile = ({ navigation, route }) => {
                     )}
                   <View style={styles.starsContainer}>
                     <Stars
-                      default={item.rating.overall}
+                      default={item.avgOverallRating}
                       count={5}
                       half
                       disabled
