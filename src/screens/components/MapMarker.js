@@ -25,49 +25,81 @@ const defaultProps = {
 };
 
 const MapMarker = ({
-  name, placeId, lat, lng, userPic, category, loadingStories,
-}) => (
-  <View style={styles.container}>
-    <LinearGradient
-      colors={gradients.purple.colors}
-      start={gradients.purple.start}
-      end={gradients.purple.end}
-      style={styles.gradientContainer}
-    >
-      {loadingStories && loadingStories === placeId && (
-        <MaterialIndicator
-          style={{
-            position: 'absolute', zIndex: 1,
-          }}
-          size={markerWithGradientSize}
-          color={colors.white}
-          trackWidth={gradientSize}
-        />
+  name, placeId, lat, lng, userPic, category, loadingStories, visible, numOtherMarkers,
+}) => {
+  const visibilityStyle = visible ? {} : { width: 0 };
+  return (
+    <View style={styles.container}>
+      {visible && numOtherMarkers > 0 && (
+        <View style={styles.badgeContainer}>
+          <LinearGradient
+            colors={gradients.purple.colors}
+            start={gradients.purple.start}
+            end={gradients.purple.end}
+            style={styles.badgeInnerContainer}
+          >
+            <Text style={styles.badgeText}>
+              +
+              {numOtherMarkers}
+            </Text>
+          </LinearGradient>
+        </View>
       )}
-      <View style={styles.markerContainer}>
-        <ProfilePic
-          extUrl={userPic}
-          size={imageSize}
-          style={styles.imageContainer}
-        />
-      </View>
-    </LinearGradient>
-    <View>
-      <Text style={[styles.nameText, styles.textWithShadow]}>{name}</Text>
-    </View>
-    {category && (
+      <LinearGradient
+        colors={gradients.purple.colors}
+        start={gradients.purple.start}
+        end={gradients.purple.end}
+        style={[styles.gradientContainer, visibilityStyle]}
+      >
+        {loadingStories && loadingStories === placeId && (
+          <MaterialIndicator
+            style={{
+              position: 'absolute', zIndex: 1,
+            }}
+            size={markerWithGradientSize}
+            color={colors.white}
+            trackWidth={gradientSize}
+          />
+        )}
+        <View style={styles.markerContainer}>
+          <ProfilePic
+            extUrl={userPic}
+            size={imageSize}
+            style={styles.imageContainer}
+          />
+        </View>
+      </LinearGradient>
       <View>
-        <Text style={[styles.categoryText, styles.textWithShadow]}>{category}</Text>
+        <Text
+          style={[styles.nameText, styles.textWithShadow, visibilityStyle]}
+          numberOfLines={1}
+        >
+          {name}
+        </Text>
       </View>
-    )}
-  </View>
-);
+      {category && (
+        <View>
+          <Text
+            style={[styles.categoryText, styles.textWithShadow, visibilityStyle]}
+          >
+            {category}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 function areEqual(prevProps, nextProps) {
   // Rerender if marker is currently loading or if marker was previously loading and now is not
+  // Rerender if marker is currently visible and was previously not or vice versa
+  // Rerender if number of other markers in grid changed
   if ((nextProps.placeId === nextProps.loadingStories)
     || (prevProps.placeId === prevProps.loadingStories
-      && nextProps.loadingStories === 'none')) {
+      && nextProps.loadingStories === 'none')
+    || (nextProps.visible && !prevProps.visible)
+    || (!nextProps.visible && prevProps.visible)
+    || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)) {
     return false;
   }
   return true;
@@ -75,6 +107,11 @@ function areEqual(prevProps, nextProps) {
 
 MapMarker.propTypes = propTypes;
 MapMarker.defaultProps = defaultProps;
+
+const containerWidth = wp(25);
+
+const badgeSize = wp(6);
+const badgeInnerSize = wp(5);
 
 const markerSize = wp(11);
 const gradientSize = wp(1.2);
@@ -110,6 +147,8 @@ const styles = StyleSheet.create({
   nameText: {
     fontFamily: 'Medium',
     fontSize: sizes.b3,
+    width: containerWidth,
+    textAlign: 'center',
   },
   categoryText: {
     fontFamily: 'Book',
@@ -120,6 +159,31 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(255, 197, 41, 0.75)',
     textShadowOffset: { width: -2, height: 2 },
     textShadowRadius: 10,
+  },
+  badgeContainer: {
+    position: 'absolute',
+    zIndex: 1,
+    top: -badgeSize / 3,
+    left: containerWidth / 2 + badgeSize / 6,
+    width: badgeSize,
+    height: badgeSize,
+    borderRadius: badgeSize / 2,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeInnerContainer: {
+    width: badgeInnerSize,
+    height: badgeInnerSize,
+    borderRadius: badgeInnerSize / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    fontFamily: 'Medium',
+    fontSize: wp(2.5),
+    color: 'white',
+    paddingBottom: 1,
   },
 });
 

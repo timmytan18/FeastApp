@@ -13,6 +13,7 @@ ios/
 android/
 
 # misc
+.VSCodeCounter
 # .env
 .env.local
 .env.development.local

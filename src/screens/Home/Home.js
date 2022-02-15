@@ -2,7 +2,7 @@ import React, {
   useEffect, useContext, useState, useRef,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Text, StatusBar,
+  StyleSheet, View, TouchableOpacity,
 } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Location from 'expo-location';
@@ -15,7 +15,6 @@ import {
   batchGetUserPostsQuery,
   getPlaceDetailsQuery,
 } from '../../api/functions/queryFunctions';
-import StoryModal from '../components/StoryModal';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
@@ -45,8 +44,13 @@ const mapLessLandmarksStyle = [
   },
 ];
 
+const geohashPrecisionAreas = [
+  2025.0, 63.28125, 1.9775390625, 0.061798095703125, parseFloat('0.0019311904907226562'), parseFloat('6.034970283508301e-05'),
+  parseFloat('1.885928213596344e-06'), parseFloat('5.893525667488575e-08'), parseFloat('1.744670149253733e-09'), parseFloat('5.058365426240893e-11'),
+];
+
 const Home = ({ navigation }) => {
-  console.log('HEIGHT: ', hp(100));
+  // console.log('HEIGHT: ', hp(100));
   const [state, dispatch] = useContext(Context);
   const initialDelta = {
     latitudeDelta: 0.0461, // ~3.5 miles in height
@@ -70,7 +74,6 @@ const Home = ({ navigation }) => {
   // };
 
   const [markers, setMarkers] = useState([]);
-
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -92,6 +95,54 @@ const Home = ({ navigation }) => {
 
   const placePosts = useRef({}); // obj of placeId: [posts]
   const usersNamePic = useRef({}); // obj of uid: { name, pic }
+
+  // Show / hide markers when region changed based on zoom level & geohash
+  const onRegionChanged = async ({ markersCopy }) => {
+    const {
+      southWest: { longitude: startX, latitude: startY },
+      northEast: { longitude: endX, latitude: endY },
+    } = await mapRef.current.getMapBoundaries();
+    const area = (endX - startX) * (endY - startY);
+
+    let bestPrecision = 9;
+    for (let i = 0; i < geohashPrecisionAreas.length; i += 1) {
+      if (area / geohashPrecisionAreas[i] > 5) {
+        if (i + 1 < geohashPrecisionAreas.length && area / geohashPrecisionAreas[i + 1] < 100) {
+          bestPrecision = i + 2;
+        } else {
+          bestPrecision = i + 1;
+        }
+        break;
+      }
+    }
+
+    const geobox = new Set(geohash.bboxes(startY, startX, endY, endX, bestPrecision));
+    const geoBoxRemaining = {};
+
+    let didAlterMarkers = false;
+    Object.keys(markersCopy).forEach((placeKey) => {
+      const hash = placeKey.slice(0, bestPrecision);
+      if (geobox.has(hash)) { // if marker is in view
+        if (hash in geoBoxRemaining) { // if marker's grid already has marker
+          if (markersCopy[placeKey].visible) { // if marker is visible, set invisible
+            didAlterMarkers = true;
+            markersCopy[placeKey].visible = false;
+          }
+          markersCopy[geoBoxRemaining[hash]].numOtherMarkers += 1;
+        } else { // if marker in grid with no other markers
+          if (!markersCopy[placeKey].visible) { // if marker not already visible, set visible
+            markersCopy[placeKey].visible = true;
+            didAlterMarkers = true;
+          }
+          markersCopy[placeKey].numOtherMarkers = 0;
+          geoBoxRemaining[hash] = placeKey;
+        }
+      }
+    });
+    if (didAlterMarkers) {
+      setMarkers(markersCopy);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -121,9 +172,9 @@ const Home = ({ navigation }) => {
       // Get following users' reviews
       const placePostsUpdated = {};
       const userPlaces = {}; // obj of uid: set(placeIds)
-      const placeMarkers = [{
-        name: 'CURRENT_USER', lat: coords.latitude, lng: coords.longitude,
-      }]; // place marker for user location
+      const placeMarkers = {
+        CURRENT_USER: { lat: coords.latitude, lng: coords.longitude },
+      }; // place marker for user location
 
       // Fetch all posts from following users
       if (state.numFollowing) {
@@ -162,7 +213,9 @@ const Home = ({ navigation }) => {
           // Add place to user's place set and placeMarkers if not already added
           if (!(userPlaces[uid].has(placeId))) {
             userPlaces[uid].add(placeId);
-            placeMarkers.push({
+          }
+          if (!(placeId in placeMarkers)) {
+            placeMarkers[placeId] = {
               name,
               placeId,
               lat,
@@ -171,16 +224,16 @@ const Home = ({ navigation }) => {
               userPic,
               category: categories ? categories[0] : null,
               visible: true,
-            });
+              numOtherMarkers: 0,
+            };
           }
         }
         placePosts.current = placePostsUpdated;
       } else {
         console.log(state);
       }
-
-      console.log('Map markers:', placeMarkers);
-      setMarkers(placeMarkers);
+      await onRegionChanged({ markersCopy: placeMarkers });
+      console.log('Map Markers: ', markers);
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.numFollowing]);
 
@@ -189,7 +242,6 @@ const Home = ({ navigation }) => {
   const [loadingStories, setLoadingStories] = useState('none');
 
   const getPostPictures = (item) => new Promise((resolve, reject) => {
-    console.log(item);
     Storage.get(item.picture, { level: 'protected', identityId: item.placeUserInfo.identityId })
       .then((url) => {
         item.s3Photo = url;
@@ -256,14 +308,14 @@ const Home = ({ navigation }) => {
         pitchEnabled={false}
         userInterfaceStyle="light"
         ref={mapRef}
-        onRegionChangeComplete={() => { }}
+        onRegionChangeComplete={() => onRegionChanged({ markersCopy: { ...markers } })}
       // provider={PROVIDER_GOOGLE}
       // customMapStyle={mapLessLandmarksStyle}
       >
-        {markers.map(({
-          name, placeId, lat, lng, userName, userPic, category, visible,
-        }) => {
-          if (name === 'CURRENT_USER') {
+        {Object.entries(markers).map(([placeKey, {
+          name, placeId, lat, lng, userName, userPic, category, visible, numOtherMarkers,
+        }]) => {
+          if (placeKey === 'CURRENT_USER') {
             return (
               <Marker
                 key={`${lat}${lng}`}
@@ -272,27 +324,27 @@ const Home = ({ navigation }) => {
                 <LocationMapMarker isUser />
               </Marker>
             );
-          } if (visible) {
-            return (
-              <Marker
-                key={`${lat}${lng}${userName}`}
-                coordinate={{ latitude: lat, longitude: lng }}
-                onPress={() => fetchPostDetails({ placeId })}
-                isPreselected
-              >
-                <MapMarker
-                  name={name}
-                  placeId={placeId}
-                  lat={lat}
-                  lng={lng}
-                  userPic={userPic}
-                  category={category}
-                  loadingStories={loadingStories}
-                />
-              </Marker>
-            );
           }
-          return null;
+          return (
+            <Marker
+              key={placeKey}
+              coordinate={{ latitude: lat, longitude: lng }}
+              onPress={() => fetchPostDetails({ placeId })}
+              isPreselected
+            >
+              <MapMarker
+                name={name}
+                placeId={placeId}
+                lat={lat}
+                lng={lng}
+                userPic={userPic}
+                category={category}
+                loadingStories={loadingStories}
+                visible={visible}
+                numOtherMarkers={numOtherMarkers}
+              />
+            </Marker>
+          );
         })}
       </MapView>
       <View style={[styles.searchBtnContainer, shadows.base]}>
