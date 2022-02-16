@@ -120,7 +120,7 @@ const SearchUsers = ({ navigation }) => {
             <View style={{ flex: 1, paddingHorizontal: sizes.margin }}>
               <SearchBox
                 completeSearch={searchForUser}
-                placeholder={searchByName ? 'Search for a user' : 'Search for a business'}
+                placeholder={searchByName ? 'Search for a user' : 'Search for a place'}
                 autofocus
               />
             </View>
@@ -161,7 +161,7 @@ const SearchUsers = ({ navigation }) => {
                 }).start();
               }}
             >
-              <Text style={styles.tabText}>Business</Text>
+              <Text style={styles.tabText}>Place</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -206,7 +206,6 @@ const styles = StyleSheet.create({
     width: USER_ICON_SIZE,
     marginHorizontal: sizes.margin,
     borderRadius: USER_ICON_SIZE / 2,
-    // backgroundColor: colors.gray
   },
   userIconImage: {
     flex: 1,
@@ -241,7 +240,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontFamily: 'Medium',
-    fontSize: sizes.h4,
+    fontSize: sizes.b1,
     color: colors.black,
     paddingBottom: wp(2),
   },

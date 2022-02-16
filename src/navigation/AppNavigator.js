@@ -74,7 +74,7 @@ function NewPostStackScreen() {
         name="NewPost"
         component={NewPost}
         options={{
-          title: 'New Review',
+          title: 'New Post',
           headerTitleStyle: header.title,
         }}
       />
