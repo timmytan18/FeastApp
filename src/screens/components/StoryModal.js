@@ -315,7 +315,7 @@ const StoryModal = ({ navigation, route }) => {
 
     // Remove user's post from followers' feeds in batches
     const followers = await getFollowersQuery({ PK: myPK, onlyReturnUIDs: true });
-    const postInUserFeeds = [];
+    const postInUserFeeds = [{ PK: myPK, SK: `#FOLLOWINGPOST#${currTimestamp}#${myUID}` }]; // remove from own feed
     followers.forEach(({ follower: { PK: followerPK } }) => {
       postInUserFeeds.push({
         PK: followerPK,
@@ -324,21 +324,22 @@ const StoryModal = ({ navigation, route }) => {
     });
 
     console.log(postInUserFeeds);
-    if (postInUserFeeds.length) {
-      let i; let j;
-      const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
-      for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
-        const batch = postInUserFeeds.slice(i, i + BATCH_NUM);
-        try {
-          await API.graphql(graphqlOperation(
-            batchDeleteFollowingPosts,
-            { input: { posts: batch } },
-          ));
-        } catch (err) {
-          console.warn("Error removing followed user's posts from feed", err);
-        }
+    let i; let j;
+    const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
+    for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
+      const batch = postInUserFeeds.slice(i, i + BATCH_NUM);
+      try {
+        await API.graphql(graphqlOperation(
+          batchDeleteFollowingPosts,
+          { input: { posts: batch } },
+        ));
+      } catch (err) {
+        console.warn("Error removing followed user's posts from feed", err);
       }
     }
+
+    // Update app state to trigger map re-render
+    dispatch({ type: 'SET_RELOAD_MAP' });
   };
 
   const reportPost = async ({ currTimestamp, s3Key }) => {
