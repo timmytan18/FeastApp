@@ -325,7 +325,9 @@ const Home = ({ navigation }) => {
         />
       </View>
       <TouchableOpacity
-        onPress={isFitToMarkers.current ? animateToCurrLocation : fitToMarkers}
+        onPress={() => (isFitToMarkers.current
+          ? animateToCurrLocation()
+          : fitToMarkers())}
         activeOpacity={0.9}
         style={[styles.locationBackBtnContainer, shadows.base]}
       >
