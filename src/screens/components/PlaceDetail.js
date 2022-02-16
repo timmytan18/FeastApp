@@ -448,7 +448,6 @@ const examplePfp = 'https://s3-media0.fl.yelpcdn.com/bphoto/WMojIYn70kkIVyXX1OEC
 Image.prefetch(examplePfp);
 
 const Reviews = ({ navigation, placeId, myUID }) => {
-  console.log('rerender');
   const fetchCurrentUser = async ({ uid }) => {
     try {
       const currentUser = await getUserProfileQuery({ uid });

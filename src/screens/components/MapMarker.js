@@ -97,8 +97,7 @@ function areEqual(prevProps, nextProps) {
   if ((nextProps.placeId === nextProps.loadingStories)
     || (prevProps.placeId === prevProps.loadingStories
       && nextProps.loadingStories === 'none')
-    || (nextProps.visible && !prevProps.visible)
-    || (!nextProps.visible && prevProps.visible)
+    || (nextProps.visible !== prevProps.visible)
     || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)) {
     return false;
   }

@@ -10,18 +10,18 @@ import { Storage } from 'aws-amplify';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
-  getNumFollowsQuery,
   getFollowingPostsQuery,
   batchGetUserPostsQuery,
   getPlaceDetailsQuery,
 } from '../../api/functions/queryFunctions';
+import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
 import { Context } from '../../Store';
 import {
-  colors, shadows, wp, hp,
+  colors, shadows, wp,
 } from '../../constants/theme';
 
 const mapLessLandmarksStyle = [
@@ -42,11 +42,6 @@ const mapLessLandmarksStyle = [
       },
     ],
   },
-];
-
-const geohashPrecisionAreas = [
-  2025.0, 63.28125, 1.9775390625, 0.061798095703125, parseFloat('0.0019311904907226562'), parseFloat('6.034970283508301e-05'),
-  parseFloat('1.885928213596344e-06'), parseFloat('5.893525667488575e-08'), parseFloat('1.744670149253733e-09'), parseFloat('5.058365426240893e-11'),
 ];
 
 const Home = ({ navigation }) => {
@@ -75,19 +70,7 @@ const Home = ({ navigation }) => {
 
   const [markers, setMarkers] = useState([]);
   const mapRef = useRef(null);
-
-  // useEffect(() => {
-  //   (async () => {
-  //     // Get following users
-  //     const num = await getNumFollowsQuery({ PK: state.user.PK, SK: state.user.SK });
-  //     const numFollowing = num[1];
-  //     console.log('Number of following users:', numFollowing);
-  //     dispatch({
-  //       type: 'SET_NUM_FOLLOWING',
-  //       payload: { num: numFollowing },
-  //     });
-  //   })();
-  // }, [dispatch, state.user.PK, state.user.SK]);
+  const isFitToMarkers = useRef(false);
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -104,17 +87,7 @@ const Home = ({ navigation }) => {
     } = await mapRef.current.getMapBoundaries();
     const area = (endX - startX) * (endY - startY);
 
-    let bestPrecision = 9;
-    for (let i = 0; i < geohashPrecisionAreas.length; i += 1) {
-      if (area / geohashPrecisionAreas[i] > 5) {
-        if (i + 1 < geohashPrecisionAreas.length && area / geohashPrecisionAreas[i + 1] < 100) {
-          bestPrecision = i + 2;
-        } else {
-          bestPrecision = i + 1;
-        }
-        break;
-      }
-    }
+    const bestPrecision = getBestGeoPrecision({ area });
 
     const geobox = new Set(geohash.bboxes(startY, startX, endY, endX, bestPrecision));
     const geoBoxRemaining = {};
@@ -172,9 +145,7 @@ const Home = ({ navigation }) => {
       // Get following users' reviews
       const placePostsUpdated = {};
       const userPlaces = {}; // obj of uid: set(placeIds)
-      const placeMarkers = {
-        CURRENT_USER: { lat: coords.latitude, lng: coords.longitude },
-      }; // place marker for user location
+      const placeMarkers = {}; // place marker for user location
 
       // Fetch all posts for map feed from following users
       console.log('FETCHING FOLLOWING POSTS...');
@@ -293,6 +264,13 @@ const Home = ({ navigation }) => {
 
   const animateToCurrLocation = () => {
     mapRef.current.animateToRegion(initialRegion, 350);
+    isFitToMarkers.current = false;
+  };
+  const fitToMarkers = () => {
+    if (markers) {
+      mapRef.current.fitToSuppliedMarkers(Object.keys(markers).map((placeKey) => placeKey));
+      isFitToMarkers.current = true;
+    }
   };
 
   return (
@@ -310,38 +288,33 @@ const Home = ({ navigation }) => {
       >
         {Object.entries(markers).map(([placeKey, {
           name, placeId, lat, lng, userName, userPic, category, visible, numOtherMarkers,
-        }]) => {
-          if (placeKey === 'CURRENT_USER') {
-            return (
-              <Marker
-                key={`${lat}${lng}`}
-                coordinate={{ latitude: lat, longitude: lng }}
-              >
-                <LocationMapMarker />
-              </Marker>
-            );
-          }
-          return (
-            <Marker
-              key={placeKey}
-              coordinate={{ latitude: lat, longitude: lng }}
-              onPress={() => fetchPostDetails({ placeId })}
-              isPreselected
-            >
-              <MapMarker
-                name={name}
-                placeId={placeId}
-                lat={lat}
-                lng={lng}
-                userPic={userPic}
-                category={category}
-                loadingStories={loadingStories}
-                visible={visible}
-                numOtherMarkers={numOtherMarkers}
-              />
-            </Marker>
-          );
-        })}
+        }]) => (
+          <Marker
+            key={placeKey}
+            identifier={placeKey}
+            coordinate={{ latitude: lat, longitude: lng }}
+            onPress={() => fetchPostDetails({ placeId })}
+          >
+            <MapMarker
+              name={name}
+              placeId={placeId}
+              lat={lat}
+              lng={lng}
+              userPic={userPic}
+              category={category}
+              loadingStories={loadingStories}
+              visible={visible}
+              numOtherMarkers={numOtherMarkers}
+            />
+          </Marker>
+        ))}
+        <Marker
+          key={`${latitude}${longitude}`}
+          coordinate={{ latitude, longitude }}
+          zIndex={1}
+        >
+          <LocationMapMarker />
+        </Marker>
       </MapView>
       <View style={[styles.searchBtnContainer, shadows.base]}>
         <SearchButton
@@ -352,7 +325,7 @@ const Home = ({ navigation }) => {
         />
       </View>
       <TouchableOpacity
-        onPress={animateToCurrLocation}
+        onPress={isFitToMarkers.current ? animateToCurrLocation : fitToMarkers}
         activeOpacity={0.9}
         style={[styles.locationBackBtnContainer, shadows.base]}
       >

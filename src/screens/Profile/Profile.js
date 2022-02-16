@@ -9,6 +9,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import PropTypes from 'prop-types';
 import { Storage } from 'aws-amplify';
 import MapView, { Marker } from 'react-native-maps';
+import geohash from 'ngeohash';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
@@ -16,7 +17,7 @@ import Stars from 'react-native-stars';
 import {
   getUserReviewsQuery, getNumFollowsQuery, getPlaceDetailsQuery,
 } from '../../api/functions/queryFunctions';
-import { Context } from '../../Store';
+import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import EditProfile from './EditProfile';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import ProfilePic from '../components/ProfilePic';
@@ -29,10 +30,13 @@ import Heart from '../components/util/icons/Heart';
 import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
+import RatingMapMarker from '../components/RatingMapMarker';
 import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
+import LocationArrow from '../components/util/icons/LocationArrow';
 import BackArrow from '../components/util/icons/BackArrow';
 import Yum from '../components/util/icons/Yum';
 import CenterSpinner from '../components/util/CenterSpinner';
+import { Context } from '../../Store';
 import {
   colors, gradients, sizes, wp, shadows,
 } from '../../constants/theme';
@@ -52,9 +56,107 @@ const propTypes = {
   }).isRequired,
 };
 
+// Memoize row rendering, only rerender when row content changes
+const RowItem = React.memo(({
+  row,
+  translateContent,
+  translateListContentOpacity,
+  openPlacePosts,
+  leftTabPressed,
+  rightTabPressed,
+  translateTabBar,
+}) => {
+  if (row !== 'LOADING' && row.length) {
+    return (
+      <Animated.View
+        style={[
+          styles.postsRowContainer,
+          { transform: [{ translateX: translateContent }], opacity: translateListContentOpacity },
+        ]}
+      >
+        {row.map((placePosts) => {
+          const item = placePosts[0];
+          return (
+            <TouchableOpacity
+              key={item.timestamp}
+              style={styles.postItem}
+              activeOpacity={0.9}
+              onPress={() => openPlacePosts({ stories: placePosts })}
+            >
+              <ImageBackground
+                resizeMode="cover"
+                style={styles.postImage}
+                source={{ uri: item.s3Photo }}
+              >
+                <View style={styles.gradientContainer}>
+                  <LinearGradient
+                    colors={['rgba(0,0,0,0.32)', 'transparent']}
+                    style={styles.gradient}
+                  />
+                </View>
+                <View style={styles.yumContainer}>
+                  <Yum size={wp(4.8)} />
+                  <Text style={styles.yumTextContainer}>21 Yums</Text>
+                </View>
+              </ImageBackground>
+              <View style={styles.postBottomContainer}>
+                <Text style={styles.postNameText} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                {item.categories && item.categories[0]
+                  && (
+                    <Text style={styles.postCategoryText}>
+                      {item.categories[0]}
+                    </Text>
+                  )}
+                <View style={styles.starsContainer}>
+                  <Stars
+                    default={Math.round(item.avgOverallRating * 2) / 2}
+                    count={5}
+                    half
+                    disabled
+                    spacing={wp(0.6)}
+                    fullStar={<StarFull size={wp(3.8)} />}
+                    halfStar={<StarHalf size={wp(3.8)} />}
+                    emptyStar={<StarEmpty size={wp(3.8)} />}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </Animated.View>
+    );
+  }
+  return (
+    <View style={{ overflow: 'hidden', paddingBottom: 3 }}>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.tab}
+          onPress={leftTabPressed}
+        >
+          <View style={styles.tabIcon}><Utensils /></View>
+          <Animated.View
+            style={[styles.slider, { transform: [{ translateX: translateTabBar }] }]}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.tab}
+          onPress={rightTabPressed}
+        >
+          <View style={styles.tabIcon}><MapMarker /></View>
+        </TouchableOpacity>
+      </View>
+      {row === 'LOADING' && <CenterSpinner style={{ marginTop: wp(10) }} />}
+    </View>
+  );
+}, (prevProps, nextProps) => prevProps.row === nextProps.row);
+
 const Profile = ({ navigation, route }) => {
+  // Set necessary data
   const [state, dispatch] = useContext(Context);
-  const [isLoading, setLoading] = useState(true);
   const headerHeight = state.headerHeight - getStatusBarHeight();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -69,6 +171,8 @@ const Profile = ({ navigation, route }) => {
   const [numFollows, setNumFollows] = useState([0, 0]);
   const [reviews, setReviews] = useState(null);
   const numReviews = useRef(0);
+
+  const posts = useRef(['LOADING']);
 
   useEffect(() => {
     // Get number of followers and following
@@ -97,23 +201,37 @@ const Profile = ({ navigation, route }) => {
       const placePosts = {};
       const placePostsOverallRatingSum = {};
       if (userReviews && userReviews.length) {
-        Promise.all(userReviews.map(getPostPictures)).then((posts) => {
-          console.log('User Reviews: ', posts);
-          numReviews.current = posts.length;
-          for (let i = 0; i < posts.length; i += 1) {
-            const { placeId } = posts[i];
+        Promise.all(userReviews.map(getPostPictures)).then((currPosts) => {
+          numReviews.current = currPosts.length;
+          for (let i = 0; i < currPosts.length; i += 1) {
+            const { placeId } = currPosts[i];
             if (!placePosts[placeId]) {
-              placePosts[placeId] = [posts[i]];
-              placePostsOverallRatingSum[placeId] = posts[i].rating.overall;
+              placePosts[placeId] = [currPosts[i]];
+              placePostsOverallRatingSum[placeId] = currPosts[i].rating.overall;
+              placePosts[placeId][0].visible = true;
             } else {
-              placePosts[placeId].push(posts[i]);
-              placePostsOverallRatingSum[placeId] += posts[i].rating.overall;
+              placePosts[placeId].push(currPosts[i]);
+              placePostsOverallRatingSum[placeId] += currPosts[i].rating.overall;
             }
           }
           Object.entries(placePostsOverallRatingSum).forEach(([placeId, sum]) => {
-            const avg = sum / placePosts[placeId].length;
-            placePosts[placeId][0].avgOverallRating = Math.round(avg * 2) / 2;
+            placePosts[placeId][0].avgOverallRating = sum / placePosts[placeId].length;
           });
+          console.log('User Reviews: ', placePosts);
+
+          // Format posts for FlatList
+          if (placePosts) {
+            posts.current = [[]];
+            const placeIdKeys = Object.keys(placePosts);
+            for (let i = 0; i < placeIdKeys.length; i += 2) {
+              if (i + 1 < placeIdKeys.length) {
+                posts.current.push([placePosts[placeIdKeys[i]], placePosts[placeIdKeys[i + 1]]]);
+              } else {
+                posts.current.push([placePosts[placeIdKeys[i]]]);
+              }
+            }
+            console.log(posts);
+          }
           setReviews(placePosts);
           setRefreshing(false);
         });
@@ -124,6 +242,7 @@ const Profile = ({ navigation, route }) => {
     })();
   }, [numRefresh.current, dispatch, isMe, user.PK, user.SK, user.identityId]);
 
+  // Switch list view & map view animations
   const [mapOpen, setMapOpen] = useState(false);
   const position = useRef(new Animated.Value(0)).current;
   const translateTabBar = position.interpolate({
@@ -147,9 +266,11 @@ const Profile = ({ navigation, route }) => {
     outputRange: [-1, -1],
   });
 
+  // Flatlist
   const flatListRef = useRef(null);
   const insets = useSafeAreaInsets();
 
+  // Map
   const { latitude, longitude } = state.location;
   const initialDelta = {
     latitudeDelta: 0.0461, // ~3.5 miles in height
@@ -160,20 +281,57 @@ const Profile = ({ navigation, route }) => {
     longitude,
     ...initialDelta,
   };
+  // Show / hide markers when region changed based on zoom level & geohash
+  const onRegionChanged = async ({ markersCopy }) => {
+    const {
+      southWest: { longitude: startX, latitude: startY },
+      northEast: { longitude: endX, latitude: endY },
+    } = await mapRef.current.getMapBoundaries();
+    const area = (endX - startX) * (endY - startY);
+
+    const bestPrecision = getBestGeoPrecision({ area });
+
+    const geobox = new Set(geohash.bboxes(startY, startX, endY, endX, bestPrecision));
+    const geoBoxRemaining = {};
+
+    let didAlterMarkers = false;
+    Object.keys(markersCopy).forEach((placeKey) => {
+      const hash = placeKey.slice(0, bestPrecision);
+      if (geobox.has(hash)) { // if marker is in view
+        if (hash in geoBoxRemaining) { // if marker's grid already has marker
+          if (markersCopy[placeKey][0].visible) { // if marker is visible, set invisible
+            didAlterMarkers = true;
+            markersCopy[placeKey][0].visible = false;
+          }
+        } else { // if marker in grid with no other markers
+          if (!markersCopy[placeKey][0].visible) { // if marker not already visible, set visible
+            markersCopy[placeKey][0].visible = true;
+            didAlterMarkers = true;
+          }
+          geoBoxRemaining[hash] = placeKey;
+        }
+      }
+    });
+    if (didAlterMarkers) {
+      setReviews(markersCopy);
+    }
+  };
   const mapRef = useRef(null);
-  const markers = [
-    { name: 'CURRENT_USER', lat: latitude, lng: longitude },
-    // { name: placeName, lat: placeLat, lng: placeLng },
-  ];
+  const isFitToMarkers = useRef(false);
   const animateToCurrLocation = () => {
     mapRef.current.animateToRegion(initialRegion, 350);
+    isFitToMarkers.current = false;
   };
   const fitToMarkers = () => {
-    mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
+    if (reviews) {
+      mapRef.current.fitToSuppliedMarkers(Object.keys(reviews).map((placeKey) => placeKey));
+      isFitToMarkers.current = true;
+    }
   };
 
   const place = useRef({});
 
+  // More modal
   const moreItems = [
     {
       onPress: () => navigation.navigate('RestaurantList', { type: 'favorites' }),
@@ -192,19 +350,6 @@ const Profile = ({ navigation, route }) => {
       end: true,
     },
   ];
-
-  const posts = [[]];
-  if (reviews) {
-    const placeIdKeys = Object.keys(reviews);
-    for (let i = 0; i < placeIdKeys.length; i += 2) {
-      if (i + 1 < placeIdKeys.length) {
-        posts.push([reviews[placeIdKeys[i]], reviews[placeIdKeys[i + 1]]]);
-      } else {
-        posts.push([reviews[placeIdKeys[i]]]);
-      }
-    }
-    console.log(posts);
-  }
 
   const renderTopContainer = () => (
     <View style={styles.topContainer}>
@@ -381,94 +526,17 @@ const Profile = ({ navigation, route }) => {
     }
   };
 
-  const renderRow = (row) => {
-    if (row !== 'LOADING' && row.length) {
-      return (
-        <Animated.View
-          style={[
-            styles.postsRowContainer,
-            { transform: [{ translateX: translateContent }], opacity: translateListContentOpacity },
-          ]}
-        >
-          {row.map((placePosts) => {
-            const item = placePosts[0];
-            return (
-              <TouchableOpacity
-                key={item.timestamp}
-                style={styles.postItem}
-                activeOpacity={0.9}
-                onPress={() => openPlacePosts({ stories: placePosts })}
-              >
-                <ImageBackground
-                  resizeMode="cover"
-                  style={styles.postImage}
-                  source={{ uri: item.s3Photo }}
-                >
-                  <View style={styles.gradientContainer}>
-                    <LinearGradient
-                      colors={['rgba(0,0,0,0.32)', 'transparent']}
-                      style={styles.gradient}
-                    />
-                  </View>
-                  <View style={styles.yumContainer}>
-                    <Yum size={wp(4.8)} />
-                    <Text style={styles.yumTextContainer}>21 Yums</Text>
-                  </View>
-                </ImageBackground>
-                <View style={styles.postBottomContainer}>
-                  <Text style={styles.postNameText} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {item.categories && item.categories[0]
-                    && (
-                      <Text style={styles.postCategoryText}>
-                        {item.categories[0]}
-                      </Text>
-                    )}
-                  <View style={styles.starsContainer}>
-                    <Stars
-                      default={item.avgOverallRating}
-                      count={5}
-                      half
-                      disabled
-                      spacing={wp(0.6)}
-                      fullStar={<StarFull size={wp(3.8)} />}
-                      halfStar={<StarHalf size={wp(3.8)} />}
-                      emptyStar={<StarEmpty size={wp(3.8)} />}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </Animated.View>
-      );
-    }
-    return (
-      <View style={{ overflow: 'hidden', paddingBottom: 3 }}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.tab}
-            onPress={leftTabPressed}
-          >
-            <View style={styles.tabIcon}><Utensils /></View>
-            <Animated.View
-              style={[styles.slider, { transform: [{ translateX: translateTabBar }] }]}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.tab}
-            onPress={rightTabPressed}
-          >
-            <View style={styles.tabIcon}><MapMarker /></View>
-          </TouchableOpacity>
-        </View>
-        {row === 'LOADING' && <CenterSpinner style={{ marginTop: wp(10) }} />}
-      </View>
-    );
-  };
+  const renderRow = (item) => (
+    <RowItem
+      row={item}
+      translateContent={translateContent}
+      translateListContentOpacity={translateListContentOpacity}
+      openPlacePosts={openPlacePosts}
+      leftTabPressed={leftTabPressed}
+      rightTabPressed={rightTabPressed}
+      translateTabBar={translateTabBar}
+    />
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
@@ -508,7 +576,7 @@ const Profile = ({ navigation, route }) => {
       <FlatList
         pointerEvents={mapOpen ? 'none' : 'auto'}
         scrollEnabled={!mapOpen}
-        data={reviews ? posts : ['LOADING']}
+        data={posts.current}
         refreshing={refreshing}
         renderItem={({ item }) => renderRow(item)}
         keyExtractor={(item, index) => index}
@@ -521,8 +589,8 @@ const Profile = ({ navigation, route }) => {
         ListHeaderComponent={renderTopContainer()}
         stickyHeaderIndices={[1]}
         contentContainerStyle={{
-          paddingBottom: posts.length > 3
-            ? wp(1) : wp(50) + wp(57) * (3 - posts.length),
+          paddingBottom: posts.current.length > 3
+            ? wp(1) : wp(50) + wp(57) * (3 - posts.current.length),
         }}
       />
       <Animated.View
@@ -543,33 +611,40 @@ const Profile = ({ navigation, route }) => {
           pitchEnabled={false}
           userInterfaceStyle="light"
           ref={mapRef}
-          onMapReady={fitToMarkers}
+          onRegionChangeComplete={() => onRegionChanged({ markersCopy: { ...reviews } })}
         >
-          {markers.map(({
-            name, lat, lng,
-          }) => {
-            if (name === 'CURRENT_USER') {
-              return (
-                <Marker
-                  key={`${lat}${lng}`}
-                  identifier={`${lat}${lng}`}
-                  coordinate={{ latitude: lat, longitude: lng }}
-                >
-                  <LocationMapMarker name="Me" />
-                </Marker>
-              );
-            }
+          {reviews && Object.entries(reviews).map(([placeKey, [{
+            name, geo, avgOverallRating, visible,
+          }]]) => {
+            const {
+              latitude: placeLat,
+              longitude: placeLng,
+            } = geohash.decode(geo); // Get lat/lng from geohash
             return (
               <Marker
-                key={`${lat}${lng}`}
-                identifier={`${lat}${lng}`}
-                coordinate={{ latitude: lat, longitude: lng }}
+                key={placeKey}
+                identifier={placeKey}
+                coordinate={{ latitude: placeLat, longitude: placeLng }}
               >
-                <LocationMapMarker isUser={false} name={name} />
+                <RatingMapMarker name={name} rating={avgOverallRating} visible={visible} />
               </Marker>
             );
           })}
+          <Marker
+            key={`${latitude}${longitude}`}
+            identifier={`${latitude}${longitude}`}
+            coordinate={{ latitude, longitude }}
+          >
+            <LocationMapMarker />
+          </Marker>
         </MapView>
+        <TouchableOpacity
+          onPress={isFitToMarkers.current ? animateToCurrLocation : fitToMarkers}
+          activeOpacity={0.9}
+          style={[styles.locationBackBtnContainer, shadows.base]}
+        >
+          <LocationArrow size={wp(5)} />
+        </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>
   );
@@ -799,7 +874,6 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     position: 'absolute',
-    // top: wp(5.5),
     left: wp(100),
     width: '100%',
     height: '100%',
@@ -807,6 +881,17 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
+  },
+  locationBackBtnContainer: {
+    position: 'absolute',
+    bottom: wp(9),
+    right: wp(9.5),
+    width: wp(13),
+    height: wp(13),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: wp(6.5),
+    backgroundColor: 'rgba(174, 191, 229, 0.9)',
   },
 });
 
