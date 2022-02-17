@@ -109,9 +109,7 @@ const StoryModal = ({ navigation, route }) => {
   const goToNextStory = () => {
     if (index.current === numStories.current - 1) closeModal();
     else {
-      // numLinesExpanded.current = null;
       setNumLinesExpanded(null);
-      // setNumLines(null);
       setIndexState(++index.current);
     }
   };
@@ -119,9 +117,7 @@ const StoryModal = ({ navigation, route }) => {
   const goToPrevStory = () => {
     if (index.current === 0) startBarAnimation();
     else {
-      // numLinesExpanded.current = null;
       setNumLinesExpanded(null);
-      // setNumLines(null);
       setIndexState(--index.current);
     }
   };
@@ -393,12 +389,8 @@ const StoryModal = ({ navigation, route }) => {
   const lineHeight = useRef(null);
 
   const onTextLayout = useCallback((e) => {
-    console.log(e.nativeEvent.lines.length);
     if (numLinesExpanded == null) {
-      console.log('reset numlineexpanded: ', e.nativeEvent.lines.length);
-      // numLinesExpanded.current = e.nativeEvent.lines.length;
       setNumLinesExpanded(e.nativeEvent.lines.length);
-      // get line height to calculate marginBottom on expand
       lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
       setNumLines(NUM_COLLAPSED_LINES);
     }
