@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard,
 } from 'react-native';
-import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfileQuery, getFollowingQuery, getIsFollowingQuery, getFollowersQuery,
 } from '../../api/functions/queryFunctions';

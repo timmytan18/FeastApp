@@ -56,7 +56,7 @@ const UploadImages = ({ navigation, route }) => {
   const { business } = route.params;
 
   const placeExists = useRef(false);
-  const placeCategories = useRef(null);
+  const placeCategoriesImgUrl = useRef(null);
 
   // Fetch place from DB if exists, if not, scrape and create new place
   useEffect(() => {
@@ -113,8 +113,8 @@ const UploadImages = ({ navigation, route }) => {
     // Check if place exists in DynamoDB
     async function checkPlaceInDB() {
       try {
-        const { placeInDB, categoriesDB } = await getPlaceInDBQuery(
-          { placePK, withCategories: true },
+        const { placeInDB, categoriesDB, imgUrlDB } = await getPlaceInDBQuery(
+          { placePK, withCategoriesAndPicture: true },
         );
         if (!placeInDB) {
           // Scrape data on screen load if place does not exist
@@ -122,7 +122,7 @@ const UploadImages = ({ navigation, route }) => {
         } else {
           console.log('Place already in DB');
           placeExists.current = true;
-          placeCategories.current = categoriesDB;
+          placeCategoriesImgUrl.current = { categories: categoriesDB, imgUrl: imgUrlDB };
         }
       } catch (e) {
         console.warn('Error fetching Dynamo place data: ', e);
@@ -195,12 +195,13 @@ const UploadImages = ({ navigation, route }) => {
         disabled={!picture}
         onPress={async () => {
           const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
+          console.log('placeCategoriesImgUrl.current = ', placeCategoriesImgUrl.current);
           navigation.navigate('PostDetails', {
             business,
             picture: croppedImg,
             menuItem,
             pExists: placeExists.current,
-            pCategories: placeCategories.current,
+            pCategories: placeCategoriesImgUrl.current,
           });
         }}
       >

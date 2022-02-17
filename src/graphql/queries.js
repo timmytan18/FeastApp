@@ -39,6 +39,7 @@ export const batchGetFeastItems = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -114,6 +115,7 @@ export const getFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -204,6 +206,7 @@ export const listFeastItems = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -292,6 +295,7 @@ export const itemsByGSI1 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -380,6 +384,7 @@ export const itemsByGSI2 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -468,6 +473,7 @@ export const itemsByLSI1 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -556,6 +562,7 @@ export const itemsByLSI2 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -644,6 +651,7 @@ export const itemsByLSI3 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -732,6 +740,7 @@ export const itemsByLSI4 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl
@@ -820,6 +829,7 @@ export const itemsByLSI5 = /* GraphQL */ `
         }
         categories
         placeType
+        imgUrl
         placeInfo {
           name
           priceLvl

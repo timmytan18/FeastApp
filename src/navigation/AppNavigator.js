@@ -7,13 +7,14 @@ import {
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { LinearGradient } from 'expo-linear-gradient';
 import Home from '../screens/Home/Home';
-import SearchUsers from '../screens/Home/SearchUsers.js';
+import SearchUsers from '../screens/Home/SearchUsers';
 import StoryModal from '../screens/components/StoryModal';
 import NewPost from '../screens/NewPost/NewPost';
 import Profile from '../screens/Profile/Profile';
 import FollowsList from '../screens/Profile/FollowsList';
+import Reviews from '../screens/Profile/Reviews';
+import PlaceDetail from '../screens/Profile/PlaceDetail';
 import Settings from '../screens/Profile/Settings';
 import UploadImages from '../screens/NewPost/UploadImages';
 import PostDetails from '../screens/NewPost/PostDetails';
@@ -51,6 +52,22 @@ function HomeStackScreen() {
         name="FollowsList"
         component={FollowsList}
         options={{
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <HomeStack.Screen
+        name="Reviews"
+        component={Reviews}
+        options={{
+          title: <Text style={header.title}>Reviews</Text>,
           headerLeft: ({ onPress }) => (
             <BackArrow
               color={colors.black}
@@ -141,6 +158,27 @@ function ProfileStackScreen() {
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
+      <ProfileStack.Screen
+        name="Reviews"
+        component={Reviews}
+        options={{
+          title: <Text style={header.title}>Reviews</Text>,
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <ProfileStack.Screen
+        name="PlaceDetail"
+        component={PlaceDetail}
+        options={{ headerShown: false }}
+      />
     </ProfileStack.Navigator>
   );
 }
@@ -162,6 +200,37 @@ function StoryModalStackScreen() {
         name="Profile"
         component={Profile}
         options={{ headerShown: false }}
+      />
+      <StoryModalStack.Screen
+        name="FollowsList"
+        component={FollowsList}
+        options={{
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <StoryModalStack.Screen
+        name="Reviews"
+        component={Reviews}
+        options={{
+          title: <Text style={header.title}>Reviews</Text>,
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
       />
     </StoryModalStack.Navigator>
   );

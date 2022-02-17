@@ -39,7 +39,10 @@ const propTypes = {
       }),
       menuItem: PropTypes.string,
       pExists: PropTypes.bool,
-      pCategories: PropTypes.arrayOf(PropTypes.string),
+      pCategories: PropTypes.shape({
+        categories: PropTypes.arrayOf(PropTypes.string),
+        imgUrl: PropTypes.string,
+      }),
     }),
   }).isRequired,
 };
@@ -55,7 +58,7 @@ const PostDetails = ({ navigation, route }) => {
   const ratings = useRef(state.ratings);
 
   const placeExists = useRef(pExists);
-  const placeCategories = useRef(pCategories);
+  const placeCategoriesImgUrl = useRef(pCategories);
 
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emoji, setEmoji] = useState('😋');
@@ -93,13 +96,13 @@ const PostDetails = ({ navigation, route }) => {
     // Check if place exists in DynamoDB
     async function checkPlaceInDB() {
       try {
-        const { placeInDB, categoriesDB } = await getPlaceInDBQuery(
-          { placePK, withCategories: true },
+        const { placeInDB, categoriesDB, imgUrlDB } = await getPlaceInDBQuery(
+          { placePK, withCategoriesAndPicture: true },
         );
         if (placeInDB) {
           console.log('Place already in DB');
           placeExists.current = true;
-          placeCategories.current = categoriesDB;
+          placeCategoriesImgUrl.current = { categories: categoriesDB, imgUrl: imgUrlDB };
         }
       } catch (e) {
         console.warn('Error fetching DB place data: ', e);
@@ -182,7 +185,8 @@ const PostDetails = ({ navigation, route }) => {
         name,
         timestamp,
         geo: hash,
-        categories: placeCategories.current,
+        categories: placeCategoriesImgUrl.current.categories,
+        imgUrl: placeCategoriesImgUrl.current.imgUrl,
         picture: postImgS3Url,
         dish,
         review: userReview,
@@ -220,7 +224,8 @@ const PostDetails = ({ navigation, route }) => {
         name,
         geo: hash,
         timestamp,
-        categories: placeCategories.current,
+        categories: placeCategoriesImgUrl.current.categories,
+        // imgUrl: placeCategoriesImgUrl.current.imgUrl,
         picture: postImgS3Url,
         dish,
         review: userReview,

@@ -39,6 +39,7 @@ export const incrementFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -114,6 +115,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -189,6 +191,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -267,6 +270,7 @@ export const createFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -345,6 +349,7 @@ export const updateFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -423,6 +428,7 @@ export const deleteFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl

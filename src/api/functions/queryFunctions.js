@@ -3,7 +3,7 @@
 import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
-  getIsFollowing, getPlaceInDB, getPlaceInDBWithCategories, getFollowers, getNumFollows,
+  getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getNumFollows,
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails,
 } from '../graphql/queries';
@@ -148,13 +148,14 @@ async function searchQuery({ name, type }) {
 }
 
 // Get whether place is in database
-// If withCategories, will also fetch categories and return { inDB, categories }
-async function getPlaceInDBQuery({ placePK, withCategories }) {
+// If withCategoriesAndPicture, will also fetch categories and imgUrl
+// and return { inDB, categories, imgUrl }
+async function getPlaceInDBQuery({ placePK, withCategoriesAndPicture }) {
   const placeSK = '#INFO#';
   let placeInDB;
   try {
     const res = await API.graphql(graphqlOperation(
-      withCategories ? getPlaceInDBWithCategories : getPlaceInDB,
+      withCategoriesAndPicture ? getPlaceInDBWithCategoriesAndPicture : getPlaceInDB,
       { PK: placePK, SK: { beginsWith: placeSK }, limit: 10 },
     ));
     placeInDB = res.data.listFeastItems.items;
@@ -162,8 +163,9 @@ async function getPlaceInDBQuery({ placePK, withCategories }) {
     console.warn('Error checking whether place in DB: ', err);
   }
   if (placeInDB.length) {
-    return withCategories ? {
-      placeInDB: true, categoriesDB: placeInDB[0].placeInfo.categories,
+    const { categories, imgUrl } = placeInDB[0].placeInfo;
+    return withCategoriesAndPicture ? {
+      placeInDB: true, categoriesDB: categories, imgUrlDB: imgUrl,
     } : true;
   }
   return false;
@@ -228,7 +230,6 @@ async function getPlaceDetailsQuery({ placeId }) {
       getPlaceDetails,
       { PK: `PLACE#${placeId}`, SK: { beginsWith: '#INFO#' }, limit: 1 },
     ));
-    console.log(res);
     place = res.data.listFeastItems.items[0];
   } catch (err) {
     console.warn('Error getting place details: ', err);

@@ -2,10 +2,10 @@ import React, {
   useState, useEffect, useRef, useContext,
 } from 'react';
 import {
-  Text, SafeAreaView, View, StyleSheet, ImageBackground, Animated,
-  PanResponder, TouchableOpacity, Image, Platform, Linking, useColorScheme,
+  Text, View, StyleSheet, ImageBackground, Animated,
+  TouchableOpacity, Image, Platform, Linking, useColorScheme,
 } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import PropTypes from 'prop-types';
@@ -13,7 +13,6 @@ import link from './OpenLink';
 import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import LocationMapMarker from './util/LocationMapMarker';
-import BackArrow from './util/icons/BackArrow';
 import Car from './util/icons/Car';
 import LocationArrow from './util/icons/LocationArrow';
 import { DollarSign, DollarSignEmpty } from './util/icons/DollarSign';
@@ -63,9 +62,7 @@ const propTypes = {
   }).isRequired,
 };
 
-const PlaceDetail = React.memo(({ place, navigation }) => {
-  console.log(place);
-
+const PlaceDetailView = React.memo(({ place, navigation }) => {
   const [deliveryPressed, setDeliveryPressed] = useState(false);
   const [menuWebPressed, setMenuWebPressed] = useState(false);
 
@@ -172,7 +169,7 @@ const PlaceDetail = React.memo(({ place, navigation }) => {
   }
 
   return (
-    <SafeAreaView style={{ backgroundColor: 'white', flex: 1 }}>
+    <View style={{ backgroundColor: 'white', flex: 1 }}>
       <Animated.View style={[styles.pageContainer, {
         opacity,
         transform: [{ translateY: pagesScroll }],
@@ -205,7 +202,7 @@ const PlaceDetail = React.memo(({ place, navigation }) => {
             setMorePressed={setMenuWebPressed}
           />
         )}
-    </SafeAreaView>
+    </View>
   );
 });
 
@@ -757,6 +754,6 @@ const styles = StyleSheet.create({
   },
 });
 
-PlaceDetail.propTypes = propTypes;
+PlaceDetailView.propTypes = propTypes;
 
-export default PlaceDetail;
+export default PlaceDetailView;

@@ -171,6 +171,7 @@ const Profile = ({ navigation, route }) => {
   const [numFollows, setNumFollows] = useState([0, 0]);
   const [reviews, setReviews] = useState(null);
   const numReviews = useRef(0);
+  const allReviews = useRef(null);
 
   const posts = useRef(['LOADING']);
 
@@ -198,12 +199,14 @@ const Profile = ({ navigation, route }) => {
     // Get reviews for current user
     (async () => {
       const userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
-      const placePosts = {};
+      const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
       const placePostsOverallRatingSum = {};
       if (userReviews && userReviews.length) {
+        allReviews.current = userReviews;
         Promise.all(userReviews.map(getPostPictures)).then((currPosts) => {
           numReviews.current = currPosts.length;
           for (let i = 0; i < currPosts.length; i += 1) {
+            // add to placePosts map
             const { placeId } = currPosts[i];
             if (!placePosts[placeId]) {
               placePosts[placeId] = [currPosts[i]];
@@ -427,6 +430,10 @@ const Profile = ({ navigation, route }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.followButton}
+                onPress={() => navigation.push(
+                  'Reviews',
+                  { reviews: allReviews.current },
+                )}
               >
                 <Text style={styles.followCountText}>{numReviews.current}</Text>
                 <Text style={styles.followText}>Reviews</Text>

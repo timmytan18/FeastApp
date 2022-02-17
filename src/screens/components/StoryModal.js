@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
 import TwoButtonAlert from './util/TwoButtonAlert';
-import PlaceDetail from './PlaceDetail';
+import PlaceDetailView from './PlaceDetailView';
 import MoreView from './MoreView';
 import { getUserProfileQuery, getIsFollowingQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
@@ -43,8 +43,9 @@ const ratingColor = (rating) =>
   //     return colors.gray;
   // }
   colors.tertiary;
+const NUM_COLLAPSED_LINES = 2;
 
-const storyDuration = 6000;
+const storyDuration = 60000;
 
 const StoryModal = ({ navigation, route }) => {
   const {
@@ -107,12 +108,22 @@ const StoryModal = ({ navigation, route }) => {
   // story progression handlers
   const goToNextStory = () => {
     if (index.current === numStories.current - 1) closeModal();
-    else setIndexState(++index.current);
+    else {
+      // numLinesExpanded.current = null;
+      setNumLinesExpanded(null);
+      // setNumLines(null);
+      setIndexState(++index.current);
+    }
   };
 
   const goToPrevStory = () => {
     if (index.current === 0) startBarAnimation();
-    else setIndexState(--index.current);
+    else {
+      // numLinesExpanded.current = null;
+      setNumLinesExpanded(null);
+      // setNumLines(null);
+      setIndexState(--index.current);
+    }
   };
 
   const enablePanResponder = useRef(true);
@@ -233,7 +244,7 @@ const StoryModal = ({ navigation, route }) => {
             if (gestureState.dy < -100) {
               // swipe up
               panToBottom();
-            } else if (gestureState.dy / 2 > 100) {
+            } else if (gestureState.dy / 2 > 50) {
               // swipe down
               closeModal();
             } else {
@@ -376,7 +387,26 @@ const StoryModal = ({ navigation, route }) => {
     }
   };
 
-  // const placeholderReview = 'Ordered so much food - overall good portions and taste was great. Definitely recommend!';
+  const [numLines, setNumLines] = useState(null);
+  // const numLinesExpanded = useRef(null);
+  const [numLinesExpanded, setNumLinesExpanded] = useState(null);
+  const lineHeight = useRef(null);
+
+  const onTextLayout = useCallback((e) => {
+    console.log(e.nativeEvent.lines.length);
+    if (numLinesExpanded == null) {
+      console.log('reset numlineexpanded: ', e.nativeEvent.lines.length);
+      // numLinesExpanded.current = e.nativeEvent.lines.length;
+      setNumLinesExpanded(e.nativeEvent.lines.length);
+      // get line height to calculate marginBottom on expand
+      lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
+      setNumLines(NUM_COLLAPSED_LINES);
+    }
+  }, []);
+
+  const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > NUM_COLLAPSED_LINES);
+
+  // const placeholderReview = 'Ordered so much food - overall good portions and taste was great. Definitely recommend! Ordered so much food - overall good portions and taste was great. Definitely recommend good portions and taste was great. Definitely recommend!';
 
   // rating = {
   //   overall: 5, food: 4, service: 4.5, atmosphere: 2, value: 3.5,
@@ -509,7 +539,25 @@ const StoryModal = ({ navigation, route }) => {
             </View>
           )}
         </View>
-        <Text style={styles.reviewText}>{review}</Text>
+        {numLinesExpanded == null && (
+          <View pointerEvents="box-none">
+            <Text
+              style={[styles.reviewText, styles.reviewTextHidden]}
+              onTextLayout={onTextLayout}
+            >
+              {review}
+            </Text>
+          </View>
+        )}
+        <Text
+          style={[styles.reviewText]}
+          numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
+          onPress={() => setNumLines(
+            isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
+          )}
+        >
+          {review}
+        </Text>
         <ImageBackground
           style={styles.imageContainer}
           imageStyle={{ borderRadius: wp(2) }}
@@ -520,76 +568,78 @@ const StoryModal = ({ navigation, route }) => {
           </View>
           {dish && <Text style={styles.menuItemText}>{dish}</Text>}
         </ImageBackground>
-        <View style={styles.ratingsContainer}>
-          {rating && rating.food && (
-            <View style={styles.ratingContainer}>
-              <View>
-                <Rating
-                  isGradient={rating.food > 4.5}
-                  color={ratingColor(rating.food)}
-                  size={ratingIconSize}
-                />
-                <View style={styles.ratingIconContainer}>
-                  <Text style={styles.ratingText}>
-                    {rating.food}
-                  </Text>
+        {!isExpanded && (
+          <View style={styles.ratingsContainer}>
+            {rating && rating.food && (
+              <View style={styles.ratingContainer}>
+                <View>
+                  <Rating
+                    isGradient={rating.food > 4.5}
+                    color={ratingColor(rating.food)}
+                    size={ratingIconSize}
+                  />
+                  <View style={styles.ratingIconContainer}>
+                    <Text style={styles.ratingText}>
+                      {rating.food}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.ratingLabelText}>Food</Text>
               </View>
-              <Text style={styles.ratingLabelText}>Food</Text>
-            </View>
-          )}
-          {rating && rating.value && (
-            <View style={styles.ratingContainer}>
-              <View>
-                <Rating
-                  isGradient={rating.value > 4.5}
-                  color={ratingColor(rating.value)}
-                  size={ratingIconSize}
-                />
-                <View style={styles.ratingIconContainer}>
-                  <Text style={styles.ratingText}>
-                    {rating.value}
-                  </Text>
+            )}
+            {rating && rating.value && (
+              <View style={styles.ratingContainer}>
+                <View>
+                  <Rating
+                    isGradient={rating.value > 4.5}
+                    color={ratingColor(rating.value)}
+                    size={ratingIconSize}
+                  />
+                  <View style={styles.ratingIconContainer}>
+                    <Text style={styles.ratingText}>
+                      {rating.value}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.ratingLabelText}>Value</Text>
               </View>
-              <Text style={styles.ratingLabelText}>Value</Text>
-            </View>
-          )}
-          {rating && rating.service && (
-            <View style={styles.ratingContainer}>
-              <View>
-                <Rating
-                  isGradient={rating.service > 4.5}
-                  color={ratingColor(rating.service)}
-                  size={ratingIconSize}
-                />
-                <View style={styles.ratingIconContainer}>
-                  <Text style={styles.ratingText}>
-                    {rating.service}
-                  </Text>
+            )}
+            {rating && rating.service && (
+              <View style={styles.ratingContainer}>
+                <View>
+                  <Rating
+                    isGradient={rating.service > 4.5}
+                    color={ratingColor(rating.service)}
+                    size={ratingIconSize}
+                  />
+                  <View style={styles.ratingIconContainer}>
+                    <Text style={styles.ratingText}>
+                      {rating.service}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.ratingLabelText}>Service</Text>
               </View>
-              <Text style={styles.ratingLabelText}>Service</Text>
-            </View>
-          )}
-          {rating && rating.atmosphere && (
-            <View style={styles.ratingContainer}>
-              <View>
-                <Rating
-                  isGradient={rating.atmosphere > 4.5}
-                  color={ratingColor(rating.atmosphere)}
-                  size={ratingIconSize}
-                />
-                <View style={styles.ratingIconContainer}>
-                  <Text style={styles.ratingText}>
-                    {rating.atmosphere}
-                  </Text>
+            )}
+            {rating && rating.atmosphere && (
+              <View style={styles.ratingContainer}>
+                <View>
+                  <Rating
+                    isGradient={rating.atmosphere > 4.5}
+                    color={ratingColor(rating.atmosphere)}
+                    size={ratingIconSize}
+                  />
+                  <View style={styles.ratingIconContainer}>
+                    <Text style={styles.ratingText}>
+                      {rating.atmosphere}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.ratingLabelText}>Atmosphere</Text>
               </View>
-              <Text style={styles.ratingLabelText}>Atmosphere</Text>
-            </View>
-          )}
-        </View>
+            )}
+          </View>
+        )}
       </View>
       <View style={styles.middleContainer}>
         <View style={styles.middleButtonsContainer}>
@@ -644,7 +694,7 @@ const StoryModal = ({ navigation, route }) => {
             }
           }}
         >
-          <PlaceDetail place={place} navigation={navigation} />
+          <PlaceDetailView place={place} navigation={navigation} />
         </ScrollView>
         <TouchableOpacity
           style={styles.downArrowContainer}
@@ -840,6 +890,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Book',
     fontSize: sizes.b2,
     paddingHorizontal: 2,
+    alignSelf: 'center',
+    textAlign: 'left',
+    width: '100%',
+  },
+  reviewTextHidden: {
+    opacity: 0,
+    position: 'absolute',
+    zIndex: -1,
   },
   ratingsContainer: {
     flex: 1,

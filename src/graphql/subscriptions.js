@@ -39,6 +39,7 @@ export const onCreateFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -114,6 +115,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl
@@ -189,6 +191,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
       }
       categories
       placeType
+      imgUrl
       placeInfo {
         name
         priceLvl

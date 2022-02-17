@@ -32,6 +32,7 @@ type FeastItem
   coordinates: Coordinate
   categories: [String]
   placeType: String
+  imgUrl: String
   placeInfo: PlaceInfo
   placeUserInfo: PlaceUserInfo
   dish: String

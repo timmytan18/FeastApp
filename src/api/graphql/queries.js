@@ -194,6 +194,7 @@ export const getUserReviews = /* GraphQL */ `
         timestamp
         categories
         picture
+        imgUrl
         dish
         review
         rating {
@@ -236,6 +237,7 @@ export const getUserReviewsWithUserInfo = /* GraphQL */ `
         timestamp
         categories
         picture
+        imgUrl
         dish
         review
         rating {
@@ -281,7 +283,7 @@ export const getPlaceInDB = /* GraphQL */ `
   }
 `;
 
-export const getPlaceInDBWithCategories = /* GraphQL */ `
+export const getPlaceInDBWithCategoriesAndPicture = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
     $SK: ModelStringKeyConditionInput
@@ -302,6 +304,7 @@ export const getPlaceInDBWithCategories = /* GraphQL */ `
         PK
         placeInfo {
           categories
+          imgUrl
         }
       }
       nextToken
