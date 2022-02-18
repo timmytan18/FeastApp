@@ -21,20 +21,7 @@ const ReviewItem = ({ item, openPlace }) => {
   } = item;
   const date = new Date(timestamp);
 
-  const [numLines, setNumLines] = useState(null);
-  const numLinesExpanded = useRef(null);
-  const lineHeight = useRef(null);
-
-  const onTextLayout = useCallback((e) => {
-    if (!numLinesExpanded.current) {
-      numLinesExpanded.current = e.nativeEvent.lines.length;
-      // get line height to calculate marginBottom on expand
-      lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
-      setNumLines(NUM_COLLAPSED_LINES);
-    }
-  }, []);
-
-  const isExpanded = numLines === numLinesExpanded.current;
+  const [textExpanded, setTextExpanded] = useState(false);
 
   if (!review) {
     return null;
@@ -67,11 +54,8 @@ const ReviewItem = ({ item, openPlace }) => {
         </View>
         <Text
           style={styles.reviewText}
-          onTextLayout={onTextLayout}
-          numberOfLines={numLines}
-          onPress={() => setNumLines(
-            isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded.current,
-          )}
+          numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
+          onPress={() => setTextExpanded(!textExpanded)}
         >
           {review}
         </Text>

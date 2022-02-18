@@ -47,6 +47,38 @@ const NUM_COLLAPSED_LINES = 2;
 
 const storyDuration = 6000;
 
+const ReviewText = ({
+  review,
+}) => {
+  const shouldExpand = useRef(null);
+  const [numLines, setNumLines] = useState(null);
+  const [expanded, setExpanded] = useState(false);
+  const onTextLayout = useCallback((e) => {
+    if (shouldExpand.current !== null) return;
+    shouldExpand.current = e.nativeEvent.lines.length > NUM_COLLAPSED_LINES;
+    if (shouldExpand.current) setNumLines(NUM_COLLAPSED_LINES);
+  }, []);
+
+  useEffect(() => {
+    shouldExpand.current = null;
+  });
+
+  console.log('render');
+
+  return (
+    <Text
+      style={styles.reviewText}
+      onTextLayout={onTextLayout}
+      numberOfLines={expanded ? null : numLines}
+      onPress={() => setExpanded(!expanded)}
+    >
+      {review}
+    </Text>
+  );
+};
+
+const MemoizedText = React.memo(ReviewText);
+
 const StoryModal = ({ navigation, route }) => {
   const {
     stories,
@@ -109,7 +141,7 @@ const StoryModal = ({ navigation, route }) => {
   const goToNextStory = () => {
     if (index.current === numStories.current - 1) closeModal();
     else {
-      setNumLinesExpanded(null);
+      setTextExpanded(false);
       setIndexState(++index.current);
     }
   };
@@ -117,7 +149,7 @@ const StoryModal = ({ navigation, route }) => {
   const goToPrevStory = () => {
     if (index.current === 0) startBarAnimation();
     else {
-      setNumLinesExpanded(null);
+      setTextExpanded(false);
       setIndexState(--index.current);
     }
   };
@@ -383,26 +415,22 @@ const StoryModal = ({ navigation, route }) => {
     }
   };
 
-  const [numLines, setNumLines] = useState(null);
-  // const numLinesExpanded = useRef(null);
-  const [numLinesExpanded, setNumLinesExpanded] = useState(null);
-  const lineHeight = useRef(null);
-
-  const onTextLayout = useCallback((e) => {
-    if (numLinesExpanded == null) {
-      setNumLinesExpanded(e.nativeEvent.lines.length);
-      lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
-      setNumLines(NUM_COLLAPSED_LINES);
-    }
-  }, []);
-
-  const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > NUM_COLLAPSED_LINES);
+  const [textExpanded, setTextExpanded] = useState(false);
 
   // const placeholderReview = 'Ordered so much food - overall good portions and taste was great. Definitely recommend! Ordered so much food - overall good portions and taste was great. Definitely recommend good portions and taste was great. Definitely recommend!';
 
   // rating = {
   //   overall: 5, food: 4, service: 4.5, atmosphere: 2, value: 3.5,
   // };
+
+  const onTextLayout = useCallback((e) => {
+    // if (numLinesExpanded == null) {
+    //   setNumLinesExpanded(e.nativeEvent.lines.length);
+    //   lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
+    //   setNumLines(NUM_COLLAPSED_LINES);
+    // }
+    console.log('onTextLayout');
+  }, []);
 
   return (
     <Animated.View
@@ -531,25 +559,7 @@ const StoryModal = ({ navigation, route }) => {
             </View>
           )}
         </View>
-        {numLinesExpanded == null && (
-          <View pointerEvents="box-none">
-            <Text
-              style={[styles.reviewText, styles.reviewTextHidden]}
-              onTextLayout={onTextLayout}
-            >
-              {review}
-            </Text>
-          </View>
-        )}
-        <Text
-          style={[styles.reviewText]}
-          numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
-          onPress={() => setNumLines(
-            isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
-          )}
-        >
-          {review}
-        </Text>
+        <MemoizedText review={review} />
         <ImageBackground
           style={styles.imageContainer}
           imageStyle={{ borderRadius: wp(2) }}
@@ -560,7 +570,7 @@ const StoryModal = ({ navigation, route }) => {
           </View>
           {dish && <Text style={styles.menuItemText}>{dish}</Text>}
         </ImageBackground>
-        {!isExpanded && (
+        {!textExpanded && (
           <View style={styles.ratingsContainer}>
             {rating && rating.food && (
               <View style={styles.ratingContainer}>
