@@ -154,6 +154,7 @@ const PostDetails = ({ navigation, route }) => {
           [{ text: 'OK' }],
           { cancelable: false },
         );
+        setShareDisable(false);
         return;
       }
 
@@ -211,6 +212,7 @@ const PostDetails = ({ navigation, route }) => {
           [{ text: 'OK' }],
           { cancelable: false },
         );
+        setShareDisable(false);
         return;
       }
 
