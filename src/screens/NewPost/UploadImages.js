@@ -56,7 +56,7 @@ const UploadImages = ({ navigation, route }) => {
   const { business } = route.params;
 
   const placeExists = useRef(false);
-  const placeCategoriesImgUrl = useRef(null);
+  const placeCategoriesImgUrl = useRef({ categories: null, imgUrl: null });
 
   // Fetch place from DB if exists, if not, scrape and create new place
   useEffect(() => {
@@ -195,7 +195,6 @@ const UploadImages = ({ navigation, route }) => {
         disabled={!picture}
         onPress={async () => {
           const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
-          console.log('placeCategoriesImgUrl.current = ', placeCategoriesImgUrl.current);
           navigation.navigate('PostDetails', {
             business,
             picture: croppedImg,

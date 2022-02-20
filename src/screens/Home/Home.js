@@ -263,7 +263,7 @@ const Home = ({ navigation }) => {
       }
       // Fetch pictures for each post
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
-        stories.current = posts;
+        stories.current = posts.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
         setLoadingStories('none');
         navigation.push('StoryModal', {
           screen: 'StoryModal',

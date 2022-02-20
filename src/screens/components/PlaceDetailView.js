@@ -66,7 +66,6 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
   const [deliveryPressed, setDeliveryPressed] = useState(false);
   const [menuWebPressed, setMenuWebPressed] = useState(false);
 
-  console.log(place);
   if (!place || !place.placeInfo) {
     return <View />;
   }
