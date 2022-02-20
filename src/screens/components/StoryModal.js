@@ -51,7 +51,7 @@ const StoryModal = ({ navigation, route }) => {
   const {
     stories,
     users,
-    place,
+    places,
     deviceHeight,
   } = route.params;
 
@@ -60,10 +60,11 @@ const StoryModal = ({ navigation, route }) => {
   const index = useRef(0);
   const [indexState, setIndexState] = useState(0);
   const numStories = useRef(stories.length);
+  const place = useRef(null);
 
   // animation for bar
-  const [inputAnim] = useState(new Animated.Value(0));
-  const inputTranslate = inputAnim.interpolate({
+  const [progressAnim] = useState(new Animated.Value(0));
+  const progressTranslate = progressAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['5%', '100%'],
   });
@@ -78,17 +79,17 @@ const StoryModal = ({ navigation, route }) => {
 
   const startBarAnimation = () => {
     // reset to beginning
-    inputAnim.setValue(0);
+    progressAnim.setValue(0);
 
     // start animation
-    Animated.timing(inputAnim, barAnimOptions).start(({ finished }) => {
+    Animated.timing(progressAnim, barAnimOptions).start(({ finished }) => {
       if (finished) goToNextStory();
     });
   };
 
   // restart animation when current story index changes
   useEffect(() => {
-    Animated.timing(inputAnim).stop();
+    Animated.timing(progressAnim).stop();
     startBarAnimation();
   }, [indexState]);
 
@@ -100,7 +101,7 @@ const StoryModal = ({ navigation, route }) => {
 
       // blur
       return () => {
-        Animated.timing(inputAnim).stop();
+        Animated.timing(progressAnim).stop();
       };
     }, []),
   );
@@ -124,13 +125,30 @@ const StoryModal = ({ navigation, route }) => {
 
   const enablePanResponder = useRef(true);
   const [enablePanResponderState, setEnablePanResponderState] = useState(true);
-  const translateVal = useRef(new Animated.Value(0)).current;
-  const translateAnim = ({ value }) => {
-    Animated.spring(translateVal, {
+  const translateXVal = useRef(new Animated.Value(0)).current;
+  const translateYVal = useRef(new Animated.Value(0)).current;
+  const translateXAnim = ({ value }) => {
+    Animated.spring(translateXVal, {
       toValue: value,
       bounciness: 4,
       useNativeDriver: true,
     }).start();
+  };
+  const translateYAnim = ({ value }) => {
+    Animated.spring(translateYVal, {
+      toValue: value,
+      bounciness: 4,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const panToLeft = () => {
+    translateXAnim({ value: -wp(100) });
+    // setFirstCardCurrent(false);
+    // firstCardCurrentRef.current = false;
+  };
+  const panToRight = () => {
+    translateXAnim({ value: wp(100) });
   };
 
   // Calculate scroll thresholds to animate between top/bottom or exit modal
@@ -169,14 +187,14 @@ const StoryModal = ({ navigation, route }) => {
   const panToTop = () => {
     enablePanResponder.current = true;
     setEnablePanResponderState(true);
-    translateAnim({ value: 0 });
+    translateYAnim({ value: 0 });
     startBarAnimation();
   };
   const panToBottom = () => {
     enablePanResponder.current = false;
     setEnablePanResponderState(false);
-    translateAnim({ value: -deviceHeight });
-    Animated.timing(inputAnim).stop();
+    translateYAnim({ value: -deviceHeight });
+    Animated.timing(progressAnim).stop();
   };
   const closeModal = () => {
     if (navigation.canGoBack()) {
@@ -185,15 +203,16 @@ const StoryModal = ({ navigation, route }) => {
   };
 
   const movementType = useRef('');
+  // const swipeDirection = useRef(''); // horizontal or vertical
   const continueBarAnimation = () => {
-    // const currAnimVal = parseInt(JSON.stringify(inputAnim), 10);
-    const currAnimVal = inputAnim._value; // could be better way to get current animation
+    // const currAnimVal = parseInt(JSON.stringify(progressAnim), 10);
+    const currAnimVal = progressAnim._value; // could be better way to get current animation
     const duration = storyDuration - currAnimVal * storyDuration;
     const options = {
       ...barAnimOptions,
       duration,
     };
-    Animated.timing(inputAnim, options).start(({ finished }) => {
+    Animated.timing(progressAnim, options).start(({ finished }) => {
       if (finished) goToNextStory();
     });
   };
@@ -201,17 +220,28 @@ const StoryModal = ({ navigation, route }) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => enablePanResponder.current,
       onPanResponderGrant: () => {
-        Animated.timing(inputAnim).stop();
+        Animated.timing(progressAnim).stop();
         setTimeout(() => {
           if (movementType.current !== 'swipe') movementType.current = 'hold';
         }, 300);
       },
       onPanResponderStart: () => {
         movementType.current = 'tap';
+        // swipeDirection.current = '';
       },
       onPanResponderMove: (_, gestureState) => {
         movementType.current = 'swipe';
-        translateVal.setValue(gestureState.dy / 3);
+        // if (swipeDirection.current === 'horizontal') {
+        //   translateXVal.setValue(gestureState.dx / 2);
+        // } else if (swipeDirection.current === 'vertical') {
+        //   translateYVal.setValue(gestureState.dy / 3);
+        // } else if (Math.abs(gestureState.dx) > Math.abs(gestureState.dy)) {
+        //   swipeDirection.current = 'horizontal';
+        //   translateXVal.setValue(gestureState.dx);
+        // } else {
+        //   swipeDirection.current = 'vertical';
+        translateYVal.setValue(gestureState.dy / 3);
+        // }
       },
       onPanResponderRelease: (_, gestureState) => {
         // three different types of movements: tap, hold, swipe
@@ -219,13 +249,13 @@ const StoryModal = ({ navigation, route }) => {
           case 'tap':
             if (gestureState.x0 > 250) {
               // stop current animation in place
-              Animated.timing(inputAnim).stop();
+              Animated.timing(progressAnim).stop();
 
               // options
               const options = { ...barAnimOptions, duration: 75 };
 
               // start animation, always jump to next story
-              Animated.timing(inputAnim, options).start(goToNextStory);
+              Animated.timing(progressAnim, options).start(goToNextStory);
             } else if (gestureState.x0 < 150) {
               goToPrevStory();
             } else {
@@ -237,6 +267,22 @@ const StoryModal = ({ navigation, route }) => {
             continueBarAnimation();
             break;
           case 'swipe':
+            // horizontal swipe
+            // if (swipeDirection.current === 'horizontal') {
+            //   if (gestureState.dx < -100) {
+            //     // swipe left
+            //     console.log('swipe left');
+            //     panToLeft();
+            //   } else if (gestureState.dx > 100) {
+            //     // swipe right
+            //     console.log('swipe right');
+            //     panToRight();
+            //   } else {
+            //     translateXAnim({ value: 0 });
+            //     continueBarAnimation();
+            //   }
+            //   // vertical swipe
+            // } else if (swipeDirection.current === 'vertical') {
             if (gestureState.dy < -100) {
               // swipe up
               panToBottom();
@@ -244,9 +290,10 @@ const StoryModal = ({ navigation, route }) => {
               // swipe down
               closeModal();
             } else {
-              translateAnim({ value: 0 });
+              translateYAnim({ value: 0 });
               continueBarAnimation();
             }
+            // }
             break;
           default:
             break;
@@ -266,6 +313,7 @@ const StoryModal = ({ navigation, route }) => {
     } = stories[index.current]);
     ({ userName, userPic } = users[uid]);
   }
+  place.current = places[placeId];
   const elapsedTime = getElapsedTime(timestamp);
 
   const [loading, setLoading] = useState(false);
@@ -404,311 +452,335 @@ const StoryModal = ({ navigation, route }) => {
   //   overall: 5, food: 4, service: 4.5, atmosphere: 2, value: 3.5,
   // };
 
+  // const [firstCardCurrent, setFirstCardCurrent] = useState(true);
+  // const firstCardCurrentRef = useRef(true);
+
+  // const prevCardStyle = {
+  //   backgroundColor: 'blue',
+  //   position: 'absolute',
+  //   width: '100%',
+  //   height: '100%',
+  //   right: wp(100),
+  // };
+
+  // const nextCardStyle = {
+  //   backgroundColor: 'red',
+  //   position: 'absolute',
+  //   width: '100%',
+  //   height: '100%',
+  //   left: wp(100),
+  // };
+
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          transform: [{ translateY: translateVal }],
-          opacity: loading ? 0.6 : 1,
-        },
-      ]}
-    >
-      <StatusBar animated barStyle="light-content" />
-      <MoreView
-        items={moreItems}
-        morePressed={morePressed}
-        setMorePressed={setMorePressed}
-        onDismiss={() => continueBarAnimation()}
-      />
-      {loading
-        && (
-          <View style={{
-            position: 'absolute',
-            height: '100%',
-            width: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1,
-          }}
-          >
-            <CenterSpinner />
-          </View>
-        )}
-      <View style={styles.cardContainer} {...panResponder.panHandlers}>
-        <View style={styles.progressContainer}>
-          {stories
-            && (stories.map((story, i) => (
-              <View
-                key={story.SK}
-                style={[styles.progressBar, { marginHorizontal: 2, flex: 1 }]}
-              >
-                {i < indexState && (
-                  <View style={[
-                    styles.progressBar,
-                    { backgroundColor: colors.gray, flex: 1 },
-                  ]}
-                  />
-                )}
-                {i === indexState
-                  && (
-                    <Animated.View
-                      style={[
-                        styles.progressBar,
-                        { backgroundColor: colors.gray, width: inputTranslate },
-                      ]}
+    <View style={{ flex: 1 }}>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            transform: [
+              { translateX: translateXVal },
+              { translateY: translateYVal },
+            ],
+            opacity: loading ? 0.6 : 1,
+          },
+        ]}
+      >
+        <StatusBar animated barStyle="light-content" />
+        <MoreView
+          items={moreItems}
+          morePressed={morePressed}
+          setMorePressed={setMorePressed}
+          onDismiss={() => continueBarAnimation()}
+        />
+        {loading
+          && (
+            <View style={{
+              position: 'absolute',
+              height: '100%',
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1,
+            }}
+            >
+              <CenterSpinner />
+            </View>
+          )}
+        <View style={styles.cardContainer} {...panResponder.panHandlers}>
+          <View style={styles.progressContainer}>
+            {stories
+              && (stories.map((story, i) => (
+                <View
+                  key={story.SK}
+                  style={[styles.progressBar, { marginHorizontal: 2, flex: 1 }]}
+                >
+                  {i < indexState && (
+                    <View style={[
+                      styles.progressBar,
+                      { backgroundColor: colors.gray, flex: 1 },
+                    ]}
                     />
                   )}
-              </View>
-            )))}
-        </View>
-        <View style={styles.headerContainer}>
-          <View style={{ flexDirection: 'row', flex: 0.9 }}>
-            <TouchableOpacity
-              onPress={fetchCurrentUser}
-              activeOpacity={0.8}
-              style={styles.profilePic}
-            >
-              <ProfilePic
-                uid={uid}
-                extUrl={userPic}
-                size={wp(12.5)}
-                style={{ flex: 1 }}
-              />
-            </TouchableOpacity>
-            <View style={styles.headerTextContainer}>
-              <View style={styles.nameElapsedTimeContainer}>
-                <TouchableOpacity onPress={fetchCurrentUser} activeOpacity={0.8}>
-                  <Text style={styles.nameText}>{userName}</Text>
-                </TouchableOpacity>
-                <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
-              </View>
-              <View style={styles.locationContainer}>
-                <MapMarker size={wp(4.8)} color={colors.accent} />
-                <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
+                  {i === indexState
+                    && (
+                      <Animated.View
+                        style={[
+                          styles.progressBar,
+                          { backgroundColor: colors.gray, width: progressTranslate },
+                        ]}
+                      />
+                    )}
+                </View>
+              )))}
+          </View>
+          <View style={styles.headerContainer}>
+            <View style={{ flexDirection: 'row', flex: 0.9 }}>
+              <TouchableOpacity
+                onPress={fetchCurrentUser}
+                activeOpacity={0.8}
+                style={styles.profilePic}
+              >
+                <ProfilePic
+                  uid={uid}
+                  extUrl={userPic}
+                  size={wp(12.5)}
+                  style={{ flex: 1 }}
+                />
+              </TouchableOpacity>
+              <View style={styles.headerTextContainer}>
+                <View style={styles.nameElapsedTimeContainer}>
+                  <TouchableOpacity onPress={fetchCurrentUser} activeOpacity={0.8}>
+                    <Text style={styles.nameText}>{userName}</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
+                </View>
+                <View style={styles.locationContainer}>
+                  <MapMarker size={wp(4.8)} color={colors.accent} />
+                  <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
+                </View>
               </View>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                setMorePressed(true);
+                Animated.timing(progressAnim).stop();
+              }}
+              style={styles.moreContainer}
+            >
+              <ThreeDots rotated size={wp(5)} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              setMorePressed(true);
-              Animated.timing(inputAnim).stop();
-            }}
-            style={styles.moreContainer}
+          <View style={styles.reviewTitleStarsContainer}>
+            <Text style={styles.reviewTitleText}>
+              Review:
+            </Text>
+            {rating && rating.overall && (
+              <View style={styles.starsContainer}>
+                <Stars
+                  default={rating.overall}
+                  count={5}
+                  half
+                  disabled
+                  spacing={wp(0.6)}
+                  fullStar={(
+                    <MaskedView
+                      maskElement={(
+                        <StarFull size={wp(5)} />
+                      )}
+                    >
+                      <LinearGradient
+                        colors={rating.overall < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
+                        start={[-0.35, 1]}
+                        end={[0.75, 1]}
+                        style={{ width: wp(5), height: wp(5) }}
+                      />
+                    </MaskedView>
+                  )}
+                  halfStar={<StarHalf size={wp(5)} />}
+                  emptyStar={<StarEmpty size={wp(5)} />}
+                />
+              </View>
+            )}
+          </View>
+          {numLinesExpanded == null && (
+            <View pointerEvents="box-none">
+              <Text
+                style={[styles.reviewText, styles.reviewTextHidden]}
+                onTextLayout={onTextLayout}
+              >
+                {review}
+              </Text>
+            </View>
+          )}
+          <Text
+            style={[styles.reviewText]}
+            numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
+            onPress={() => setNumLines(
+              isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
+            )}
           >
-            <ThreeDots rotated size={wp(5)} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.reviewTitleStarsContainer}>
-          <Text style={styles.reviewTitleText}>
-            Review:
+            {review}
           </Text>
-          {rating && rating.overall && (
-            <View style={styles.starsContainer}>
-              <Stars
-                default={rating.overall}
-                count={5}
-                half
-                disabled
-                spacing={wp(0.6)}
-                fullStar={(
+          <ImageBackground
+            style={styles.imageContainer}
+            imageStyle={{ borderRadius: wp(2) }}
+            source={{ uri: s3Photo }}
+          >
+            <View style={styles.emojiContainer}>
+              <Text style={styles.emojiText}>😋</Text>
+            </View>
+            {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+          </ImageBackground>
+          {!isExpanded && (
+            <View style={styles.ratingsContainer}>
+              {rating && rating.food && (
+                <View style={styles.ratingContainer}>
+                  <View>
+                    <Rating
+                      isGradient={rating.food > 4.5}
+                      color={ratingColor(rating.food)}
+                      size={ratingIconSize}
+                    />
+                    <View style={styles.ratingIconContainer}>
+                      <Text style={styles.ratingText}>
+                        {rating.food}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.ratingLabelText}>Food</Text>
+                </View>
+              )}
+              {rating && rating.value && (
+                <View style={styles.ratingContainer}>
+                  <View>
+                    <Rating
+                      isGradient={rating.value > 4.5}
+                      color={ratingColor(rating.value)}
+                      size={ratingIconSize}
+                    />
+                    <View style={styles.ratingIconContainer}>
+                      <Text style={styles.ratingText}>
+                        {rating.value}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.ratingLabelText}>Value</Text>
+                </View>
+              )}
+              {rating && rating.service && (
+                <View style={styles.ratingContainer}>
+                  <View>
+                    <Rating
+                      isGradient={rating.service > 4.5}
+                      color={ratingColor(rating.service)}
+                      size={ratingIconSize}
+                    />
+                    <View style={styles.ratingIconContainer}>
+                      <Text style={styles.ratingText}>
+                        {rating.service}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.ratingLabelText}>Service</Text>
+                </View>
+              )}
+              {rating && rating.atmosphere && (
+                <View style={styles.ratingContainer}>
+                  <View>
+                    <Rating
+                      isGradient={rating.atmosphere > 4.5}
+                      color={ratingColor(rating.atmosphere)}
+                      size={ratingIconSize}
+                    />
+                    <View style={styles.ratingIconContainer}>
+                      <Text style={styles.ratingText}>
+                        {rating.atmosphere}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.ratingLabelText}>Atmosphere</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+        <View style={styles.middleContainer}>
+          <View style={styles.middleButtonsContainer}>
+            <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
+              <SaveButton size={wp(10.5)} />
+            </View>
+            <View style={styles.viewPlaceBtnContainer}>
+              <SwipeUpArrow />
+              <LinearGradient
+                colors={gradients.orange.colors}
+                start={gradients.orange.start}
+                end={gradients.orange.end}
+                style={styles.viewPlaceBtnGradient}
+              >
+                <TouchableOpacity
+                  style={styles.viewPlaceBtn}
+                  onPress={() => panToBottom()}
+                  activeOpacity={1}
+                >
                   <MaskedView
                     maskElement={(
-                      <StarFull size={wp(5)} />
+                      <View style={styles.viewPlaceBtnTextContainer}>
+                        <Text style={styles.viewPlaceBtnText}>View Place</Text>
+                      </View>
                     )}
                   >
                     <LinearGradient
-                      colors={rating.overall < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
-                      start={[-0.35, 1]}
-                      end={[0.75, 1]}
-                      style={{ width: wp(5), height: wp(5) }}
+                      colors={gradients.orange.colors}
+                      start={gradients.orange.start}
+                      end={gradients.orange.end}
+                      style={{ width: wp(23), height: '100%' }}
                     />
                   </MaskedView>
-                )}
-                halfStar={<StarHalf size={wp(5)} />}
-                emptyStar={<StarEmpty size={wp(5)} />}
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+            <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
+              <YumButton size={wp(10.5)} />
+            </View>
+          </View>
+        </View>
+        <View style={[styles.bottomContainer, { height: deviceHeight, bottom: -deviceHeight }]}>
+          <ScrollView
+            style={styles.scrollView}
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={200}
+            onScroll={({ nativeEvent }) => {
+              const pos = isCloseToTopBottom(nativeEvent);
+              if (pos === 'TOP') {
+                panToTop();
+              }
+            }}
+          >
+            <PlaceDetailView place={place.current} navigation={navigation} />
+          </ScrollView>
+          <TouchableOpacity
+            style={styles.downArrowContainer}
+            onPress={() => {
+              scrollRef.current?.scrollTo({
+                y: 0,
+                animated: true,
+              });
+              panToTop();
+            }}
+            activeOpacity={0.7}
+          >
+            <View pointerEvents="none">
+              <BackArrow
+                color={colors.gray4}
+                size={wp(6)}
+                style={styles.downArrow}
               />
             </View>
-          )}
+          </TouchableOpacity>
         </View>
-        {numLinesExpanded == null && (
-          <View pointerEvents="box-none">
-            <Text
-              style={[styles.reviewText, styles.reviewTextHidden]}
-              onTextLayout={onTextLayout}
-            >
-              {review}
-            </Text>
-          </View>
-        )}
-        <Text
-          style={[styles.reviewText]}
-          numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
-          onPress={() => setNumLines(
-            isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
-          )}
-        >
-          {review}
-        </Text>
-        <ImageBackground
-          style={styles.imageContainer}
-          imageStyle={{ borderRadius: wp(2) }}
-          source={{ uri: s3Photo }}
-        >
-          <View style={styles.emojiContainer}>
-            <Text style={styles.emojiText}>😋</Text>
-          </View>
-          {dish && <Text style={styles.menuItemText}>{dish}</Text>}
-        </ImageBackground>
-        {!isExpanded && (
-          <View style={styles.ratingsContainer}>
-            {rating && rating.food && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.food > 4.5}
-                    color={ratingColor(rating.food)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.food}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Food</Text>
-              </View>
-            )}
-            {rating && rating.value && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.value > 4.5}
-                    color={ratingColor(rating.value)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.value}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Value</Text>
-              </View>
-            )}
-            {rating && rating.service && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.service > 4.5}
-                    color={ratingColor(rating.service)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.service}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Service</Text>
-              </View>
-            )}
-            {rating && rating.atmosphere && (
-              <View style={styles.ratingContainer}>
-                <View>
-                  <Rating
-                    isGradient={rating.atmosphere > 4.5}
-                    color={ratingColor(rating.atmosphere)}
-                    size={ratingIconSize}
-                  />
-                  <View style={styles.ratingIconContainer}>
-                    <Text style={styles.ratingText}>
-                      {rating.atmosphere}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.ratingLabelText}>Atmosphere</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-      <View style={styles.middleContainer}>
-        <View style={styles.middleButtonsContainer}>
-          <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-            <SaveButton size={wp(10.5)} />
-          </View>
-          <View style={styles.viewPlaceBtnContainer}>
-            <SwipeUpArrow />
-            <LinearGradient
-              colors={gradients.orange.colors}
-              start={gradients.orange.start}
-              end={gradients.orange.end}
-              style={styles.viewPlaceBtnGradient}
-            >
-              <TouchableOpacity
-                style={styles.viewPlaceBtn}
-                onPress={() => panToBottom()}
-                activeOpacity={1}
-              >
-                <MaskedView
-                  maskElement={(
-                    <View style={styles.viewPlaceBtnTextContainer}>
-                      <Text style={styles.viewPlaceBtnText}>View Place</Text>
-                    </View>
-                  )}
-                >
-                  <LinearGradient
-                    colors={gradients.orange.colors}
-                    start={gradients.orange.start}
-                    end={gradients.orange.end}
-                    style={{ width: wp(23), height: '100%' }}
-                  />
-                </MaskedView>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
-          <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
-            <YumButton size={wp(10.5)} />
-          </View>
-        </View>
-      </View>
-      <View style={[styles.bottomContainer, { height: deviceHeight, bottom: -deviceHeight }]}>
-        <ScrollView
-          style={styles.scrollView}
-          ref={scrollRef}
-          showsVerticalScrollIndicator={false}
-          scrollEventThrottle={200}
-          onScroll={({ nativeEvent }) => {
-            const pos = isCloseToTopBottom(nativeEvent);
-            if (pos === 'TOP') {
-              panToTop();
-            }
-          }}
-        >
-          <PlaceDetailView place={place} navigation={navigation} />
-        </ScrollView>
-        <TouchableOpacity
-          style={styles.downArrowContainer}
-          onPress={() => {
-            scrollRef.current?.scrollTo({
-              y: 0,
-              animated: true,
-            });
-            panToTop();
-          }}
-          activeOpacity={0.7}
-        >
-          <View pointerEvents="none">
-            <BackArrow
-              color={colors.gray4}
-              size={wp(6)}
-              style={styles.downArrow}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </View>
   );
 };
 

@@ -12,7 +12,7 @@ import geohash from 'ngeohash';
 import {
   getFollowingPostsQuery,
   batchGetUserPostsQuery,
-  getPlaceDetailsQuery,
+  batchGetPlaceDetailsQuery,
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import SearchButton from '../components/util/SearchButton';
@@ -77,7 +77,11 @@ const Home = ({ navigation }) => {
   }, [state.location]);
 
   const placePosts = useRef({}); // obj of placeId: [posts]
+  const placeIdGeo = useRef({}); // obj of placeId: geo
   const usersNamePic = useRef({}); // obj of uid: { name, pic }
+
+  // Keep track of places that have been grouped together, ordered
+  const storiesGroups = useRef({}); // obj of placeId: [placeId]
 
   // Show / hide markers when region changed based on zoom level & geohash
   const onRegionChanged = async ({ markersCopy }) => {
@@ -90,25 +94,27 @@ const Home = ({ navigation }) => {
     const bestPrecision = getBestGeoPrecision({ area });
 
     const geobox = new Set(geohash.bboxes(startY, startX, endY, endX, bestPrecision));
-    const geoBoxRemaining = {};
+    const geoBoxTaken = {};
 
     let didAlterMarkers = false;
     Object.keys(markersCopy).forEach((placeKey) => {
       const hash = placeKey.slice(0, bestPrecision);
       if (geobox.has(hash)) { // if marker is in view
-        if (hash in geoBoxRemaining) { // if marker's grid already has marker
+        if (hash in geoBoxTaken) { // if marker's grid already has marker
           if (markersCopy[placeKey].visible) { // if marker is visible, set invisible
             didAlterMarkers = true;
             markersCopy[placeKey].visible = false;
           }
-          markersCopy[geoBoxRemaining[hash]].numOtherMarkers += 1;
+          markersCopy[geoBoxTaken[hash]].numOtherMarkers += 1;
+          storiesGroups.current[geoBoxTaken[hash]].push(placeKey);
         } else { // if marker in grid with no other markers
           if (!markersCopy[placeKey].visible) { // if marker not already visible, set visible
             markersCopy[placeKey].visible = true;
             didAlterMarkers = true;
           }
           markersCopy[placeKey].numOtherMarkers = 0;
-          geoBoxRemaining[hash] = placeKey;
+          geoBoxTaken[hash] = placeKey;
+          storiesGroups.current[placeKey] = [placeKey];
         }
       }
     });
@@ -157,11 +163,16 @@ const Home = ({ navigation }) => {
         const {
           PK, SK,
           placeId,
+          geo,
           coordinates: { latitude: lat, longitude: lng },
           name,
           categories,
           placeUserInfo: { picture: userPic, uid, name: userName },
         } = allPosts[i];
+
+        if (!(placeId in placeIdGeo.current)) {
+          placeIdGeo.current[placeId] = geo;
+        }
 
         // Create new posts array for place if not already created
         // If created, add post to posts array
@@ -205,7 +216,7 @@ const Home = ({ navigation }) => {
   }, [dispatch, state.user.PK, state.user.uid, state.reloadMapTrigger]);
 
   const stories = useRef([]);
-  const place = useRef({});
+  const placeDetails = useRef({}); // obj of placeId: { details }
   const [loadingStories, setLoadingStories] = useState('none');
 
   const getPostPictures = (item) => new Promise((resolve, reject) => {
@@ -222,14 +233,33 @@ const Home = ({ navigation }) => {
 
   const fetchPostDetails = async ({ placeId }) => {
     setLoadingStories(placeId);
-    // Batch fetch stories for place
+
+    const placeDetailsBatch = [];
+
+    // Create batch for all stories in group
+    const storiesBatch = [];
+    storiesGroups.current[placeId].forEach((placeKey) => {
+      storiesBatch.push(...placePosts.current[placeKey]);
+      // Add place for fetch place details if not already fetched
+      if (!(placeKey in placeDetails.current)) {
+        placeDetailsBatch.push({
+          PK: `PLACE#${placeKey}`,
+          SK: `#INFO#${placeIdGeo.current[placeKey]}`,
+        });
+      }
+    });
+
+    // Batch fetch stories for group
     const currPlacePosts = await batchGetUserPostsQuery(
-      { batch: placePosts.current[placeId] },
+      { batch: storiesBatch },
     );
     if (currPlacePosts && currPlacePosts.length) {
-      // Fetch place details for current stories, update when new place is selected
-      if (place.current.placeId !== placeId) {
-        place.current = await getPlaceDetailsQuery({ placeId });
+      // Batch fetch place details for current places
+      if (placeDetailsBatch.length) {
+        const places = await batchGetPlaceDetailsQuery({ batch: placeDetailsBatch });
+        places.forEach((place) => {
+          placeDetails.current[place.placeId] = place;
+        });
       }
       // Fetch pictures for each post
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
@@ -240,7 +270,7 @@ const Home = ({ navigation }) => {
           params: {
             stories: stories.current,
             users: usersNamePic.current,
-            place: place.current,
+            places: placeDetails.current,
             deviceHeight: state.deviceHeight,
           },
         });

@@ -442,6 +442,33 @@ export const getPlaceDetails = /* GraphQL */ `
   }
 `;
 
+export const batchGetPlaceDetails = /* GraphQL */ `
+  query BatchGetFeastItems($input: BatchGetFeastItemsInput!) {
+    batchGetFeastItems(input: $input) {
+      PK
+      SK
+      placeId
+      name
+      geo
+      placeInfo {
+        priceLvl
+        orderUrls
+        address
+        placeUrl
+        coordinates {
+          latitude
+          longitude
+        }
+        imgUrl
+        phone
+        menuUrl
+        categories
+        yelpAlias
+      }
+    }
+  }
+`;
+
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String

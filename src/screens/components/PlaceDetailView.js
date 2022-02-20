@@ -66,7 +66,8 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
   const [deliveryPressed, setDeliveryPressed] = useState(false);
   const [menuWebPressed, setMenuWebPressed] = useState(false);
 
-  if (!place) {
+  console.log(place);
+  if (!place || !place.placeInfo) {
     return <View />;
   }
 
@@ -77,16 +78,18 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
       style={{ flex: 1 }}
       key={item}
     >
-      <ImageBackground
-        source={{ uri: item }}
-        style={styles.imageContainer}
-        resizeMode="cover"
-      >
-        <LinearGradient
-          colors={['rgba(0,0,0,0.32)', 'transparent']}
-          style={styles.gradient}
-        />
-      </ImageBackground>
+      {item && (
+        <ImageBackground
+          source={{ uri: item }}
+          style={styles.imageContainer}
+          resizeMode="cover"
+        >
+          <LinearGradient
+            colors={['rgba(0,0,0,0.32)', 'transparent']}
+            style={styles.gradient}
+          />
+        </ImageBackground>
+      )}
     </View>
   );
 

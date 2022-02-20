@@ -209,6 +209,17 @@ def remove_url_params(curr_url):
     return curr_url
 
 
+def get_image_url(curr_url):
+    i = curr_url.find('mediaurl=')
+    if i > -1:
+        curr_url = remove_url_params(curr_url[i+9:])
+        print("IMAGE URL", curr_url)
+        i = curr_url.rfind('http')
+        curr_url = curr_url[i:].replace("%3a", ":")
+        return curr_url.replace("%2f", "/")
+    return curr_url
+
+
 regex = re.compile('[^a-zA-Z]')
 
 
@@ -412,8 +423,8 @@ def lambda_handler(*args, **kwargs):
     imgUrl = None
     try:
         imgUrl = sideResult.find_element_by_class_name(
-            'irp').find_element_by_tag_name('img')
-        imgUrl = remove_url_params(imgUrl.get_attribute('src'))
+            'irp').find_element_by_tag_name('a')
+        imgUrl = get_image_url(imgUrl.get_attribute('href'))
     except:
         print('no image url')
 
@@ -505,10 +516,10 @@ def lambda_handler(*args, **kwargs):
 
     PK = f'PLACE#{_id}'
     SK_begins = '#INFO#'
-    SK = f'{SK_begins}{_strippedName}'
+    SK = f'{SK_begins}{_geohash}'
     GSI1 = 'PLACE#'
-    GSI2 = 'GEO#'
-    LSI1 = f'#GEO#{_geohash}'
+    GSI2 = 'PLACE#'
+    LSI1 = f'#NAME#{_strippedName}'
 
     # Check if business is already in the database
     try:
