@@ -12,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
+// import { AnimatedEmoji } from 'react-native-animated-emoji';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import PlaceDetailView from './PlaceDetailView';
 import MoreView from './MoreView';
@@ -418,13 +419,10 @@ const StoryModal = ({ navigation, route }) => {
   const fetchCurrentUser = async () => {
     try {
       const currentUser = await getUserProfileQuery({ uid });
-
       // Check if I am following the current user
       if (currentUser.uid !== myUID) {
         currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
-        console.log('isFollowing:', currentUser.following);
       }
-
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.warn('Error fetching current user: ', err);
@@ -554,10 +552,14 @@ const StoryModal = ({ navigation, route }) => {
                   </TouchableOpacity>
                   <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
                 </View>
-                <View style={styles.locationContainer}>
+                <TouchableOpacity
+                  style={styles.locationContainer}
+                  activeOpacity={0.8}
+                  onPress={() => panToBottom()}
+                >
                   <MapMarker size={wp(4.8)} color={colors.accent} />
                   <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <TouchableOpacity
@@ -626,6 +628,14 @@ const StoryModal = ({ navigation, route }) => {
             imageStyle={{ borderRadius: wp(2) }}
             source={{ uri: s3Photo }}
           >
+            {/* <AnimatedEmoji
+              index="emoji.key" // index to identity emoji component
+              style={{ top: wp(40) }} // start bottom position
+              name="sweat_smile" // emoji name
+              size={15} // font size
+              duration={6000} // ms
+            // onAnimationCompleted={this.onAnimationCompleted}
+            /> */}
             <View style={styles.emojiContainer}>
               <Text style={styles.emojiText}>😋</Text>
             </View>

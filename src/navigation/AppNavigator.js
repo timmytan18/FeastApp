@@ -10,10 +10,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers';
 import StoryModal from '../screens/components/StoryModal';
+import Reviews from '../screens/Home/Reviews';
 import NewPost from '../screens/NewPost/NewPost';
 import Profile from '../screens/Profile/Profile';
 import FollowsList from '../screens/Profile/FollowsList';
-import Reviews from '../screens/Profile/Reviews';
+import ProfileReviews from '../screens/Profile/ProfileReviews';
 import PlaceDetail from '../screens/Profile/PlaceDetail';
 import Settings from '../screens/Profile/Settings';
 import UploadImages from '../screens/NewPost/UploadImages';
@@ -52,6 +53,22 @@ function HomeStackScreen() {
         name="FollowsList"
         component={FollowsList}
         options={{
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <HomeStack.Screen
+        name="ProfileReviews"
+        component={ProfileReviews}
+        options={{
+          title: <Text style={header.title}>User Reviews</Text>,
           headerLeft: ({ onPress }) => (
             <BackArrow
               color={colors.black}
@@ -159,10 +176,10 @@ function ProfileStackScreen() {
         }}
       />
       <ProfileStack.Screen
-        name="Reviews"
-        component={Reviews}
+        name="ProfileReviews"
+        component={ProfileReviews}
         options={{
-          title: <Text style={header.title}>Reviews</Text>,
+          title: <Text style={header.title}>User Reviews</Text>,
           headerLeft: ({ onPress }) => (
             <BackArrow
               color={colors.black}
@@ -178,6 +195,22 @@ function ProfileStackScreen() {
         name="PlaceDetail"
         component={PlaceDetail}
         options={{ headerShown: false }}
+      />
+      <ProfileStack.Screen
+        name="Reviews"
+        component={Reviews}
+        options={{
+          title: <Text style={header.title}>Reviews</Text>,
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
       />
     </ProfileStack.Navigator>
   );
@@ -205,6 +238,22 @@ function StoryModalStackScreen() {
         name="FollowsList"
         component={FollowsList}
         options={{
+          headerLeft: ({ onPress }) => (
+            <BackArrow
+              color={colors.black}
+              size={wp(6.2)}
+              style={{ flex: 1 }}
+              pressed={onPress}
+            />
+          ),
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <StoryModalStack.Screen
+        name="ProfileReviews"
+        component={ProfileReviews}
+        options={{
+          title: <Text style={header.title}>User Reviews</Text>,
           headerLeft: ({ onPress }) => (
             <BackArrow
               color={colors.black}

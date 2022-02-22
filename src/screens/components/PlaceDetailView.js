@@ -10,8 +10,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import PropTypes from 'prop-types';
 import link from './OpenLink';
-import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
+import { getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery } from '../../api/functions/queryFunctions';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
+import ReviewItem from './ReviewItem';
 import LocationMapMarker from './util/LocationMapMarker';
 import Car from './util/icons/Car';
 import LocationArrow from './util/icons/LocationArrow';
@@ -30,6 +31,8 @@ import Doordash from './util/icons/delivery/Doordash';
 import Chownow from './util/icons/delivery/Chownow';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import Ratings from './Ratings';
+import BackArrow from './util/icons/BackArrow';
+import Toggle from './util/Toggle';
 import Pagination from './util/Pagination';
 import MoreView from './MoreView';
 import { Context } from '../../Store';
@@ -211,8 +214,6 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
 const BodyContent = React.memo(({
   place, scroll, delivery, setDeliveryPressed, setMenuWebPressed, navigation,
 }) => {
-  // console.log(place, delivery)
-
   const [state, dispatch] = useContext(Context);
   const { uid, picture: userPic } = state.user;
   const { latitude: userLat, longitude: userLng } = state.location;
@@ -342,7 +343,7 @@ const BodyContent = React.memo(({
               </View>
             )}
             <TouchableOpacity
-              style={[styles.orderButtonContainer]}
+              style={[styles.orderButtonContainer, !delivery && { ...shadows.lighter }]}
               onPress={() => setDeliveryPressed(true)}
               disabled={!delivery}
             >
@@ -369,23 +370,7 @@ const BodyContent = React.memo(({
         )}
       </View>
       <View style={styles.breaker} />
-      <View style={styles.bottomContainer}>
-        <View style={styles.userReviewsContainer}>
-          <Text style={[
-            styles.reviewTitleText,
-            {
-              fontSize: sizes.h3, marginBottom: wp(4), textAlign: 'center', paddingRight: wp(2),
-            },
-          ]}
-          >
-            Feast User Reviews
-          </Text>
-          <View style={styles.ratingsContainer}>
-            <Ratings food={4.5} value={4.5} service={3.5} atmosphere={3} />
-          </View>
-          <Reviews navigation={navigation} placeId={place.placeId} myUID={uid} />
-        </View>
-      </View>
+      <Reviews navigation={navigation} placeId={place.placeId} myUID={uid} />
       <View style={styles.breaker} />
       <View style={styles.mapContainer}>
         <MapView
@@ -446,60 +431,121 @@ const examplePfp = 'https://s3-media0.fl.yelpcdn.com/bphoto/WMojIYn70kkIVyXX1OEC
 
 Image.prefetch(examplePfp);
 
+const NUM_REVIEWS_TO_SHOW = 5;
+
 const Reviews = ({ navigation, placeId, myUID }) => {
-  const fetchCurrentUser = async ({ uid }) => {
-    try {
-      const currentUser = await getUserProfileQuery({ uid });
+  const [reviews, setReviews] = useState([]);
+  const ratings = useRef([0, 0, 0, 0]);
+  const nextToken = useRef(null);
+  const seenReviewRatings = useRef({});
 
-      // Check if I am following the current user
-      if (currentUser.uid !== myUID) {
-        currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
-        console.log('isFollowing:', currentUser.following);
-      }
+  const [leftSelected, setLeftSelected] = useState(true);
 
-      navigation.push('Profile', { user: currentUser });
-    } catch (err) {
-      console.warn('Error fetching current user: ', err);
+  useEffect(() => {
+    const tab = leftSelected ? 'FRIENDS' : 'ALL';
+    // Fetch reviews if not already fetched for current selected tab (friends or all)
+    if (!(placeId in seenReviewRatings.current) || !(tab in seenReviewRatings.current[placeId])) {
+      (async () => {
+        const {
+          userReviews,
+          nextToken: currNextToken,
+        } = leftSelected
+            ? await getPlaceFollowingUserReviewsQuery({
+              myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
+            })
+            : await getPlaceAllUserReviewsQuery({
+              myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
+            });
+        // Calculate average ratings
+        const currRatings = [0, 0, 0, 0];
+        userReviews.forEach((rev) => {
+          const {
+            food, value, service, atmosphere,
+          } = rev.rating;
+          currRatings[0] += food;
+          currRatings[1] += value;
+          currRatings[2] += service;
+          currRatings[3] += atmosphere;
+        });
+        currRatings.forEach((rating, i) => {
+          currRatings[i] = rating / userReviews.length;
+        });
+        ratings.current = currRatings;
+        nextToken.current = currNextToken;
+        // Save place reviews and average ratings
+        seenReviewRatings.current[placeId] = {
+          tab: {
+            currReviews: userReviews, currRatings, currNextToken,
+          },
+        };
+        setReviews(userReviews);
+      })();
+    } else {
+      // Set reviews and ratings from saved data
+      const {
+        currReviews, currRatings, currNextToken,
+      } = seenReviewRatings.current[placeId].tab;
+      ratings.current = currRatings;
+      nextToken.current = currNextToken;
+      setReviews(currReviews);
     }
+  }, [placeId, myUID, leftSelected]);
+
+  const navigateToAllReviews = () => {
+    navigation.push('Reviews', {
+      placeId,
+      fetchedReviews: [...reviews],
+      fetchedNextToken: nextToken.current,
+      fromFollowingOnly: leftSelected,
+    });
   };
 
+  const [food, value, service, atmosphere] = ratings.current;
+
   return (
-    <View style={styles.userReviewsContainer}>
-      <View style={styles.userReviewContainer}>
-        <TouchableOpacity style={styles.userPictureContainer} activeOpacity={0.7} onPress={() => fetchCurrentUser({ uid: 'c8d97d30-5d3f-44d6-84fc-1cd4d3a14e7a' })}>
-          <Image style={styles.userPicture} source={{ uri: examplePfp }} />
-        </TouchableOpacity>
-        <View style={styles.userNameReviewContainer}>
-          <Text style={styles.reviewTitleText}>Tim Tan</Text>
-          <Text style={styles.userReviewText}>Wow, this restaurant is amazing. Wow, this restaurant is amazing.  </Text>
+    <View style={styles.bottomContainer}>
+      <View style={styles.userReviewsContainer}>
+        <View style={styles.toggleContainer}>
+          <Toggle
+            selectedColor={colors.lightBlue}
+            leftText="Friends"
+            rightText="All"
+            leftSelected={leftSelected}
+            setLeftSelected={setLeftSelected}
+          />
         </View>
-      </View>
-      <View style={styles.userReviewContainer}>
-        <TouchableOpacity style={styles.userPictureContainer}>
-          <Image style={styles.userPicture} source={{ uri: examplePfp }} />
-        </TouchableOpacity>
-        <View style={styles.userNameReviewContainer}>
-          <Text style={styles.reviewTitleText}>Swole Biafore</Text>
-          <Text style={styles.userReviewText}>Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. </Text>
+        <Text style={[styles.reviewTitleText, { marginBottom: wp(4), marginLeft: 1 }]}>
+          {leftSelected ? "Friends' Reviews" : 'All Reviews'}
+        </Text>
+        <View style={styles.ratingsContainer}>
+          <Ratings food={food} value={value} service={service} atmosphere={atmosphere} />
         </View>
-      </View>
-      <View style={styles.userReviewContainer}>
-        <TouchableOpacity style={styles.userPictureContainer}>
-          <Image style={styles.userPicture} source={{ uri: examplePfp }} />
-        </TouchableOpacity>
-        <View style={styles.userNameReviewContainer}>
-          <Text style={styles.reviewTitleText}>Clammy Handy</Text>
-          <Text style={styles.userReviewText}>Wow, this restaurant is amazing. </Text>
+        <View style={styles.userReviewsContainer}>
+          {reviews.map((item) => (
+            <ReviewItem
+              item={item}
+              myUID={myUID}
+              navigation={navigation}
+              key={item.SK}
+            />
+          ))}
         </View>
-      </View>
-      <View style={styles.userReviewContainer}>
-        <TouchableOpacity style={styles.userPictureContainer}>
-          <Image style={styles.userPicture} source={{ uri: examplePfp }} />
-        </TouchableOpacity>
-        <View style={styles.userNameReviewContainer}>
-          <Text style={styles.reviewTitleText}>Trevor Popeman</Text>
-          <Text style={styles.userReviewText}>Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. </Text>
-        </View>
+        {nextToken.current && (
+          <TouchableOpacity
+            style={styles.seeMoreContainer}
+            activeOpacity={0.5}
+            onPress={navigateToAllReviews}
+          >
+            <Text style={styles.seeMoreText}>See more reviews</Text>
+            <View pointerEvents="none">
+              <BackArrow
+                color={colors.tertiary}
+                size={wp(5)}
+                style={styles.downArrow}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -538,7 +584,7 @@ const styles = StyleSheet.create({
     top: wp(12),
   },
   downArrow: {
-    transform: [{ rotate: '-90deg' }],
+    transform: [{ rotate: '180deg' }],
     ...shadows.base,
   },
   rootInfoContainer: {
@@ -631,12 +677,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: wp(14),
     width: wp(14),
-    borderRadius: wp(14) / 2,
+    borderRadius: wp(4),
     marginLeft: wp(5),
+    ...shadows.even,
   },
   orderButtonContainer: {
     alignItems: 'center',
     marginLeft: wp(4),
+    ...shadows.darker,
   },
   orderButtonText: {
     fontSize: wp(3.3),
@@ -667,14 +715,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray2,
   },
   bottomContainer: {
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(4.5),
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   ratingsContainer: {
     width: '99%',
-    marginBottom: wp(5),
+    marginBottom: wp(6),
     alignSelf: 'center',
+  },
+  toggleContainer: {
+    alignItems: 'center',
+    marginTop: wp(1.5),
+    marginBottom: wp(7),
   },
   userReviewsContainer: {
     marginHorizontal: wp(0.5),
@@ -696,7 +749,7 @@ const styles = StyleSheet.create({
     height: wp(11),
     borderRadius: wp(11) / 2,
     marginRight: wp(1),
-    marginTop: wp(1),
+    marginTop: wp(0.4),
     backgroundColor: colors.gray3,
   },
   userPicture: {
@@ -714,12 +767,25 @@ const styles = StyleSheet.create({
     fontSize: sizes.b2,
     fontFamily: 'Book',
     color: colors.black,
+    marginTop: wp(0.25),
+  },
+  seeMoreContainer: {
+    marginVertical: wp(3),
+    alignSelf: 'flex-end',
+    flexDirection: 'row',
+    marginRight: wp(2.5),
+    alignItems: 'center',
+  },
+  seeMoreText: {
+    fontSize: sizes.b2,
+    fontFamily: 'Medium',
+    color: colors.tertiary,
+    marginRight: wp(1.5),
   },
   mapContainer: {
     width: '95%',
     aspectRatio: 1,
-    marginTop: wp(6),
-    marginBottom: wp(32),
+    marginBottom: wp(36),
     alignSelf: 'center',
     borderRadius: wp(2),
     marginHorizontal: wp(4),
@@ -727,11 +793,12 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     borderRadius: wp(2),
+    margin: wp(4),
   },
   openMapContainer: {
     position: 'absolute',
-    top: wp(20.5),
-    left: wp(4),
+    top: wp(24.5),
+    left: wp(8),
     width: wp(14),
     height: wp(14),
     borderRadius: wp(14) / 2,
@@ -745,14 +812,14 @@ const styles = StyleSheet.create({
   },
   locationBackBtnContainer: {
     position: 'absolute',
-    top: wp(4),
-    left: wp(4),
+    top: wp(8),
+    left: wp(8),
     width: wp(12.5),
     height: wp(12.5),
     borderRadius: wp(6.25),
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(174, 191, 229, 0.9)',
+    backgroundColor: colors.lightBlue,
   },
 });
 

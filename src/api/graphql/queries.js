@@ -469,6 +469,88 @@ export const batchGetPlaceDetails = /* GraphQL */ `
   }
 `;
 
+export const getPlaceFollowingUserReviews = /* GraphQL */ `
+  query ItemsByLSI2(
+    $PK: String
+    $LSI2: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByLSI2(
+      PK: $PK
+      LSI2: $LSI2
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+        placeId
+        name
+        rating {
+          overall
+          food
+          value
+          service
+          atmosphere
+        }
+        review
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getPlaceAllUserReviews = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+        placeId
+        name
+        rating {
+          overall
+          food
+          value
+          service
+          atmosphere
+        }
+        review
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String

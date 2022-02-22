@@ -211,7 +211,6 @@ const Home = ({ navigation }) => {
       }
       placePosts.current = placePostsUpdated;
       await onRegionChanged({ markersCopy: placeMarkers });
-      console.log('Map Markers: ', markers);
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.reloadMapTrigger]);
 
@@ -399,7 +398,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: wp(6.5),
-    backgroundColor: 'rgba(174, 191, 229, 0.9)',
+    backgroundColor: colors.lightBlue,
   },
 });
 

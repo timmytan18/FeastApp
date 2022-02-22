@@ -233,7 +233,6 @@ const Profile = ({ navigation, route }) => {
                 posts.current.push([placePosts[placeIdKeys[i]]]);
               }
             }
-            console.log(posts);
           }
           setReviews(placePosts);
           setRefreshing(false);
@@ -431,7 +430,7 @@ const Profile = ({ navigation, route }) => {
               <TouchableOpacity
                 style={styles.followButton}
                 onPress={() => navigation.push(
-                  'Reviews',
+                  'ProfileReviews',
                   { reviews: allReviews.current },
                 )}
               >
@@ -517,7 +516,7 @@ const Profile = ({ navigation, route }) => {
       navigation.push('StoryModal', {
         stories,
         users: { [uid]: { userName, userPic } },
-        place: place.current,
+        places: { [place.current.placeId]: place.current },
         deviceHeight: state.deviceHeight,
       });
     } else {
@@ -526,7 +525,7 @@ const Profile = ({ navigation, route }) => {
         params: {
           stories,
           users: { [uid]: { userName, userPic } },
-          place: place.current,
+          places: { [place.current.placeId]: place.current },
           deviceHeight: state.deviceHeight,
         },
       });
@@ -900,7 +899,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: wp(6.5),
-    backgroundColor: 'rgba(174, 191, 229, 0.9)',
+    backgroundColor: colors.lightBlue,
   },
 });
 

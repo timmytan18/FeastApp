@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontFamily: 'Medium',
-    fontSize: sizes.b1,
+    fontSize: sizes.b2,
     color: colors.black,
     opacity: 0.75,
     marginTop: -wp(0.5),

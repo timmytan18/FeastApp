@@ -17,6 +17,7 @@ const colors = {
   gray2: '#E7EDF3',
   gray3: '#D6DFE8',
   gray4: '#FAFBFB',
+  lightBlue: 'rgba(174, 191, 229, 0.9)',
 };
 
 const shadows = {

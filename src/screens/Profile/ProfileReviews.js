@@ -1,5 +1,5 @@
 import React, {
-  useState, useEffect, useCallback, useRef,
+  useState, useRef,
 } from 'react';
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard, Image,
@@ -72,7 +72,7 @@ const ReviewItem = ({ item, openPlace }) => {
   );
 };
 
-const Reviews = ({ navigation, route }) => {
+const ProfileReviews = ({ navigation, route }) => {
   const { reviews } = route.params;
   const place = useRef(null);
 
@@ -165,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Reviews;
+export default ProfileReviews;

@@ -5,7 +5,7 @@ import {
   getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getNumFollows,
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
-  getPlaceDetails, batchGetPlaceDetails,
+  getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -237,7 +237,7 @@ async function getPlaceDetailsQuery({ placeId }) {
   return place;
 }
 
-// Get details about a place
+// Batch get details about a place
 async function batchGetPlaceDetailsQuery({ batch }) {
   let places;
   try {
@@ -252,9 +252,60 @@ async function batchGetPlaceDetailsQuery({ batch }) {
   return places;
 }
 
+// Fetch reviews for a place from following users
+async function getPlaceFollowingUserReviewsQuery({
+  myUID, placeId, limit, currNextToken,
+}) {
+  let userReviews;
+  let nextToken;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getPlaceFollowingUserReviews,
+      {
+        PK: `USER#${myUID}`,
+        LSI2: { beginsWith: `#FOLLOWINGPOST#${placeId}` },
+        limit: limit || 20,
+        sortDirection: 'DESC',
+        nextToken: currNextToken,
+      },
+    ));
+    console.log(res.data.itemsByLSI2);
+    userReviews = res.data.itemsByLSI2.items;
+    nextToken = res.data.itemsByLSI2.nextToken;
+  } catch (err) {
+    console.warn('Error fetching place following user reviews: ', err);
+  }
+  return { userReviews, nextToken };
+}
+
+// Fetch reviews for a place from all users
+async function getPlaceAllUserReviewsQuery({ placeId, limit, currNextToken }) {
+  const GSI1 = `POST#${placeId}`;
+  const SK = '#PLACE#';
+  let userReviews;
+  let nextToken;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getPlaceAllUserReviews,
+      {
+        GSI1,
+        SK: { beginsWith: SK },
+        limit: limit || 20,
+        sortDirection: 'DESC',
+        nextToken: currNextToken,
+      },
+    ));
+    userReviews = res.data.itemsByGSI1.items;
+    nextToken = res.data.itemsByGSI1.nextToken;
+  } catch (err) {
+    console.warn('Error fetching place all user reviews: ', err);
+  }
+  return { userReviews, nextToken };
+}
+
 export {
   getUserProfileQuery, getUserReviewsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
   getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
   getFollowingPostsByUserQuery, batchGetUserPostsQuery, getPlaceDetailsQuery,
-  batchGetPlaceDetailsQuery,
+  batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery,
 };

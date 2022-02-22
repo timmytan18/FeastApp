@@ -402,13 +402,10 @@ const StoryModal = ({ navigation, route }) => {
   const fetchCurrentUser = async () => {
     try {
       const currentUser = await getUserProfileQuery({ uid });
-
       // Check if I am following the current user
       if (currentUser.uid !== myUID) {
         currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
-        console.log('isFollowing:', currentUser.following);
       }
-
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.warn('Error fetching current user: ', err);

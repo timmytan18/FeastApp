@@ -71,19 +71,15 @@ const SearchUsers = ({ navigation }) => {
   };
 
   const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
-    console.log(currentPK, currentSK, currentProfilePic);
     try {
       const currentUser = await getUserProfileQuery({ PK: currentPK, SK: currentSK });
       currentUser.PK = currentPK;
       currentUser.SK = currentSK;
       currentUser.picture = currentProfilePic;
-
       // Check if I am following the current user
       if (currentPK !== PK) {
         currentUser.following = await getIsFollowingQuery({ currentPK, myUID: ID });
-        console.log('isFollowing:', currentUser.following);
       }
-
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.warn('Error fetching current user: ', err);
