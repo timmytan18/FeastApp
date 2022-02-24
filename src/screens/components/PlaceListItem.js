@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   postItem: {
     width: wp(45),
     height: wp(57),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: wp(3),
     ...shadows.baseEven,
   },

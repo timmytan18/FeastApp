@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     borderTopLeftRadius: wp(4),
     borderTopRightRadius: wp(4),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   moreItem: {
     height: wp(17),

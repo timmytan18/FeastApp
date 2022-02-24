@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   bottomButtonText: {
     fontSize: sizes.b3,
     fontFamily: 'Book',
-    color: 'white',
+    color: '#fff',
     paddingTop: wp(0.6),
   },
 });

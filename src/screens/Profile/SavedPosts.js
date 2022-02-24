@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   flatlistContainer: {
     paddingTop: wp(3),

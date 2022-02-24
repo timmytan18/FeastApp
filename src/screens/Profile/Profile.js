@@ -517,7 +517,7 @@ const Profile = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
       <StatusBar animated barStyle="dark-content" />
       <MoreView items={moreItems} morePressed={morePressed} setMorePressed={setMorePressed} />
       {mapOpen && (
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   },
   topProfileContainer: {
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     flexDirection: 'column',
     marginTop: -wp(1.5),
   },
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: wp(3),
     borderBottomRightRadius: wp(3),
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     ...shadows.lighter,
   },
   tab: {

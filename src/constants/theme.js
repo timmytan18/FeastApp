@@ -12,7 +12,7 @@ const colors = {
   secondary: '#FFC529', // yellow
   tertiary: '#4A5B6D', // dark blue
   black: '#272D2F',
-  white: '#FFFFFF',
+  white: '#fff',
   gray: '#B0BBC7',
   gray2: '#E7EDF3',
   gray3: '#D6DFE8',

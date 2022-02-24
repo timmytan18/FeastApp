@@ -19,7 +19,7 @@ const Toggle = ({
       <Text
         style={[
           styles.toggleButtonText,
-          leftSelected && { color: colors.white },
+          leftSelected && { color: '#fff' },
         ]}
       >
         {leftText}
@@ -37,7 +37,7 @@ const Toggle = ({
         style={[
           styles.toggleButtonText,
           { fontSize: wp(3.67) },
-          !leftSelected && { color: colors.white },
+          !leftSelected && { color: '#fff' },
         ]}
       >
         {rightText}

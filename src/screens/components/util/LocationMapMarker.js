@@ -36,7 +36,7 @@ const LocationMapMarker = ({
           <Text
             style={[
               styles.nameText, styles.textWithShadow,
-              { color: isDarkMode ? 'white' : colors.black },
+              { color: isDarkMode ? '#fff' : colors.black },
             ]}
           >
             {name}
@@ -65,9 +65,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: markerSize,
     width: markerSize,
-    borderColor: colors.white,
+    borderColor: '#fff',
     borderRadius: markerSize / 2,
-    backgroundColor: colors.white,
+    backgroundColor: '#fff',
   },
   innerContainer: {
     height: innerSize,
@@ -79,9 +79,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: userMarkerSize,
     width: userMarkerSize,
-    borderColor: colors.white,
+    borderColor: '#fff',
     borderRadius: userMarkerSize / 2,
-    backgroundColor: colors.white,
+    backgroundColor: '#fff',
   },
   userInnerContainer: {
     height: userInnerSize,

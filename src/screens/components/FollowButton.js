@@ -226,7 +226,7 @@ const FollowButton = ({
               end={gradients.purple.end}
               style={[containerStyle, { width: '100%' }]}
             >
-              <Text style={[textStyle, { color: colors.white }]}>Follow</Text>
+              <Text style={[textStyle, { color: '#fff' }]}>Follow</Text>
             </LinearGradient>
           </TouchableOpacity>
         )}

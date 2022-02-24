@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: wp(1),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   flatListContainer: {
     paddingHorizontal: sizes.margin + wp(1),

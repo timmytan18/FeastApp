@@ -421,7 +421,7 @@ PostDetails.propTypes = propTypes;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   emojiAnimatedContainer: {
     position: 'absolute',
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontFamily: 'Medium',
     fontSize: wp(5.6),
-    color: 'white',
+    color: '#fff',
     width: wp(50),
     paddingBottom: wp(5),
     paddingLeft: wp(5),

@@ -57,7 +57,7 @@ const MapMarker = ({
               position: 'absolute', zIndex: 1,
             }}
             size={markerWithGradientSize}
-            color={colors.white}
+            color='#fff'
             trackWidth={gradientSize}
           />
         )}
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     height: markerSize,
     width: markerSize,
     borderRadius: markerSize / 2,
-    backgroundColor: colors.white,
+    backgroundColor: '#fff',
   },
   imageContainer: {
     height: imageSize,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     width: badgeSize,
     height: badgeSize,
     borderRadius: badgeSize / 2,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: 'Medium',
     fontSize: wp(2.5),
-    color: 'white',
+    color: '#fff',
     paddingBottom: 1,
   },
 });

@@ -109,7 +109,7 @@ const SearchUsers = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <DismissKeyboardView style={{ flex: 1 }}>
         <View style={{ overflow: 'hidden', paddingBottom: wp(3), ...shadows.lighter }}>
           <View style={styles.headerContainer}>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: wp(2),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   cancelContainer: {
     alignSelf: 'center',
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     height: wp(14),
     width: '100%',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     flexDirection: 'row',
   },
   tab: {

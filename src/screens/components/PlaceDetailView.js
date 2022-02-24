@@ -174,7 +174,7 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
   }
 
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
+    <View style={{ backgroundColor: '#fff', flex: 1 }}>
       <Animated.View style={[styles.pageContainer, {
         opacity,
         transform: [{ translateY: pagesScroll }],
@@ -261,7 +261,7 @@ const BodyContent = React.memo(({
 
   return (
     <View style={styles.rootInfoContainer}>
-      <View style={{ height: wp(5), width: wp(100), backgroundColor: 'white' }} />
+      <View style={{ height: wp(5), width: wp(100), backgroundColor: '#fff' }} />
       <View style={styles.titleTextContainer}>
         {Platform.OS === 'android' && <View style={{ height: wp(2), width: wp(100) }} />}
         <Text
@@ -412,7 +412,7 @@ const BodyContent = React.memo(({
             end={gradients.purple.end}
             style={styles.openMap}
           >
-            <Car color="white" size={wp(5.3)} />
+            <Car color='#fff' size={wp(5.3)} />
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
@@ -556,7 +556,7 @@ const Reviews = ({ navigation, placeId, myUID }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   pageContainer: {
     position: 'absolute',
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     paddingTop: wp(100),
     paddingBottom: wp(6),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   topContainer: {
     paddingHorizontal: wp(4),
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   titleText: {
     paddingBottom: wp(1),

@@ -23,7 +23,7 @@ const RatingMapMarker = ({
         <Text
           style={[
             styles.nameText, styles.textWithShadow,
-            { color: isDarkMode ? 'white' : colors.black, opacity: visible ? 1 : 0 },
+            { color: isDarkMode ? '#fff' : colors.black, opacity: visible ? 1 : 0 },
           ]}
           numberOfLines={1}
         >
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     top: wp(2.45),
     fontFamily: 'Medium',
     fontSize: wp(3.1),
-    color: colors.white,
+    color: '#fff',
     zIndex: 1,
   },
   nameText: {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     width: badgeSize,
     height: badgeSize,
     borderRadius: badgeSize / 2,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },

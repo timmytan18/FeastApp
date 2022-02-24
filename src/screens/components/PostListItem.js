@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   postItem: {
     width: wp(45),
     height: wp(57),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: wp(3),
     ...shadows.baseEven,
   },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   yumTextContainer: {
     fontFamily: 'Book',
     fontSize: sizes.b3,
-    color: 'white',
+    color: '#fff',
     paddingLeft: wp(1.5),
     paddingTop: wp(0.3),
   },

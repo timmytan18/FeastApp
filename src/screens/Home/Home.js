@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: wp(5),
-    backgroundColor: colors.white,
+    backgroundColor: '#fff',
   },
   locationBackBtnContainer: {
     position: 'absolute',

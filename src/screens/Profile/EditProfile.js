@@ -100,7 +100,7 @@ const EditProfile = ({
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             activeOpacity={0.7}
-            style={[styles.actionButton, { backgroundColor: colors.white }]}
+            style={[styles.actionButton, { backgroundColor: '#fff' }]}
             onPress={hideModal}
           >
             <Text style={[styles.actionText, { color: colors.black }]}>Cancel</Text>
@@ -110,7 +110,7 @@ const EditProfile = ({
             style={[styles.actionButton, { backgroundColor: colors.black }]}
             onPress={() => saveEdits()}
           >
-            <Text style={[styles.actionText, { color: colors.white }]}>Save</Text>
+            <Text style={[styles.actionText, { color: '#fff' }]}>Save</Text>
           </TouchableOpacity>
         </View>
         <View style={{ flex: 0.1 }}>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     borderTopLeftRadius: wp(4),
     borderTopRightRadius: wp(4),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   topRectangle: {
     alignSelf: 'center',

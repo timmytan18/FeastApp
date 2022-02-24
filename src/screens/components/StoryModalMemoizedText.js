@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
     flex: 0.85,
     marginTop: wp(12),
     borderRadius: wp(5),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     paddingHorizontal: sizes.margin,
   },
   progressContainer: {
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   viewPlaceBtn: {
     width: wp(20),
     height: wp(7),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: wp(3),
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontFamily: 'Medium',
     fontSize: wp(5.6),
-    color: 'white',
+    color: '#fff',
     width: wp(50),
     marginBottom: wp(5),
     marginLeft: wp(5),
@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: 'Medium',
     fontSize: sizes.b2,
-    color: 'white',
+    color: '#fff',
   },
   ratingLabelText: {
     fontFamily: 'Medium',

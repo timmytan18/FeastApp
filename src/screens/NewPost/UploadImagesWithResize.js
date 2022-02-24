@@ -488,7 +488,7 @@ const UploadImages = ({ navigation, route }) => {
           {picture && tab === CAMERA_TAB
             && (
               <TouchableOpacity style={styles.xContainer} onPress={() => setPicture(null)}>
-                <X color="white" size={wp(10)} />
+                <X color='#fff' size={wp(10)} />
               </TouchableOpacity>
             )}
         </DismissKeyboardView>
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     alignItems: 'center',
   },
   nextButtonContainer: {

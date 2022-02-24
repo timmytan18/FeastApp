@@ -1,8 +1,8 @@
 import * as React from "react"
 import Svg, { Defs, Rect, G, Mask, Use, Image } from "react-native-svg"
 import {
-    heightPercentageToDP as hp,
-    widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 
 const Grubhub = (props) => {
@@ -26,7 +26,7 @@ const Grubhub = (props) => {
         />
       </Defs>
       <G fill="none" fillRule="evenodd">
-        <Mask id="prefix__b" fill="#fff">
+        <Mask id="prefix__b" fill='#fff'>
           <Use xlinkHref="#prefix__a" />
         </Mask>
         <Use fillOpacity={0.496} fill="#B64141" xlinkHref="#prefix__a" />

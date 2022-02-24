@@ -240,17 +240,17 @@ const NewPost = ({ navigation }) => {
           >
             <View style={styles.infoContainer}>
               <View style={{ flexDirection: 'row' }}>
-                <Text style={[styles.nameText, { color: 'white' }]}>{item.name}</Text>
+                <Text style={[styles.nameText, { color: '#fff' }]}>{item.name}</Text>
                 {item.Website && (
                   <TouchableOpacity
                     onPressIn={() => WebBrowser.openBrowserAsync(item.Website)}
                   >
-                    <Redirect color={colors.white} size={wp(4.2)} />
+                    <Redirect color='#fff' size={wp(4.2)} />
                   </TouchableOpacity>
                 )}
               </View>
               <Text
-                style={[styles.locationText, { color: 'white' }]}
+                style={[styles.locationText, { color: '#fff' }]}
                 numberOfLines={item.name.length > 20 ? 1 : 2}
                 ellipsizeMode="tail"
               >
@@ -259,10 +259,10 @@ const NewPost = ({ navigation }) => {
             </View>
             <View style={styles.distanceContainer}>
               <TouchableOpacity onPress={() => showMapPressed(item)}>
-                <MapMarker size={wp(5.5)} color={colors.white} />
+                <MapMarker size={wp(5.5)} color='#fff' />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => showMapPressed(item)}>
-                <Text style={[styles.distanceText, { color: 'white' }]}>
+                <Text style={[styles.distanceText, { color: '#fff' }]}>
                   {distance}
                   {' '}
                   mi
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     alignItems: 'center',
   },
   topTextContainer: {

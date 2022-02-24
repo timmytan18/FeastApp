@@ -95,7 +95,7 @@ index 0d4e2d5..e4934f8 100644
 -        zIndex: -1,
 -    },
 -    container: {
--        backgroundColor: 'white',
+-        backgroundColor: '#fff',
 -        padding: 0,
 -        borderRadius: 10,
 -        flexDirection: 'column',
@@ -177,7 +177,7 @@ index 0d4e2d5..e4934f8 100644
 +    zIndex: -1,
 +  },
 +  container: {
-+    backgroundColor: 'white',
++    backgroundColor: '#fff',
 +    padding: 0,
 +    borderRadius: 10,
 +    flexDirection: 'column',

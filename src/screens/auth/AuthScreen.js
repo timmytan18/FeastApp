@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3479E6',
   },
   buttonText: {
-    color: colors.white,
+    color: '#fff',
     fontFamily: 'Semi',
     fontSize: sizes.h3,
     marginTop: 1,
@@ -174,10 +174,10 @@ const styles = StyleSheet.create({
   facebookIcon: {
     fontSize: wp(11),
     marginRight: wp(6),
-    color: 'white',
+    color: '#fff',
   },
   orText: {
-    color: colors.white,
+    color: '#fff',
     fontFamily: 'Semi',
     fontSize: sizes.h3,
   },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   termsText: {
-    color: colors.white,
+    color: '#fff',
     fontFamily: 'Medium',
     fontSize: sizes.caption,
     textDecorationLine: 'underline',

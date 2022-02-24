@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   innerThumb: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     height: wp(2),
     width: wp(2),
     borderRadius: wp(2) / 2,

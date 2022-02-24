@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingHorizontal: wp(3.5),
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
   userItemContainer: {
     flex: 1,
