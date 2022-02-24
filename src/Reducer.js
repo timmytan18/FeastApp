@@ -18,6 +18,11 @@ const Reducer = (state, action) => {
           latitude: action.payload.latitude,
         },
       };
+    case 'SET_SAVED_POSTS':
+      return {
+        ...state,
+        savedPosts: action.payload.savedPosts,
+      };
     case 'SET_RELOAD_MAP':
       return {
         ...state,

@@ -4,9 +4,8 @@ import React, {
 import {
   StyleSheet, View, TouchableOpacity,
 } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
-import * as Location from 'expo-location';
 import { Storage } from 'aws-amplify';
+import * as Location from 'expo-location';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
@@ -72,13 +71,8 @@ const Home = ({ navigation }) => {
   const mapRef = useRef(null);
   const isFitToMarkers = useRef(false);
 
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, [state.location]);
-
   const placePosts = useRef({}); // obj of placeId: [posts]
   const placeIdGeo = useRef({}); // obj of placeId: geo
-  const usersNamePic = useRef({}); // obj of uid: { name, pic }
 
   // Keep track of places that have been grouped together, ordered
   const storiesGroups = useRef({}); // obj of placeId: [placeId]
@@ -138,8 +132,6 @@ const Home = ({ navigation }) => {
         ({ coords } = await Location.getCurrentPositionAsync({}));
       }
 
-      console.log('Curr location:', coords);
-
       dispatch({
         type: 'SET_LOCATION',
         payload: {
@@ -180,11 +172,6 @@ const Home = ({ navigation }) => {
           placePostsUpdated[placeId] = [{ PK, SK }];
         } else {
           placePostsUpdated[placeId].push({ PK, SK });
-        }
-
-        // Add user name and pic to userPlaces obj if not already added
-        if (!(uid in usersNamePic.current)) {
-          usersNamePic.current[uid] = { userPic, userName };
         }
 
         // Create new place set for user if not already created
@@ -268,7 +255,6 @@ const Home = ({ navigation }) => {
           screen: 'StoryModal',
           params: {
             stories: stories.current,
-            users: usersNamePic.current,
             places: placeDetails.current,
             deviceHeight: state.deviceHeight,
           },

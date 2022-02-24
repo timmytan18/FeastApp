@@ -2,7 +2,7 @@ import React, {
   useState, useEffect, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, ImageBackground, TouchableOpacity,
+  StyleSheet, Text, View, TouchableOpacity,
   Animated, StatusBar, FlatList,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,9 +13,8 @@ import geohash from 'ngeohash';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
-import Stars from 'react-native-stars';
 import {
-  getUserReviewsQuery, getNumFollowsQuery, getPlaceDetailsQuery,
+  getUserPostsQuery, getNumFollowsQuery, getPlaceDetailsQuery,
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import EditProfile from './EditProfile';
@@ -24,6 +23,7 @@ import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
 import FollowButton from '../components/FollowButton';
 import More from '../components/util/icons/More';
+import PostListItem from '../components/PostListItem';
 import ThreeDots from '../components/util/icons/ThreeDots';
 import HeartEyes from '../components/util/icons/HeartEyes';
 import Heart from '../components/util/icons/Heart';
@@ -31,10 +31,9 @@ import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
 import RatingMapMarker from '../components/RatingMapMarker';
-import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
 import LocationArrow from '../components/util/icons/LocationArrow';
 import BackArrow from '../components/util/icons/BackArrow';
-import Yum from '../components/util/icons/Yum';
+import Save from '../components/util/icons/Save';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import {
@@ -77,52 +76,12 @@ const RowItem = React.memo(({
         {row.map((placePosts) => {
           const item = placePosts[0];
           return (
-            <TouchableOpacity
+            <PostListItem
+              item={item}
+              placePosts={placePosts}
+              openPlacePosts={openPlacePosts}
               key={item.timestamp}
-              style={styles.postItem}
-              activeOpacity={0.9}
-              onPress={() => openPlacePosts({ stories: placePosts })}
-            >
-              <ImageBackground
-                resizeMode="cover"
-                style={styles.postImage}
-                source={{ uri: item.s3Photo }}
-              >
-                <View style={styles.gradientContainer}>
-                  <LinearGradient
-                    colors={['rgba(0,0,0,0.32)', 'transparent']}
-                    style={styles.gradient}
-                  />
-                </View>
-                <View style={styles.yumContainer}>
-                  <Yum size={wp(4.8)} />
-                  <Text style={styles.yumTextContainer}>21 Yums</Text>
-                </View>
-              </ImageBackground>
-              <View style={styles.postBottomContainer}>
-                <Text style={styles.postNameText} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                {item.categories && item.categories[0]
-                  && (
-                    <Text style={styles.postCategoryText}>
-                      {item.categories[0]}
-                    </Text>
-                  )}
-                <View style={styles.starsContainer}>
-                  <Stars
-                    default={Math.round(item.avgOverallRating * 2) / 2}
-                    count={5}
-                    half
-                    disabled
-                    spacing={wp(0.6)}
-                    fullStar={<StarFull size={wp(3.8)} />}
-                    halfStar={<StarHalf size={wp(3.8)} />}
-                    emptyStar={<StarEmpty size={wp(3.8)} />}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
+            />
           );
         })}
       </Animated.View>
@@ -187,7 +146,13 @@ const Profile = ({ navigation, route }) => {
       Storage.get(item.picture, { level: 'protected', identityId: user.identityId })
         .then((url) => {
           item.s3Photo = url;
-          item.placeUserInfo = { uid: user.uid }; // attach placeUserInfo property for StoryModal
+          // Attach placeUserInfo property for StoryModal
+          item.placeUserInfo = {
+            uid: user.uid,
+            name: user.name,
+            picture: user.picture,
+            identityId: user.identityId,
+          };
           resolve(item);
         })
         .catch((err) => {
@@ -198,7 +163,7 @@ const Profile = ({ navigation, route }) => {
 
     // Get reviews for current user
     (async () => {
-      const userReviews = await getUserReviewsQuery({ PK: user.PK, withUserInfo: false });
+      const userReviews = await getUserPostsQuery({ PK: user.PK, withUserInfo: false });
       const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
       const placePostsOverallRatingSum = {};
       if (userReviews && userReviews.length) {
@@ -223,9 +188,9 @@ const Profile = ({ navigation, route }) => {
           console.log('User Reviews: ', placePosts);
 
           // Format posts for FlatList
-          if (placePosts) {
+          const placeIdKeys = Object.keys(placePosts);
+          if (placeIdKeys && placeIdKeys.length) {
             posts.current = [[]];
-            const placeIdKeys = Object.keys(placePosts);
             for (let i = 0; i < placeIdKeys.length; i += 2) {
               if (i + 1 < placeIdKeys.length) {
                 posts.current.push([placePosts[placeIdKeys[i]], placePosts[placeIdKeys[i + 1]]]);
@@ -441,12 +406,22 @@ const Profile = ({ navigation, route }) => {
             <View style={styles.actionsContainer}>
               {isMe
                 && (
-                  <TouchableOpacity
-                    style={[styles.editContainer, { backgroundColor: colors.gray3 }]}
-                    onPress={() => setEditPressed(true)}
-                  >
-                    <Text style={[styles.editText, { color: colors.black }]}>Edit Profile</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row' }}>
+                    <TouchableOpacity
+                      style={[styles.editContainer, styles.isMeEditContainer]}
+                      onPress={() => setEditPressed(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.editText, { color: colors.black }]}>Edit Profile</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.savedContainer}
+                      onPress={() => navigation.navigate('SavedPosts', { type: 'saved' })}
+                      activeOpacity={0.7}
+                    >
+                      <Save size={wp(5)} color="none" outlineColor={colors.black} outlineWidth={2.6} />
+                    </TouchableOpacity>
+                  </View>
                 )}
               {!isMe && reviews
                 && (
@@ -509,13 +484,11 @@ const Profile = ({ navigation, route }) => {
     if (place.current.placeId !== placeId) {
       place.current = await getPlaceDetailsQuery({ placeId });
     }
-    const { uid, name: userName, picture: userPic } = user;
     // Check if current navigation stack contains StoryModal
     // Pass in params in params object if it doesn't
     if (navigation.getState().routeNames.includes('StoryModal')) {
       navigation.push('StoryModal', {
         stories,
-        users: { [uid]: { userName, userPic } },
         places: { [place.current.placeId]: place.current },
         deviceHeight: state.deviceHeight,
       });
@@ -524,7 +497,6 @@ const Profile = ({ navigation, route }) => {
         screen: 'StoryModal',
         params: {
           stories,
-          users: { [uid]: { userName, userPic } },
           places: { [place.current.placeId]: place.current },
           deviceHeight: state.deviceHeight,
         },
@@ -755,6 +727,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     paddingTop: wp(3.8),
+    marginRight: wp(2),
   },
   editContainer: {
     width: '70%',
@@ -762,12 +735,24 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(2),
   },
   editText: {
     fontFamily: 'Medium',
     fontSize: sizes.b2,
     paddingTop: wp(0.3),
+  },
+  isMeEditContainer: {
+    backgroundColor: colors.gray3,
+    marginLeft: wp(0.89),
+    marginRight: wp(1.5),
+  },
+  savedContainer: {
+    width: '19.5%',
+    height: wp(10.5),
+    borderRadius: wp(2),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gray3,
   },
   socialContainer: {
     width: wp(6) + wp(5),
@@ -808,77 +793,6 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(4),
     marginBottom: wp(2.5),
     flexDirection: 'row',
-  },
-  postItem: {
-    width: wp(45),
-    height: wp(57),
-    backgroundColor: 'white',
-    borderRadius: wp(3),
-    ...shadows.lighter,
-  },
-  postImage: {
-    flex: 0.62,
-    width: '100%',
-    height: '100%',
-    borderTopLeftRadius: wp(3),
-    borderTopRightRadius: wp(3),
-    backgroundColor: colors.gray3,
-    overflow: 'hidden',
-  },
-  gradientContainer: {
-    overflow: 'hidden',
-    borderTopLeftRadius: wp(3),
-    borderTopRightRadius: wp(3),
-    height: '30%',
-    width: '100%',
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '100%',
-    width: '100%',
-  },
-  yumContainer: {
-    position: 'absolute',
-    top: wp(3.2),
-    left: wp(3.5),
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  yumTextContainer: {
-    fontFamily: 'Book',
-    fontSize: sizes.b3,
-    color: 'white',
-    paddingLeft: wp(1.5),
-    paddingTop: wp(0.3),
-  },
-  postBottomContainer: {
-    flex: 0.38,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  postNameText: {
-    fontFamily: 'Semi',
-    fontSize: sizes.b3,
-    textAlign: 'center',
-    color: colors.black,
-    paddingHorizontal: wp(2),
-  },
-  postCategoryText: {
-    fontFamily: 'Book',
-    fontSize: wp(3.1),
-    textAlign: 'center',
-    color: colors.black,
-    overflow: 'hidden',
-  },
-  starsContainer: {
-    paddingTop: wp(1.5),
-    marginBottom: wp(1),
-  },
-  style: {
-    marginHorizontal: wp(0.5),
   },
   mapContainer: {
     position: 'absolute',

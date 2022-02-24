@@ -16,7 +16,12 @@ import MaskedView from '@react-native-community/masked-view';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import PlaceDetailView from './PlaceDetailView';
 import MoreView from './MoreView';
-import { getUserProfileQuery, getIsFollowingQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
+import {
+  getUserProfileQuery,
+  getIsFollowingQuery,
+  getFollowersQuery,
+  getAllSavedPostItemsQuery,
+} from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
@@ -28,6 +33,7 @@ import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
+import { GET_SAVED_POST_ID } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
   colors, shadows, gradients, sizes, wp,
@@ -51,12 +57,14 @@ const storyDuration = 6000;
 const StoryModal = ({ navigation, route }) => {
   const {
     stories,
-    users,
     places,
     deviceHeight,
   } = route.params;
 
-  const [{ user: { uid: myUID, PK: myPK } }, dispatch] = useContext(Context);
+  const [
+    { user: { uid: myUID, PK: myPK }, savedPosts },
+    dispatch,
+  ] = useContext(Context);
 
   const index = useRef(0);
   const [indexState, setIndexState] = useState(0);
@@ -88,9 +96,13 @@ const StoryModal = ({ navigation, route }) => {
     });
   };
 
+  const stopBarAnimation = () => {
+    Animated.timing(progressAnim).stop();
+  };
+
   // restart animation when current story index changes
   useEffect(() => {
-    Animated.timing(progressAnim).stop();
+    stopBarAnimation();
     startBarAnimation();
   }, [indexState]);
 
@@ -102,7 +114,7 @@ const StoryModal = ({ navigation, route }) => {
 
       // blur
       return () => {
-        Animated.timing(progressAnim).stop();
+        stopBarAnimation();
       };
     }, []),
   );
@@ -128,13 +140,13 @@ const StoryModal = ({ navigation, route }) => {
   const [enablePanResponderState, setEnablePanResponderState] = useState(true);
   const translateXVal = useRef(new Animated.Value(0)).current;
   const translateYVal = useRef(new Animated.Value(0)).current;
-  const translateXAnim = ({ value }) => {
-    Animated.spring(translateXVal, {
-      toValue: value,
-      bounciness: 4,
-      useNativeDriver: true,
-    }).start();
-  };
+  // const translateXAnim = ({ value }) => {
+  //   Animated.spring(translateXVal, {
+  //     toValue: value,
+  //     bounciness: 4,
+  //     useNativeDriver: true,
+  //   }).start();
+  // };
   const translateYAnim = ({ value }) => {
     Animated.spring(translateYVal, {
       toValue: value,
@@ -143,20 +155,20 @@ const StoryModal = ({ navigation, route }) => {
     }).start();
   };
 
-  const panToLeft = () => {
-    translateXAnim({ value: -wp(100) });
-    // setFirstCardCurrent(false);
-    // firstCardCurrentRef.current = false;
-  };
-  const panToRight = () => {
-    translateXAnim({ value: wp(100) });
-  };
+  // const panToLeft = () => {
+  //   translateXAnim({ value: -wp(100) });
+  //   // setFirstCardCurrent(false);
+  //   // firstCardCurrentRef.current = false;
+  // };
+  // const panToRight = () => {
+  //   translateXAnim({ value: wp(100) });
+  // };
 
   // Calculate scroll thresholds to animate between top/bottom or exit modal
   const topEnabled = useRef(true);
-  const bottomEnabled = useRef(false);
+  // const bottomEnabled = useRef(false);
   const lastContentOffsetY = useRef(0);
-  const paddingBottom = 90;
+  // const paddingBottom = 90;
   const paddingTop = 50;
   const isCloseToTopBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
     let pos = null;
@@ -195,7 +207,7 @@ const StoryModal = ({ navigation, route }) => {
     enablePanResponder.current = false;
     setEnablePanResponderState(false);
     translateYAnim({ value: -deviceHeight });
-    Animated.timing(progressAnim).stop();
+    stopBarAnimation();
   };
   const closeModal = () => {
     if (navigation.canGoBack()) {
@@ -221,7 +233,7 @@ const StoryModal = ({ navigation, route }) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => enablePanResponder.current,
       onPanResponderGrant: () => {
-        Animated.timing(progressAnim).stop();
+        stopBarAnimation();
         setTimeout(() => {
           if (movementType.current !== 'swipe') movementType.current = 'hold';
         }, 300);
@@ -250,7 +262,7 @@ const StoryModal = ({ navigation, route }) => {
           case 'tap':
             if (gestureState.x0 > 250) {
               // stop current animation in place
-              Animated.timing(progressAnim).stop();
+              stopBarAnimation();
 
               // options
               const options = { ...barAnimOptions, duration: 75 };
@@ -310,12 +322,14 @@ const StoryModal = ({ navigation, route }) => {
   let userName; let userPic;
   if (stories && stories.length && index.current < stories.length) {
     ({
-      placeUserInfo: { uid }, placeId, name, s3Photo, picture, dish, rating, review, timestamp,
+      placeUserInfo: { uid, name: userName, picture: userPic },
+      placeId, name, s3Photo, picture, dish, rating, review, timestamp,
     } = stories[index.current]);
-    ({ userName, userPic } = users[uid]);
   }
   place.current = places[placeId];
   const elapsedTime = getElapsedTime(timestamp);
+  const savedPostId = GET_SAVED_POST_ID({ uid, timestamp });
+  const isSaved = savedPosts.has(savedPostId);
 
   const [loading, setLoading] = useState(false);
 
@@ -391,6 +405,22 @@ const StoryModal = ({ navigation, route }) => {
         ));
       } catch (err) {
         console.warn("Error removing followed user's posts from feed", err);
+      }
+    }
+
+    // Remove post from users' saved posts
+    const savedPostsToDelete = await getAllSavedPostItemsQuery({
+      uid: myUID, timestamp: currTimestamp,
+    });
+    for (i = 0, j = savedPostsToDelete.length; i < j; i += BATCH_NUM) {
+      const batch = savedPostsToDelete.slice(i, i + BATCH_NUM);
+      try {
+        await API.graphql(graphqlOperation(
+          batchDeleteFollowingPosts,
+          { input: { posts: batch } },
+        ));
+      } catch (err) {
+        console.warn('Error removing all saved post items for post', err);
       }
     }
 
@@ -565,7 +595,7 @@ const StoryModal = ({ navigation, route }) => {
             <TouchableOpacity
               onPress={() => {
                 setMorePressed(true);
-                Animated.timing(progressAnim).stop();
+                stopBarAnimation();
               }}
               style={styles.moreContainer}
             >
@@ -717,7 +747,16 @@ const StoryModal = ({ navigation, route }) => {
         <View style={styles.middleContainer}>
           <View style={styles.middleButtonsContainer}>
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-              <SaveButton size={wp(10.5)} />
+              <SaveButton
+                isSaved={isSaved}
+                dispatch={dispatch}
+                size={wp(10)}
+                post={stories[index.current]}
+                place={place.current}
+                myUID={myUID}
+                stopBarAnimation={stopBarAnimation}
+                startBarAnimation={startBarAnimation}
+              />
             </View>
             <View style={styles.viewPlaceBtnContainer}>
               <SwipeUpArrow />
@@ -750,7 +789,7 @@ const StoryModal = ({ navigation, route }) => {
               </LinearGradient>
             </View>
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
-              <YumButton size={wp(10.5)} />
+              <YumButton size={wp(10)} />
             </View>
           </View>
         </View>
@@ -846,7 +885,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: wp(3.5),
+    borderRadius: wp(3),
     marginTop: wp(1.8),
   },
   viewPlaceBtn: {
@@ -855,7 +894,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: wp(3),
+    borderRadius: wp(2.5),
   },
   viewPlaceBtnTextContainer: {
     alignItems: 'center',
@@ -865,7 +904,7 @@ const styles = StyleSheet.create({
   viewPlaceBtnText: {
     fontSize: sizes.b4,
     fontFamily: 'Medium',
-    paddingBottom: 0.5,
+    paddingBottom: 0.2,
   },
   headerContainer: {
     height: wp(15.5),

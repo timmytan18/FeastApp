@@ -11,6 +11,8 @@ const GEOHASH_PRECISION_AREAS = [
 
 const MONTHS = ['Jan', 'Feb', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+const GET_SAVED_POST_ID = ({ uid, timestamp }) => `${uid}_${timestamp}`;
+
 export {
-  RATING_CATEGORIES, SEARCH_TYPES, GEOHASH_PRECISION_AREAS, MONTHS,
+  RATING_CATEGORIES, SEARCH_TYPES, GEOHASH_PRECISION_AREAS, MONTHS, GET_SAVED_POST_ID,
 };

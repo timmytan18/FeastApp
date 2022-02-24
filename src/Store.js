@@ -8,6 +8,7 @@ const initialState = {
   review: null,
   ratings: { ...RATING_CATEGORIES },
   location: { longitude: null, latitude: null },
+  savedPosts: new Set(),
   restaurants: [],
   headerHeight: null,
   error: null,

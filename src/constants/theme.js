@@ -24,6 +24,9 @@ const shadows = {
   base: {
     shadowColor: '#c2c2c2', shadowOpacity: 0.5, shadowRadius: 3, shadowOffset: { width: -0.5, height: 2 },
   },
+  baseEven: {
+    shadowColor: '#c2c2c2', shadowOpacity: 0.5, shadowRadius: 3, shadowOffset: { width: 0, height: 0 },
+  },
   darker: {
     shadowColor: '#272D2F', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { height: 2 },
   },

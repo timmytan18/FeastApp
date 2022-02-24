@@ -16,7 +16,7 @@ const RatingMapMarker = ({
       <Text style={styles.ratingText}>
         {(Math.round(rating * 2 * 100) / 100).toFixed(1)}
       </Text>
-      <MapMarkerRating />
+      <MapMarkerRating color={colors.tertiary} />
     </View>
     {name && (
       <View>

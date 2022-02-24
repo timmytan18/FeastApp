@@ -168,7 +168,7 @@ export const getNumFollows = /* GraphQL */ `
   }
 `;
 
-export const getUserReviews = /* GraphQL */ `
+export const getUserPosts = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
     $SK: ModelStringKeyConditionInput
@@ -211,7 +211,7 @@ export const getUserReviews = /* GraphQL */ `
   }
 `;
 
-export const getUserReviewsWithUserInfo = /* GraphQL */ `
+export const getUserPostsWithUserInfo = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
     $SK: ModelStringKeyConditionInput
@@ -391,6 +391,8 @@ export const batchGetUserPosts = /* GraphQL */ `
       review
       placeUserInfo {
         uid
+        name
+        picture
         identityId
       }
       timestamp
@@ -545,6 +547,110 @@ export const getPlaceAllUserReviews = /* GraphQL */ `
           name
           picture
         }
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getUserAllSavedPosts = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+        name
+        placeId
+        geo
+        timestamp
+        categories
+        picture
+        dish
+        review
+        imgUrl
+        rating {
+          overall
+          food
+          value
+          service
+          atmosphere
+        }
+        placeUserInfo {
+          uid
+          name
+          picture
+          identityId
+        }
+        createdAt
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getUserAllSavedPostsNoDetails = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        timestamp
+        placeUserInfo {
+          uid
+        }
+        createdAt
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getAllSavedPostItems = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
       }
       nextToken
     }

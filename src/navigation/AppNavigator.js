@@ -1,12 +1,14 @@
 import React, {
-  useContext, useRef, useState, useEffect,
+  useContext, useEffect,
 } from 'react';
 import {
-  Image, Text, StyleSheet, View, TouchableOpacity, SafeAreaView,
+  Text, StyleSheet, TouchableOpacity, SafeAreaView,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import * as SplashScreen from 'expo-splash-screen';
+import { getUserAllSavedPostsQuery } from '../api/functions/queryFunctions';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers';
 import StoryModal from '../screens/components/StoryModal';
@@ -15,6 +17,7 @@ import NewPost from '../screens/NewPost/NewPost';
 import Profile from '../screens/Profile/Profile';
 import FollowsList from '../screens/Profile/FollowsList';
 import ProfileReviews from '../screens/Profile/ProfileReviews';
+import SavedPosts from '../screens/Profile/SavedPosts';
 import PlaceDetail from '../screens/Profile/PlaceDetail';
 import Settings from '../screens/Profile/Settings';
 import UploadImages from '../screens/NewPost/UploadImages';
@@ -25,10 +28,20 @@ import NewPostIcon from './icons/NewPost';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import Logo from '../screens/components/util/icons/Logo';
 import BackArrow from '../screens/components/util/icons/BackArrow';
+import { GET_SAVED_POST_ID } from '../constants/constants';
 import { Context } from '../Store';
 import {
   colors, sizes, header, wp,
 } from '../constants/theme';
+
+const renderBackArrow = ({ onPress }) => (
+  <BackArrow
+    color={colors.black}
+    size={wp(6.2)}
+    style={{ flex: 1 }}
+    pressed={onPress}
+  />
+);
 
 const HomeStack = createStackNavigator();
 function HomeStackScreen() {
@@ -53,14 +66,7 @@ function HomeStackScreen() {
         name="FollowsList"
         component={FollowsList}
         options={{
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -69,14 +75,7 @@ function HomeStackScreen() {
         component={ProfileReviews}
         options={{
           title: <Text style={header.title}>User Reviews</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -85,14 +84,7 @@ function HomeStackScreen() {
         component={Reviews}
         options={{
           title: <Text style={header.title}>Reviews</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -116,14 +108,7 @@ function NewPostStackScreen() {
         name="UploadImages"
         component={UploadImages}
         options={{
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -149,14 +134,7 @@ function ProfileStackScreen() {
         component={Settings}
         options={{
           title: <Text style={header.title}>Settings</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -164,14 +142,7 @@ function ProfileStackScreen() {
         name="FollowsList"
         component={FollowsList}
         options={{
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -180,14 +151,7 @@ function ProfileStackScreen() {
         component={ProfileReviews}
         options={{
           title: <Text style={header.title}>User Reviews</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -201,14 +165,16 @@ function ProfileStackScreen() {
         component={Reviews}
         options={{
           title: <Text style={header.title}>Reviews</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <ProfileStack.Screen
+        name="SavedPosts"
+        component={SavedPosts}
+        options={{
+          title: <Text style={header.title}>Saved</Text>,
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -238,14 +204,7 @@ function StoryModalStackScreen() {
         name="FollowsList"
         component={FollowsList}
         options={{
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -254,14 +213,7 @@ function StoryModalStackScreen() {
         component={ProfileReviews}
         options={{
           title: <Text style={header.title}>User Reviews</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -270,14 +222,7 @@ function StoryModalStackScreen() {
         component={Reviews}
         options={{
           title: <Text style={header.title}>Reviews</Text>,
-          headerLeft: ({ onPress }) => (
-            <BackArrow
-              color={colors.black}
-              size={wp(6.2)}
-              style={{ flex: 1 }}
-              pressed={onPress}
-            />
-          ),
+          headerLeft: renderBackArrow,
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
@@ -441,9 +386,32 @@ const TabNavigator = ({ picture }) => {
   );
 };
 
-export default function AppNavigator() {
-  const [state] = useContext(Context);
+const AppNavigator = () => {
+  const [
+    { user: { PK, picture }, deviceHeight },
+    dispatch,
+  ] = useContext(Context);
   const RootStack = createStackNavigator();
+
+  // Hide splash screen
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  // Fetch any necessary data on main app render
+  useEffect(() => {
+    (async () => {
+      // Get all saved posts
+      const savedPosts = await getUserAllSavedPostsQuery({ PK, noDetails: true });
+      const savedPostsIds = savedPosts.map(
+        ({ placeUserInfo: { uid }, timestamp }) => GET_SAVED_POST_ID({ uid, timestamp }),
+      );
+      dispatch({
+        type: 'SET_SAVED_POSTS',
+        payload: { savedPosts: new Set(savedPostsIds) },
+      });
+    })();
+  }, [PK]);
 
   return (
     <NavigationContainer>
@@ -452,7 +420,7 @@ export default function AppNavigator() {
           name="Home"
           options={{ headerShown: false }}
         >
-          {() => <TabNavigator picture={state.user.picture} />}
+          {() => <TabNavigator picture={picture} />}
         </RootStack.Screen>
         <RootStack.Screen
           name="StoryModal"
@@ -464,13 +432,15 @@ export default function AppNavigator() {
           component={NewPostStackScreen}
           options={{
             headerShown: false,
-            ...newPostTransition({ height: state.deviceHeight }),
+            ...newPostTransition({ height: deviceHeight }),
           }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
   );
-}
+};
+
+export default AppNavigator;
 
 const styles = StyleSheet.create({
   logoHeader: {

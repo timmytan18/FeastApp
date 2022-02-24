@@ -2,10 +2,11 @@
 
 import { API, graphqlOperation } from 'aws-amplify';
 import {
-  getUserProfile, getUserReviews, getUserReviewsWithUserInfo, getFollowing, searchUsers,
+  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, searchUsers,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getNumFollows,
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
+  getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -31,12 +32,12 @@ async function getUserProfileQuery({ PK, SK, uid }) {
 
 // Fetch reviews for a user (all or with geohash)
 // withUserInfo: true will fetch reviews with user info
-async function getUserReviewsQuery({ PK, hash, withUserInfo }) {
+async function getUserPostsQuery({ PK, hash, withUserInfo }) {
   const SK = hash ? `#PLACE#${hash}` : '#PLACE#';
   let userReviews;
   try {
     const res = await API.graphql(graphqlOperation(
-      withUserInfo ? getUserReviewsWithUserInfo : getUserReviews,
+      withUserInfo ? getUserPostsWithUserInfo : getUserPosts,
       {
         PK, SK: { beginsWith: SK }, limit: 50, sortDirection: 'DESC',
       },
@@ -269,7 +270,6 @@ async function getPlaceFollowingUserReviewsQuery({
         nextToken: currNextToken,
       },
     ));
-    console.log(res.data.itemsByLSI2);
     userReviews = res.data.itemsByLSI2.items;
     nextToken = res.data.itemsByLSI2.nextToken;
   } catch (err) {
@@ -303,9 +303,45 @@ async function getPlaceAllUserReviewsQuery({ placeId, limit, currNextToken }) {
   return { userReviews, nextToken };
 }
 
+// Fetch all of a user's saved posts
+async function getUserAllSavedPostsQuery({ PK, noDetails }) {
+  let posts;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      noDetails ? getUserAllSavedPostsNoDetails : getUserAllSavedPosts,
+      {
+        PK,
+        SK: { beginsWith: '#SAVEDPOST#' },
+        sortDirection: 'DESC',
+        limit: 200,
+      },
+    ));
+    posts = res.data.listFeastItems.items;
+  } catch (err) {
+    console.warn('Error getting all saved posts: ', err);
+  }
+  return posts;
+}
+
+// Fetch all saved post items for a specific post (across all users)
+async function getAllSavedPostItemsQuery({ uid, timestamp }) {
+  let savedPosts;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getAllSavedPostItems,
+      { GSI1: 'SAVEDPOST#', SK: { eq: `#SAVEDPOST#${timestamp}#${uid}` }, limit: 200 },
+    ));
+    savedPosts = res.data.itemsByGSI1.items;
+  } catch (err) {
+    console.warn('Error fetching all saved post items for post: ', err);
+  }
+  return savedPosts;
+}
+
 export {
-  getUserProfileQuery, getUserReviewsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
+  getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
   getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
   getFollowingPostsByUserQuery, batchGetUserPostsQuery, getPlaceDetailsQuery,
   batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery,
+  getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
 };

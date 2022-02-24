@@ -467,10 +467,12 @@ const Reviews = ({ navigation, placeId, myUID }) => {
           currRatings[2] += service;
           currRatings[3] += atmosphere;
         });
-        currRatings.forEach((rating, i) => {
-          currRatings[i] = rating / userReviews.length;
-        });
-        ratings.current = currRatings;
+        if (userReviews.length > 0) {
+          currRatings.forEach((rating, i) => {
+            currRatings[i] = rating / userReviews.length;
+          });
+          ratings.current = currRatings;
+        }
         nextToken.current = currNextToken;
         // Save place reviews and average ratings
         seenReviewRatings.current[placeId] = {
