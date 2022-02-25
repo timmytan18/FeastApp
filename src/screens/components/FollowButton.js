@@ -47,7 +47,7 @@ const propTypes = {
 };
 
 const FollowButton = ({
-  currentUser, myUser, reviews, dispatch, containerStyle, textStyle,
+  currentUser, myUser, reviews, dispatch, containerStyle, textStyle, ADDED_ATTR,
 }) => {
   // Destructure current user (profile user is viewing) object
   const {
@@ -97,7 +97,10 @@ const FollowButton = ({
             identityId,
           },
         });
-        delete updatedReviews[updatedReviews.length - 1].s3Photo;
+        // Remove s3Photo, imgUrl, visible, & avgOverallRating from FollowingPost item
+        ADDED_ATTR.forEach((attr) => {
+          delete updatedReviews[updatedReviews.length - 1][attr];
+        });
       });
     });
     reviewsForFeed.current = updatedReviews;

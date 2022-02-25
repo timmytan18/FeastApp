@@ -21,7 +21,9 @@ const propTypes = {
   }).isRequired,
 };
 
-const PostListItem = ({ item, placePosts, openPlacePosts }) => (
+const PostListItem = ({
+  item, numYums, placePosts, openPlacePosts,
+}) => (
   <TouchableOpacity
     style={styles.postItem}
     activeOpacity={0.9}
@@ -38,10 +40,16 @@ const PostListItem = ({ item, placePosts, openPlacePosts }) => (
           style={styles.gradient}
         />
       </View>
-      <View style={styles.yumContainer}>
-        <Yum size={wp(4.8)} />
-        <Text style={styles.yumTextContainer}>21 Yums</Text>
-      </View>
+      {numYums && numYums > 0 && (
+        <View style={styles.yumContainer}>
+          <Yum size={wp(4.8)} />
+          <Text style={styles.yumTextContainer}>
+            {numYums}
+            {' '}
+            {numYums === 1 ? 'Yum' : 'Yums'}
+          </Text>
+        </View>
+      )}
     </ImageBackground>
     <View style={styles.postBottomContainer}>
       <Text style={styles.postNameText} numberOfLines={1}>

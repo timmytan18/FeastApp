@@ -14,7 +14,7 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
 import {
-  getUserPostsQuery, getNumFollowsQuery, getPlaceDetailsQuery,
+  getUserPostsQuery, getNumFollowsQuery, getPlaceDetailsQuery, getUserYumsReceivedQuery,
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import EditProfile from './EditProfile';
@@ -55,6 +55,8 @@ const propTypes = {
   }).isRequired,
 };
 
+const ADDED_ATTR = ['imgUrl', 's3Photo', 'visible', 'avgOverallRating'];
+
 // Memoize row rendering, only rerender when row content changes
 const RowItem = React.memo(({
   row,
@@ -73,11 +75,12 @@ const RowItem = React.memo(({
           { transform: [{ translateX: translateContent }], opacity: translateListContentOpacity },
         ]}
       >
-        {row.map((placePosts) => {
+        {row.map(({ placePosts, numYums }) => {
           const item = placePosts[0];
           return (
             <PostListItem
               item={item}
+              numYums={numYums}
               placePosts={placePosts}
               openPlacePosts={openPlacePosts}
               key={item.timestamp}
@@ -168,6 +171,12 @@ const Profile = ({ navigation, route }) => {
       const placePostsOverallRatingSum = {};
       if (userReviews && userReviews.length) {
         allReviews.current = userReviews;
+        // Get yums received for current user
+        const updatedPlaceNumYums = {};
+        const yums = await getUserYumsReceivedQuery({ uid: user.uid });
+        yums.forEach(({ placeId }) => {
+          updatedPlaceNumYums[placeId] = (updatedPlaceNumYums[placeId] || 0) + 1;
+        });
         Promise.all(userReviews.map(getPostPictures)).then((currPosts) => {
           numReviews.current = currPosts.length;
           for (let i = 0; i < currPosts.length; i += 1) {
@@ -187,16 +196,22 @@ const Profile = ({ navigation, route }) => {
           });
           console.log('User Reviews: ', placePosts);
 
-          // Format posts for FlatList
+          // Format posts for FlatList, include numYums
           const placeIdKeys = Object.keys(placePosts);
           if (placeIdKeys && placeIdKeys.length) {
             posts.current = [[]];
             for (let i = 0; i < placeIdKeys.length; i += 2) {
+              const rowItem = [{
+                placePosts: placePosts[placeIdKeys[i]],
+                numYums: updatedPlaceNumYums[placeIdKeys[i]],
+              }];
               if (i + 1 < placeIdKeys.length) {
-                posts.current.push([placePosts[placeIdKeys[i]], placePosts[placeIdKeys[i + 1]]]);
-              } else {
-                posts.current.push([placePosts[placeIdKeys[i]]]);
+                rowItem.push({
+                  placePosts: placePosts[placeIdKeys[i + 1]],
+                  numYums: updatedPlaceNumYums[placeIdKeys[i + 1]],
+                });
               }
+              posts.current.push(rowItem);
             }
           }
           setReviews(placePosts);
@@ -432,6 +447,7 @@ const Profile = ({ navigation, route }) => {
                     dispatch={dispatch}
                     containerStyle={styles.editContainer}
                     textStyle={styles.editText}
+                    ADDED_ATTR={ADDED_ATTR}
                   />
                 )}
             </View>

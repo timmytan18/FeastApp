@@ -657,6 +657,87 @@ export const getAllSavedPostItems = /* GraphQL */ `
   }
 `;
 
+export const getPostYums = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+        placeId
+        uid
+        name
+        picture
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getPostYumsNoDetails = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getUserYumsReceived = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        placeId
+      }
+      nextToken
+    }
+  }
+`;
+
 // export const getBusiness = /* GraphQL */ `
 //   query ListFeastItems(
 //     $PK: String

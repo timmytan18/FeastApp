@@ -11,7 +11,7 @@ import {
   colors, sizes, gradients, wp, hp, shadows,
 } from '../../constants/theme';
 
-const MoreItem = ({ item, setMorePressed }) => (
+const MoreItem = ({ item, setMorePressed, labelSize }) => (
   <View style={styles.moreItem}>
     <TouchableOpacity
       style={styles.moreItemContainer}
@@ -19,10 +19,15 @@ const MoreItem = ({ item, setMorePressed }) => (
         setMorePressed(false);
         item.onPress();
       }}
+      activeOpacity={0.7}
     >
       {item.icon}
       <Text
-        style={[styles.moreText, { paddingLeft: item.icon ? wp(5) : wp(1) }]}
+        style={[
+          styles.moreText,
+          { paddingLeft: item.icon ? wp(5) : wp(1) },
+          labelSize && { fontSize: labelSize },
+        ]}
       >
         {item.label}
       </Text>
@@ -32,9 +37,9 @@ const MoreItem = ({ item, setMorePressed }) => (
 );
 
 const MoreView = ({
-  morePressed, setMorePressed, items, onDismiss,
+  morePressed, setMorePressed, items, onDismiss, labelSize,
 }) => {
-  const [state, dispatch] = useContext(Context);
+  const [state] = useContext(Context);
   return (
     <Modal
       isVisible={morePressed}
@@ -56,7 +61,13 @@ const MoreView = ({
       >
         <FlatList
           data={items}
-          renderItem={({ item }) => <MoreItem item={item} setMorePressed={setMorePressed} />}
+          renderItem={({ item }) => (
+            <MoreItem
+              item={item}
+              setMorePressed={setMorePressed}
+              labelSize={labelSize}
+            />
+          )}
           keyExtractor={(item) => item.label}
           showsVerticalScrollIndicator={false}
         />

@@ -21,6 +21,7 @@ import {
   getIsFollowingQuery,
   getFollowersQuery,
   getAllSavedPostItemsQuery,
+  getPostYumsQuery,
 } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
@@ -62,7 +63,11 @@ const StoryModal = ({ navigation, route }) => {
   } = route.params;
 
   const [
-    { user: { uid: myUID, PK: myPK }, savedPosts },
+    {
+      user: {
+        uid: myUID, PK: myPK, name: myName, picture: myPicture,
+      }, savedPosts,
+    },
     dispatch,
   ] = useContext(Context);
 
@@ -393,7 +398,6 @@ const StoryModal = ({ navigation, route }) => {
       });
     });
 
-    console.log(postInUserFeeds);
     let i; let j;
     const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
     for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
@@ -424,6 +428,22 @@ const StoryModal = ({ navigation, route }) => {
       }
     }
 
+    // Delete yum items for post
+    const yumItemsToDelete = await getPostYumsQuery({
+      uid: myUID, timestamp: currTimestamp, noDetails: true,
+    });
+    for (i = 0, j = yumItemsToDelete.length; i < j; i += BATCH_NUM) {
+      const batch = yumItemsToDelete.slice(i, i + BATCH_NUM);
+      try {
+        await API.graphql(graphqlOperation(
+          batchDeleteFollowingPosts,
+          { input: { posts: batch } },
+        ));
+      } catch (err) {
+        console.warn('Error deleting all yum post items for post', err);
+      }
+    }
+
     // Update app state to trigger map re-render
     dispatch({ type: 'SET_RELOAD_MAP' });
   };
@@ -446,17 +466,31 @@ const StoryModal = ({ navigation, route }) => {
       },
     ];
 
-  const fetchCurrentUser = async () => {
+  const fetchUser = async ({ fetchUID }) => {
     try {
-      const currentUser = await getUserProfileQuery({ uid });
+      const currentUser = await getUserProfileQuery({ uid: fetchUID });
       // Check if I am following the current user
       if (currentUser.uid !== myUID) {
-        currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
+        currentUser.following = await getIsFollowingQuery({ currentUID: fetchUID, myUID });
       }
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.warn('Error fetching current user: ', err);
     }
+  };
+
+  const [showYummedUsers, setShowYummedUsers] = useState(false);
+  const yummedUsersRef = useRef([]);
+  const showYummedUsersModal = ({ users }) => {
+    yummedUsersRef.current = users.map((item) => ({
+      onPress: () => fetchUser({ fetchUID: item.uid }),
+      label: item.name,
+      icon: <ProfilePic
+        extUrl={item.picture}
+        size={wp(8)}
+      />,
+    }));
+    setShowYummedUsers(true);
   };
 
   const [numLines, setNumLines] = useState(null);
@@ -520,6 +554,13 @@ const StoryModal = ({ navigation, route }) => {
           setMorePressed={setMorePressed}
           onDismiss={() => continueBarAnimation()}
         />
+        <MoreView
+          items={yummedUsersRef.current}
+          morePressed={showYummedUsers}
+          setMorePressed={setShowYummedUsers}
+          onDismiss={() => continueBarAnimation()}
+          labelSize={sizes.b1}
+        />
         {loading
           && (
             <View style={{
@@ -564,7 +605,7 @@ const StoryModal = ({ navigation, route }) => {
           <View style={styles.headerContainer}>
             <View style={{ flexDirection: 'row', flex: 0.9 }}>
               <TouchableOpacity
-                onPress={fetchCurrentUser}
+                onPress={() => fetchUser({ fetchUID: uid })}
                 activeOpacity={0.8}
                 style={styles.profilePic}
               >
@@ -577,7 +618,10 @@ const StoryModal = ({ navigation, route }) => {
               </TouchableOpacity>
               <View style={styles.headerTextContainer}>
                 <View style={styles.nameElapsedTimeContainer}>
-                  <TouchableOpacity onPress={fetchCurrentUser} activeOpacity={0.8}>
+                  <TouchableOpacity
+                    onPress={() => fetchUser({ fetchUID: uid })}
+                    activeOpacity={0.8}
+                  >
                     <Text style={styles.nameText}>{userName}</Text>
                   </TouchableOpacity>
                   <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
@@ -789,7 +833,18 @@ const StoryModal = ({ navigation, route }) => {
               </LinearGradient>
             </View>
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
-              <YumButton size={wp(10)} />
+              <YumButton
+                size={wp(10)}
+                uid={uid}
+                placeId={placeId}
+                timestamp={timestamp}
+                myUID={myUID}
+                myPK={myPK}
+                myName={myName}
+                myPicture={myPicture}
+                showYummedUsersModal={showYummedUsersModal}
+                stopBarAnimation={stopBarAnimation}
+              />
             </View>
           </View>
         </View>

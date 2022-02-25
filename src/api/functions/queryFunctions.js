@@ -6,7 +6,8 @@ import {
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getNumFollows,
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
-  getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems,
+  getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
+  getUserYumsReceived, getPostYumsNoDetails,
 } from '../graphql/queries';
 import { SEARCH_TYPES } from '../../constants/constants';
 
@@ -338,10 +339,52 @@ async function getAllSavedPostItemsQuery({ uid, timestamp }) {
   return savedPosts;
 }
 
+// Fetch all yum items for a specific post
+async function getPostYumsQuery({ uid, timestamp, noDetails }) {
+  let yums;
+  const GSI1 = `YUMPOST#${uid}`;
+  const SK = `#YUMPOST#${timestamp}#${uid}`;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      noDetails ? getPostYumsNoDetails : getPostYums,
+      {
+        GSI1,
+        SK: { eq: SK },
+        limit: 500,
+      },
+    ));
+    yums = res.data.itemsByGSI1.items;
+  } catch (err) {
+    console.warn('Error fetching all yum items for post: ', err);
+  }
+  return yums;
+}
+
+// Fetch all yums received for a specific user
+async function getUserYumsReceivedQuery({ uid }) {
+  let yums;
+  const GSI1 = `YUMPOST#${uid}`;
+  const SK = '#YUMPOST#';
+  try {
+    const res = await API.graphql(graphqlOperation(
+      getUserYumsReceived,
+      {
+        GSI1,
+        SK: { beginsWith: SK },
+        limit: 1000,
+      },
+    ));
+    yums = res.data.itemsByGSI1.items;
+  } catch (err) {
+    console.warn('Error fetching all received yum items for user: ', err);
+  }
+  return yums;
+}
+
 export {
   getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
   getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
   getFollowingPostsByUserQuery, batchGetUserPostsQuery, getPlaceDetailsQuery,
   batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery,
-  getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
+  getUserAllSavedPostsQuery, getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery,
 };
