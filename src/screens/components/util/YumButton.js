@@ -40,6 +40,8 @@ const YumButton = ({
   }, [myUID, placeId, timestamp, uid]);
 
   const yumPressed = async () => {
+    const currPressed = pressed;
+    setPressed(!currPressed);
     const input = {
       PK: myPK,
       SK: `#YUMPOST#${timestamp}#${uid}`,
@@ -54,7 +56,7 @@ const YumButton = ({
       },
     };
 
-    if (pressed) {
+    if (currPressed) {
       // Delete yum
       setYums([...yums.slice(0, -1)]); // Remove yum from array
       try {
@@ -77,8 +79,6 @@ const YumButton = ({
         console.warn('Error creating yum: ', err);
       }
     }
-
-    setPressed(!pressed);
   };
 
   const showYummedUsersModalPressed = () => {
