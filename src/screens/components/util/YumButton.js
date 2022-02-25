@@ -66,6 +66,8 @@ const YumButton = ({
         ));
       } catch (err) {
         console.warn('Error deleting yum: ', err);
+        setPressed(currPressed);
+        setYums([...yums, input]);
       }
     } else {
       // Create yum
@@ -77,6 +79,8 @@ const YumButton = ({
         ));
       } catch (err) {
         console.warn('Error creating yum: ', err);
+        setPressed(currPressed);
+        setYums([...yums.slice(0, -1)]);
       }
     }
   };
