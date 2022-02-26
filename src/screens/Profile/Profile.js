@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontFamily: 'Medium',
     fontSize: sizes.b2,
-    color: colors.black,
+    color: colors.tertiary,
     marginTop: wp(2),
   },
 });

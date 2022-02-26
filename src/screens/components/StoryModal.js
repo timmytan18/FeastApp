@@ -724,7 +724,6 @@ const StoryModal = ({ navigation, route }) => {
                 <View style={styles.ratingContainer}>
                   <View>
                     <Rating
-                      isGradient={rating.food > 4.5}
                       color={ratingColor(rating.food)}
                       size={ratingIconSize}
                     />
@@ -741,7 +740,6 @@ const StoryModal = ({ navigation, route }) => {
                 <View style={styles.ratingContainer}>
                   <View>
                     <Rating
-                      isGradient={rating.value > 4.5}
                       color={ratingColor(rating.value)}
                       size={ratingIconSize}
                     />
@@ -758,7 +756,6 @@ const StoryModal = ({ navigation, route }) => {
                 <View style={styles.ratingContainer}>
                   <View>
                     <Rating
-                      isGradient={rating.service > 4.5}
                       color={ratingColor(rating.service)}
                       size={ratingIconSize}
                     />
@@ -775,7 +772,6 @@ const StoryModal = ({ navigation, route }) => {
                 <View style={styles.ratingContainer}>
                   <View>
                     <Rating
-                      isGradient={rating.atmosphere > 4.5}
                       color={ratingColor(rating.atmosphere)}
                       size={ratingIconSize}
                     />
