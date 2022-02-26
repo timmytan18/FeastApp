@@ -22,10 +22,8 @@ import {
 } from '../../constants/theme';
 
 const SearchUsers = ({ navigation }) => {
-  const [state, dispatch] = useContext(Context);
+  const [{ user: { PK, uid: myUID } }, dispatch] = useContext(Context);
   const [loading, setLoading] = useState(false);
-  const { PK } = state.user;
-  const ID = state.user.uid;
 
   const position = useRef(new Animated.Value(0)).current;
   const [searchByUser, setSearchByUser] = useState(true);
@@ -82,7 +80,7 @@ const SearchUsers = ({ navigation }) => {
       currentUser.picture = currentProfilePic;
       // Check if I am following the current user
       if (currentPK !== PK) {
-        currentUser.following = await getIsFollowingQuery({ currentPK, myUID: ID });
+        currentUser.following = await getIsFollowingQuery({ currentPK, myUID });
       }
       navigation.push('Profile', { user: currentUser });
     } catch (err) {

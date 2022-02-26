@@ -14,7 +14,6 @@ const PlaceDetail = ({ navigation, route }) => {
     <ScrollView
       style={styles.scrollView}
       showsVerticalScrollIndicator={false}
-      bounces={false}
     >
       <TouchableOpacity
         style={styles.downArrowContainer}
@@ -35,7 +34,7 @@ const PlaceDetail = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   scrollView: {
-    backgroundColor: '#131617',
+    backgroundColor: '#fff',
   },
   downArrowContainer: {
     position: 'absolute',

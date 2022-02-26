@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard,
 } from 'react-native';
@@ -7,12 +7,14 @@ import {
 } from '../../api/functions/queryFunctions';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
+import { Context } from '../../Store';
 import {
   colors, sizes, wp, header,
 } from '../../constants/theme';
 
 const FollowsList = ({ navigation, route }) => {
   const { PK, uid, type } = route.params;
+  const [{ user: { uid: myUID } }] = useContext(Context);
 
   const [usersList, setUsersList] = useState(null);
 
@@ -30,7 +32,6 @@ const FollowsList = ({ navigation, route }) => {
       } else if (type === 'Following') {
         dynamoUsers = await getFollowingQuery({ uid });
       }
-      console.log(dynamoUsers);
       setUsersList(dynamoUsers);
     })();
   }, [PK, type, uid]);
@@ -44,8 +45,7 @@ const FollowsList = ({ navigation, route }) => {
 
       // Check if my user is following the current user, even if showing list of following users
       // Accounts of edge case of viewing profile immediately after unfollowing
-      currentUser.following = await getIsFollowingQuery({ currentPK, myUID: uid });
-      console.log(currentUser);
+      currentUser.following = await getIsFollowingQuery({ currentPK, myUID });
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.warn('Error fetching current user: ', err);
@@ -58,9 +58,6 @@ const FollowsList = ({ navigation, route }) => {
     } else {
       item = item.follower;
     }
-
-    console.log(item);
-
     return (
       <TouchableOpacity
         style={styles.userItemContainer}
