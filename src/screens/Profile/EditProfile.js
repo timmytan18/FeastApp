@@ -1,21 +1,29 @@
 import React, { useState, useRef } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Platform, Image,
+  StyleSheet, Text, View, TouchableOpacity, Platform, TextInput,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';
+import { API, graphqlOperation } from 'aws-amplify';
 import updateProfilePic from '../../api/functions/S3Storage';
+import { updateFeastItem } from '../../api/graphql/mutations';
+import DismissKeyboardView from '../components/util/DismissKeyboard';
 import ProfilePic from '../components/ProfilePic';
-import {
-  colors, gradients, sizes, wp, hp, shadows,
-} from '../../constants/theme';
+import Line from '../components/util/Line';
+import CenterSpinner from '../components/util/CenterSpinner';
+import { colors, sizes, wp } from '../../constants/theme';
 
 const EditProfile = ({
   editPressed, setEditPressed, user, dispatch, deviceHeight,
 }) => {
-  const [photo, setPhoto] = useState(user.picture ? user.picture : null);
+  const {
+    picture, city, PK, SK, uid,
+  } = user;
+  const [photo, setPhoto] = useState(picture || null);
+  const [displayCity, setDisplayCity] = useState(city || null);
   const isLocal = useRef(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Resize and compress photo
@@ -52,20 +60,40 @@ const EditProfile = ({
   };
 
   async function saveEdits() {
-    if (user.picture !== photo) {
+    setLoading(true);
+    // Update profile picture
+    if (picture !== photo) {
       // Store new user profile photo in S3 and DynamoDB
-      const newPicture = await updateProfilePic(user.PK, user.SK, user.uid, photo);
+      const newPicture = await updateProfilePic(PK, SK, uid, photo);
       if (newPicture) {
         dispatch({ type: 'SET_USER', payload: { ...user, picture: newPicture } });
+      } else {
+        setError('Error updating profile picture');
+        return;
       }
     }
+    // Updated user city
+    if (city !== displayCity) {
+      try {
+        await API.graphql(graphqlOperation(
+          updateFeastItem,
+          { input: { PK, SK, city: displayCity } },
+        ));
+        dispatch({ type: 'SET_USER', payload: { ...user, city: displayCity } });
+      } catch (err) {
+        console.warn('Error updating user city', err);
+        setError('Error updating city');
+        return;
+      }
+    }
+    setLoading(false);
     hideModal();
   }
 
   const hideModal = () => {
     setError(null);
     isLocal.current = false;
-    setPhoto(user.picture ? user.picture : null);
+    setPhoto(picture || null);
     setEditPressed(false);
   };
 
@@ -80,7 +108,7 @@ const EditProfile = ({
       deviceHeight={deviceHeight}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={styles.container}>
+      <DismissKeyboardView style={styles.container}>
         <View style={styles.topRectangle} />
         <View style={styles.pfpContainer}>
           <View style={[styles.userPicture]}>
@@ -96,7 +124,25 @@ const EditProfile = ({
             <Text style={styles.changePfpText}>Change Profile Photo</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ flex: 0.5 }} />
+        <View style={styles.centerContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.textInputTitle}>
+              Location
+            </Text>
+            <View>
+              <TextInput
+                style={styles.textInput}
+                onChangeText={(text) => setDisplayCity(text)}
+                placeholder="Ex: Atlanta, GA"
+                placeholderTextColor={`${colors.tertiary}70`}
+                clearButtonMode="while-editing"
+                value={displayCity || null}
+                maxLength={50}
+              />
+              <Line length={INPUT_WIDTH} color={colors.tertiary} />
+            </View>
+          </View>
+        </View>
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -110,17 +156,19 @@ const EditProfile = ({
             style={[styles.actionButton, { backgroundColor: colors.black }]}
             onPress={() => saveEdits()}
           >
-            <Text style={[styles.actionText, { color: '#fff' }]}>Save</Text>
+            {!loading && <Text style={[styles.actionText, { color: '#fff' }]}>Save</Text>}
+            {loading && <CenterSpinner />}
           </TouchableOpacity>
         </View>
         <View style={{ flex: 0.1 }}>
           {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
-      </View>
+      </DismissKeyboardView>
     </Modal>
   );
 };
 
+const INPUT_WIDTH = wp(55);
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -155,6 +203,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Medium',
     fontSize: sizes.b1,
     color: colors.accent,
+  },
+  centerContainer: {
+    flex: 0.5,
+    padding: wp(7),
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  textInputTitle: {
+    width: wp(21),
+    fontFamily: 'Semi',
+    fontSize: sizes.h4,
+    color: colors.black,
+    marginRight: wp(3.8),
+    textAlign: 'center',
+  },
+  textInput: {
+    height: wp(8.3),
+    width: INPUT_WIDTH,
+    fontFamily: 'Book',
+    fontSize: sizes.b1,
+    color: colors.black,
+    letterSpacing: 0.1,
   },
   actionsContainer: {
     flexDirection: 'row',

@@ -25,8 +25,8 @@ import FollowButton from '../components/FollowButton';
 import More from '../components/util/icons/More';
 import PostListItem from '../components/PostListItem';
 import ThreeDots from '../components/util/icons/ThreeDots';
-import HeartEyes from '../components/util/icons/HeartEyes';
-import Heart from '../components/util/icons/Heart';
+// import HeartEyes from '../components/util/icons/HeartEyes';
+// import Heart from '../components/util/icons/Heart';
 import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
@@ -381,7 +381,12 @@ const Profile = ({ navigation, route }) => {
               size={wp(22)}
               style={styles.userPicture}
             />
-            <Text style={styles.locationText}>Atlanta, GA</Text>
+            <Text
+              style={[styles.locationText, !user.city && { fontFamily: 'MediumItalic' }]}
+              numberOfLines={2}
+            >
+              {user.city || 'No location'}
+            </Text>
           </View>
           <View style={styles.infoContainer}>
             <View style={styles.followContainer}>
@@ -709,6 +714,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Medium',
     fontSize: sizes.b3,
     color: colors.tertiary,
+    textAlign: 'center',
   },
   infoContainer: {
     flex: 0.7,
