@@ -1,35 +1,35 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { StyleSheet, View, TextInput } from 'react-native';
-import Phone from '../components/util/icons/Phone';
+import Mail from '../components/util/icons/Mail';
 import Lock from '../components/util/icons/Lock';
 import Unlock from '../components/util/icons/Unlock';
 import BadgeCheck from '../components/util/icons/BadgeCheck';
 import Line from '../components/util/Line';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp,
 } from '../../constants/theme';
 
-const PhoneInput = ({
-  onChange, passwordInput, verified, checkValidNumber, value,
+const EmailInput = ({
+  onChange, passwordInput, verified, checkValidEmail, value,
 }) => (
   <View>
     <View style={styles.inputContainer}>
       <View style={[styles.iconContainer, { paddingBottom: wp(0.5) }]}>
-        <Phone />
+        <Mail />
       </View>
       <TextInput
         style={styles.textInput}
         onChangeText={(text) => onChange(text)}
-        placeholder="Phone number"
+        placeholder="Email address"
         placeholderTextColor={`${colors.tertiary}70`}
         autoCapitalize="none"
         clearButtonMode="while-editing"
-        keyboardType="phone-pad"
-        textContentType="telephoneNumber"
+        keyboardType="email-address"
+        textContentType="emailAddress"
         autoFocus={!verified}
         value={value || null}
-        autoCompleteType="tel"
-        onEndEditing={checkValidNumber}
+        autoCompleteType="email"
+        onEndEditing={checkValidEmail}
         onSubmitEditing={() => {
           if (passwordInput) { passwordInput.focus(); }
         }}
@@ -164,5 +164,5 @@ const styles = StyleSheet.create({
 });
 
 export {
-  PhoneInput, PasswordInput, ConfirmPasswordInput, NameInput, VerificationInput,
+  EmailInput, PasswordInput, ConfirmPasswordInput, NameInput, VerificationInput,
 };

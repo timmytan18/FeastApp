@@ -21,6 +21,7 @@ type FeastItem
   uid: String
   identityId: String
   phone: String
+  email: String
   picture: String
   city: String
   numFollowers: Int

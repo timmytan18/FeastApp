@@ -6,24 +6,25 @@ import { Auth } from 'aws-amplify';
 import BackArrow from '../components/util/icons/BackArrow';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';
-import { PhoneInput, PasswordInput } from './Input';
+import { EmailInput, PasswordInput } from './Input';
 import {
   colors, sizes, wp, hp,
 } from '../../constants/theme';
 
 const LogIn = ({ navigation, route }) => {
-  const [phone, changePhone] = useState('');
+  const [email, changeEmail] = useState('');
   const [password, changePassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [passwordInput, setPasswordInput] = useState(null);
 
-  const verified = !!((route.params && route.params.phone));
+  const verified = !!((route.params && route.params.email));
   const resetPassword = route.params && route.params.reset;
 
   useEffect(() => {
     if (verified) {
-      changePhone(route.params.phone);
+      changeEmail(route.params.email);
       navigation.setOptions({ gestureEnabled: false });
     }
 
@@ -38,18 +39,20 @@ const LogIn = ({ navigation, route }) => {
   }, [verified]);
 
   async function signIn() {
-    const phoneCopy = phone.slice().replace(/\D/g, '');
+    setLoading(true);
+    const currEmail = email.slice().toLowerCase().replace(/\s/g, '');
     try {
-      const user = await Auth.signIn(`+1${phoneCopy}`, password);
-      console.log(user);
+      const user = await Auth.signIn(currEmail, password);
+      setLoading(false);
     } catch (err) {
-      console.warn('error signing in', err);
-      if (err.code == 'UserNotConfirmedException') {
-        navigation.navigate('Verification', { phone, back: true });
-      } else if (err.code == 'UserNotFoundException') {
-        setError("Sorry, we don't recognize that phone number");
-      } else if (err.code == 'NotAuthorizedException') {
-        setError("Username and password don't match");
+      console.log('error signing in', err);
+      setLoading(false);
+      if (err.code === 'UserNotConfirmedException') {
+        navigation.navigate('Verification', { email, back: true });
+      } else if (err.code === 'UserNotFoundException') {
+        setError("Sorry, we don't recognize that email");
+      } else if (err.code === 'NotAuthorizedException') {
+        setError("Email and password don't match");
       } else {
         setError('Log In Error');
       }
@@ -72,9 +75,9 @@ const LogIn = ({ navigation, route }) => {
                 For your security, please sign in now.
               </Text>
             )}
-          <PhoneInput onChange={changePhone} passwordInput={passwordInput} verified={verified} value={verified ? route.params.phone : null} />
+          <EmailInput onChange={changeEmail} passwordInput={passwordInput} verified={verified} value={verified ? route.params.email : null} />
           <PasswordInput onChange={changePassword} setPasswordInput={setPasswordInput} signIn verified={verified} />
-          <TouchableOpacity style={styles.troubleContainer} onPress={() => navigation.navigate('ForgotPhone')}>
+          <TouchableOpacity style={styles.troubleContainer} onPress={() => navigation.navigate('ForgotEmail')}>
             <Text style={styles.troubleText}>
               Trouble Logging In?
             </Text>
@@ -84,7 +87,8 @@ const LogIn = ({ navigation, route }) => {
           <BigButton
             gradient="purple"
             text="Log In"
-            disabled={phone === '' || password === ''}
+            loading={loading}
+            disabled={email === '' || password === ''}
             error={error}
             pressed={() => {
               signIn();

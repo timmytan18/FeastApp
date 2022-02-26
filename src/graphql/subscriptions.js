@@ -17,6 +17,7 @@ export const onCreateFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -93,6 +94,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -169,6 +171,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers

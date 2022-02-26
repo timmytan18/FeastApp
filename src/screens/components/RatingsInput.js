@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   numbersContainer: {
     alignSelf: 'flex-end',
-    width: wp(52),
+    width: wp(52.5),
     height: wp(7.5),
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     marginBottom: wp(1.7),
   },
   ratingText: {
-    fontFamily: 'Semi',
+    fontFamily: 'Medium',
     fontSize: sizes.b1,
     color: colors.tertiary,
     paddingBottom: wp(1),

@@ -17,6 +17,7 @@ export const incrementFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -93,6 +94,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -169,6 +171,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -248,6 +251,7 @@ export const createFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -327,6 +331,7 @@ export const updateFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -406,6 +411,7 @@ export const deleteFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers

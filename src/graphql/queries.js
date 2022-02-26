@@ -17,6 +17,7 @@ export const batchGetFeastItems = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -93,6 +94,7 @@ export const getFeastItem = /* GraphQL */ `
       uid
       identityId
       phone
+      email
       picture
       city
       numFollowers
@@ -184,6 +186,7 @@ export const listFeastItems = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -273,6 +276,7 @@ export const itemsByGSI1 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -362,6 +366,7 @@ export const itemsByGSI2 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -451,6 +456,7 @@ export const itemsByLSI1 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -540,6 +546,7 @@ export const itemsByLSI2 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -629,6 +636,7 @@ export const itemsByLSI3 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -718,6 +726,7 @@ export const itemsByLSI4 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers
@@ -807,6 +816,7 @@ export const itemsByLSI5 = /* GraphQL */ `
         uid
         identityId
         phone
+        email
         picture
         city
         numFollowers

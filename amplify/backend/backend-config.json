@@ -1,6 +1,6 @@
 {
   "auth": {
-    "feastapp79137d31": {
+    "feastappf77f5e1c": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],
@@ -16,7 +16,7 @@
           "defaultAuthentication": {
             "authenticationType": "AMAZON_COGNITO_USER_POOLS",
             "userPoolConfig": {
-              "userPoolId": "authfeastapp79137d31"
+              "userPoolId": "authfeastappf77f5e1c"
             }
           },
           "additionalAuthenticationProviders": []

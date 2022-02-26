@@ -1,8 +1,8 @@
 {
-    "identityPoolName": "feastapp79137d31_identitypool_79137d31",
+    "identityPoolName": "feastappf77f5e1c_identitypool_f77f5e1c",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "feasta79137d31",
-    "userPoolName": "feastapp79137d31_userpool_79137d31",
+    "resourceNameTruncated": "feastaf77f5e1c",
+    "userPoolName": "feastappf77f5e1c_userpool_f77f5e1c",
     "autoVerifiedAttributes": [
         "email"
     ],
@@ -18,8 +18,7 @@
     "passwordPolicyMinLength": 8,
     "passwordPolicyCharacters": [],
     "requiredAttributes": [
-        "name",
-        "phone_number"
+        "email"
     ],
     "userpoolClientGenerateSecret": false,
     "userpoolClientRefreshTokenValidity": 30,
@@ -29,10 +28,10 @@
     "userpoolClientReadAttributes": [
         "email"
     ],
-    "userpoolClientLambdaRole": "feasta79137d31_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "feastaf77f5e1c_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "79137d31",
-    "resourceName": "feastapp79137d31",
+    "sharedId": "f77f5e1c",
+    "resourceName": "feastappf77f5e1c",
     "authSelections": "identityPoolAndUserPool",
     "authRoleArn": {
         "Fn::GetAtt": [
@@ -48,7 +47,7 @@
     },
     "useDefault": "default",
     "usernameAttributes": [
-        "phone_number"
+        "email"
     ],
     "triggers": "{}",
     "userPoolGroupList": [],

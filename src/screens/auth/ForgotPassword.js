@@ -7,14 +7,17 @@ import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';
 import { VerificationInput, PasswordInput, ConfirmPasswordInput } from './Input';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp,
 } from '../../constants/theme';
 
 const ForgotPassword = ({ navigation, route }) => {
+  const { email } = route.params;
+
   const [code, changeCode] = useState('');
   const [password, changePassword] = useState('');
   const [confirmPassword, changeConfirmPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [passwordInput, setPasswordInput] = useState(null);
   const [confirmPasswordInput, setConfirmPasswordInput] = useState(null);
@@ -31,20 +34,22 @@ const ForgotPassword = ({ navigation, route }) => {
   }, []);
 
   async function resetPassword() {
-    Auth.forgotPasswordSubmit(`+1${route.params.phone}`, code, password)
+    setLoading(true);
+    Auth.forgotPasswordSubmit(email, code, password)
       .then((data) => {
-        navigation.navigate('LogIn', { phone: route.params.phone, reset: true });
+        setLoading(false);
+        navigation.navigate('LogIn', { email, reset: true });
       })
       .catch((err) => {
-        console.warn('Verification code error: ', err);
-        if (err.code == 'CodeMismatchException') {
+        console.log('Verification code error: ', err);
+        setLoading(false);
+        if (err.code === 'CodeMismatchException') {
           setError('Error: Invalid verification code');
         } else {
           setError('Error');
         }
       });
   }
-
   return (
     <DismissKeyboardView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -88,6 +93,7 @@ const ForgotPassword = ({ navigation, route }) => {
             text="Confirm"
             disabled={code === '' || password === '' || confirmPassword === '' || error != null}
             error={error}
+            loading={loading}
             pressed={() => {
               resetPassword();
               Keyboard.dismiss();

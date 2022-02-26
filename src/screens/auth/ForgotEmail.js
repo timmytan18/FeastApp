@@ -6,14 +6,15 @@ import { Auth } from 'aws-amplify';
 import BackArrow from '../components/util/icons/BackArrow';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';
-import { PhoneInput, PasswordInput, ConfirmPasswordInput } from './Input';
+import { EmailInput } from './Input';
 import {
   colors, sizes, wp, hp,
 } from '../../constants/theme';
 
-const ForgotPhone = ({ navigation }) => {
-  const [phone, changePhone] = useState('');
+const ForgotEmail = ({ navigation }) => {
+  const [email, changeEmail] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -26,19 +27,19 @@ const ForgotPhone = ({ navigation }) => {
     };
   }, []);
 
-  async function submitPhone() {
-    const phoneCopy = phone.slice().replace(/\D/g, '');
-    console.log(phoneCopy);
-    Auth.forgotPassword(`+1${phoneCopy}`)
+  async function submitEmail() {
+    setLoading(true);
+    Auth.forgotPassword(email)
       .then((data) => {
-        console.log(data);
-        navigation.navigate('ForgotPassword', { phone: phoneCopy, back: false });
+        setLoading(false);
+        navigation.navigate('ForgotPassword', { email, back: false });
       })
       .catch((err) => {
-        console.warn('Phone number error: ', err);
-        if (err.code == 'UserNotFoundException') {
-          setError("Sorry, we don't recognize that phone number");
-        } else if (err.code == 'LimitExceededException') {
+        console.log(err);
+        setLoading(false);
+        if (err.code === 'UserNotFoundException') {
+          setError("Sorry, we don't recognize that email");
+        } else if (err.code === 'LimitExceededException') {
           setError('Sorry, attempt limit exceeded. Please try again after some time.');
         } else {
           setError('Error');
@@ -55,19 +56,19 @@ const ForgotPhone = ({ navigation }) => {
             Forgot Password
           </Text>
           <Text style={styles.subHeaderText}>
-            A reset password code will be sent to your messages
+            A reset password code will be sent to your email.
           </Text>
-          <PhoneInput onChange={changePhone} />
+          <EmailInput onChange={changeEmail} />
         </View>
         <View style={styles.buttonContainer}>
           <BigButton
             gradient="purple"
             text="Submit"
-            disabled={phone === '' || error != null}
+            disabled={email === '' || error != null}
             error={error}
+            loading={loading}
             pressed={() => {
-              console.log('pressed');
-              submitPhone();
+              submitEmail();
               Keyboard.dismiss();
             }}
           />
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Semi',
     fontSize: wp(8),
     color: colors.tertiary,
-    marginTop: wp(10),
+    marginTop: hp(5),
   },
   subHeaderText: {
     fontFamily: 'Book',
@@ -100,9 +101,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     height: wp(28),
     width: wp(45),
-    marginTop: wp(20),
+    marginTop: hp(10),
     alignSelf: 'center',
   },
 });
 
-export default ForgotPhone;
+export default ForgotEmail;

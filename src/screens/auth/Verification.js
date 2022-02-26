@@ -9,12 +9,15 @@ import BigButton from '../components/util/BigButton';
 import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import { VerificationInput } from './Input';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp,
 } from '../../constants/theme';
 
 const Verification = ({ navigation, route }) => {
+  const { email, back } = route.params;
+
   const [code, changeCode] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -30,7 +33,7 @@ const Verification = ({ navigation, route }) => {
   async function resendConfirmationCode() {
     setError(null);
     try {
-      await Auth.resendSignUp(`+1${route.params.phone}`);
+      await Auth.resendSignUp(email);
       console.log('code resent succesfully');
     } catch (err) {
       console.warn('error resending code: ', err);
@@ -40,12 +43,15 @@ const Verification = ({ navigation, route }) => {
 
   async function confirmSignUp() {
     setError(null);
+    setLoading(true);
     try {
-      await Auth.confirmSignUp(`+1${route.params.phone}`, code);
-      navigation.navigate('LogIn', { phone: route.params.phone });
+      await Auth.confirmSignUp(email, code);
+      setLoading(false);
+      navigation.navigate('LogIn', { email });
     } catch (err) {
-      console.warn('error confirming sign up', err);
-      if (err.code == 'CodeMismatchException') {
+      setLoading(false);
+      console.log('error confirming sign up', err);
+      if (err.code === 'CodeMismatchException') {
         setError('Error: Invalid code');
       } else {
         setError('Verification Error');
@@ -57,17 +63,24 @@ const Verification = ({ navigation, route }) => {
     <DismissKeyboardView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         <View>
-          {route.params.back && <BackArrow color={colors.tertiary} size={wp(9.6)} pressed={() => navigation.goBack()} />}
+          {back
+            && (
+              <BackArrow
+                color={colors.tertiary}
+                size={wp(9.6)}
+                pressed={() => navigation.goBack()}
+              />
+            )}
           <Text style={styles.headerText}>
             Verify Your Identity
           </Text>
           <Text style={styles.subHeaderText}>
-            Check your messages for a verification code!
+            Check your email for a verification code!
           </Text>
           <VerificationInput onChange={changeCode} />
         </View>
         <TouchableOpacity onPress={() => TwoButtonAlert({
-          title: 'Resend Code', message: `To: ${route.params.phone}`, yesButton: 'Confirm', pressed: resendConfirmationCode,
+          title: 'Resend Code', message: `To: ${email}`, yesButton: 'Confirm', pressed: resendConfirmationCode,
         })}
         >
           <Text style={styles.resendText}>
@@ -80,6 +93,7 @@ const Verification = ({ navigation, route }) => {
             text="Verify"
             disabled={code === ''}
             error={error}
+            loading={loading}
             pressed={() => confirmSignUp()}
           />
         </KeyboardAvoidingView>

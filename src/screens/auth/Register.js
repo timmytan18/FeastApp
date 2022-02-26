@@ -6,19 +6,19 @@ import { Auth } from 'aws-amplify';
 import BackArrow from '../components/util/icons/BackArrow';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';
-import { PhoneInput, PasswordInput, ConfirmPasswordInput } from './Input';
+import { EmailInput, PasswordInput, ConfirmPasswordInput } from './Input';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp,
 } from '../../constants/theme';
 
 const Register = ({ navigation, route }) => {
   const { name } = route.params;
-  console.log('name: ', name);
 
-  const [phone, changePhone] = useState('');
+  const [email, changeEmail] = useState('');
   const [password, changePassword] = useState('');
   const [confirmPassword, changeConfirmPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [passwordInput, setPasswordInput] = useState(null);
   const [confirmPasswordInput, setConfirmPasswordInput] = useState(null);
@@ -35,26 +35,27 @@ const Register = ({ navigation, route }) => {
   }, []);
 
   async function signUp() {
-    const phoneCopy = phone.slice().replace(/\D/g, '');
-    console.log(phoneCopy);
+    setLoading(true);
+    const currEmail = email.slice().toLowerCase().replace(/\s/g, '');
     try {
       const user = await Auth.signUp({
-        username: `+1${phoneCopy}`,
+        username: currEmail,
         password,
         attributes: {
-          phone_number: `+1${phoneCopy}`,
-          name,
+          email: currEmail,
+          'custom:name': name,
         },
       });
-      console.log(user);
-      navigation.navigate('Verification', { phone: phoneCopy, back: false });
+      setLoading(false);
+      navigation.navigate('Verification', { email: user.user.username, back: false });
     } catch (err) {
-      console.warn('error signing up:', err);
-      if (err.code == 'UsernameExistsException') {
-        setError('Hmm, it seems like this phone number already has an account, try logging in or use another number!');
-      } else if (err.code == 'InvalidParameterException') {
+      console.log('error signing up:', err);
+      setLoading(false);
+      if (err.code === 'UsernameExistsException') {
+        setError('It seems like this email already has an account - try logging in or use another email!');
+      } else if (err.code === 'InvalidParameterException') {
         if (!error) {
-          setError('Invalid phone number');
+          setError('Invalid email');
         }
       } else {
         setError('Registration Error');
@@ -62,8 +63,13 @@ const Register = ({ navigation, route }) => {
     }
   }
 
+  const validateEmail = () => {
+    const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+    return reg.test(email);
+  };
+
   function checkInvalidInput() {
-    return (phone.length < 10 || password === '' || confirmPassword === '' || password !== confirmPassword || error != null);
+    return (!validateEmail(email) || password === '' || confirmPassword === '' || password !== confirmPassword || error != null);
   }
 
   return (
@@ -74,14 +80,14 @@ const Register = ({ navigation, route }) => {
           <Text style={styles.headerText}>
             Register
           </Text>
-          <PhoneInput
-            onChange={changePhone}
+          <EmailInput
+            onChange={changeEmail}
             passwordInput={passwordInput}
-            checkValidNumber={() => {
-              if (phone.length < 10) {
-                setError('Invalid phone number');
-              } else {
+            checkValidEmail={() => {
+              if (validateEmail()) {
                 setError(null);
+              } else {
+                setError('Invalid email');
               }
             }}
           />
@@ -102,14 +108,17 @@ const Register = ({ navigation, route }) => {
             onChange={changeConfirmPassword}
             setConfirmPasswordInput={setConfirmPasswordInput}
             checkMatch={() => {
-              if (phone.length < 10) {
-                setError('Invalid phone number');
-              } else if (password.length < 8) {
+              if (password.length < 8) {
                 setError('Password must be at least 8 characters');
               } else if (password !== confirmPassword) {
                 setError("Passwords don't match");
-              } else {
-                setError(null);
+              } else if (password.length < 8) {
+                setError('Password must be at least 8 characters');
+                if (!validateEmail()) {
+                  setError('Invalid email');
+                } else {
+                  setError(null);
+                }
               }
             }}
             value={confirmPassword}
@@ -121,6 +130,7 @@ const Register = ({ navigation, route }) => {
             text="Confirm"
             disabled={checkInvalidInput()}
             error={error}
+            loading={loading}
             pressed={() => {
               signUp();
               Keyboard.dismiss();
