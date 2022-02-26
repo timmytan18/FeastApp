@@ -34,6 +34,7 @@ import RatingMapMarker from '../components/RatingMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
 import BackArrow from '../components/util/icons/BackArrow';
 import Save from '../components/util/icons/Save';
+import Cam from '../components/util/icons/Cam';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import {
@@ -57,6 +58,8 @@ const propTypes = {
 
 const ADDED_ATTR = ['imgUrl', 's3Photo', 'visible', 'avgOverallRating'];
 
+const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
+
 // Memoize row rendering, only rerender when row content changes
 const RowItem = React.memo(({
   row,
@@ -67,7 +70,7 @@ const RowItem = React.memo(({
   rightTabPressed,
   translateTabBar,
 }) => {
-  if (row !== 'LOADING' && row.length) {
+  if (row !== LIST_STATES.LOADING && row !== LIST_STATES.NO_RESULTS && row.length) {
     return (
       <Animated.View
         style={[
@@ -111,7 +114,13 @@ const RowItem = React.memo(({
           <View style={styles.tabIcon}><MapMarker /></View>
         </TouchableOpacity>
       </View>
-      {row === 'LOADING' && <CenterSpinner style={{ marginTop: wp(10) }} />}
+      {row === LIST_STATES.LOADING && <CenterSpinner style={{ marginTop: wp(10) }} />}
+      {row === LIST_STATES.NO_RESULTS && (
+        <View style={styles.noResultsContainer}>
+          <Cam size={wp(7)} />
+          <Text style={styles.noResultsText}>No posts yet</Text>
+        </View>
+      )}
     </View>
   );
 }, (prevProps, nextProps) => prevProps.row === nextProps.row);
@@ -135,7 +144,7 @@ const Profile = ({ navigation, route }) => {
   const numReviews = useRef(0);
   const allReviews = useRef(null);
 
-  const posts = useRef(['LOADING']);
+  const posts = useRef([LIST_STATES.LOADING]);
 
   useEffect(() => {
     // Get number of followers and following
@@ -218,7 +227,8 @@ const Profile = ({ navigation, route }) => {
           setRefreshing(false);
         });
       } else {
-        setReviews([]);
+        posts.current = [LIST_STATES.NO_RESULTS];
+        setReviews({});
         setRefreshing(false);
       }
     })();
@@ -315,16 +325,6 @@ const Profile = ({ navigation, route }) => {
 
   // More modal
   const moreItems = [
-    // {
-    //   onPress: () => navigation.navigate('RestaurantList', { type: 'favorites' }),
-    //   icon: <HeartEyes size={wp(6)} />,
-    //   label: 'My Favorites',
-    // },
-    // {
-    //   onPress: () => navigation.navigate('RestaurantList', { type: 'likes' }),
-    //   icon: <Heart size={wp(6)} />,
-    //   label: 'My Likes',
-    // },
     {
       onPress: () => navigation.navigate('Settings'),
       icon: <Gear />,
@@ -463,6 +463,9 @@ const Profile = ({ navigation, route }) => {
   );
 
   const leftTabPressed = () => {
+    if (numReviews.current === 0) {
+      posts.current = [LIST_STATES.NO_RESULTS];
+    }
     setMapOpen(false);
     flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
     Animated.spring(position, {
@@ -489,7 +492,7 @@ const Profile = ({ navigation, route }) => {
         leftTabPressed();
       }
     } else {
-      console.log('no reviews');
+      posts.current = [[]];
       setMapOpen(true);
       Animated.spring(position, {
         toValue: 1,
@@ -588,7 +591,7 @@ const Profile = ({ navigation, route }) => {
         ListHeaderComponent={renderTopContainer()}
         stickyHeaderIndices={[1]}
         contentContainerStyle={{
-          paddingBottom: posts.current.length > 3
+          paddingBottom: posts.current.length > 3 || numReviews.current === 0
             ? wp(1) : wp(50) + wp(57) * (3 - posts.current.length),
         }}
       />
@@ -836,6 +839,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: wp(6.5),
     backgroundColor: colors.lightBlue,
+  },
+  noResultsContainer: {
+    width: '100%',
+    height: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noResultsText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b2,
+    color: colors.black,
+    marginTop: wp(2),
   },
 });
 

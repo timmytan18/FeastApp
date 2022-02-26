@@ -7,7 +7,6 @@ import {
 import Stars from 'react-native-stars';
 import { getPlaceDetailsQuery } from '../../api/functions/queryFunctions';
 import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
-import CenterSpinner from '../components/util/CenterSpinner';
 import { MONTHS } from '../../constants/constants';
 import {
   colors, sizes, wp,
@@ -88,7 +87,6 @@ const ProfileReviews = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {!reviews && <View style={{ flex: 0.2 }}><CenterSpinner /></View>}
       {reviews
         && (
           <FlatList
