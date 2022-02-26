@@ -25,7 +25,7 @@ const defaultProps = {
 };
 
 const MapMarker = ({
-  name, placeId, lat, lng, userPic, category, loadingStories, visible, numOtherMarkers,
+  name, placeId, lat, lng, uid, userPic, category, loadingStories, visible, numOtherMarkers,
 }) => {
   const visibilityStyle = visible ? {} : { width: 0 };
   return (
@@ -57,13 +57,14 @@ const MapMarker = ({
               position: 'absolute', zIndex: 1,
             }}
             size={markerWithGradientSize}
-            color='#fff'
+            color="#fff"
             trackWidth={gradientSize}
           />
         )}
         <View style={styles.markerContainer}>
           <ProfilePic
             extUrl={userPic}
+            uid={uid}
             size={imageSize}
             style={styles.imageContainer}
           />

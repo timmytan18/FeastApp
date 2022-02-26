@@ -109,6 +109,7 @@ const SearchUsers = ({ navigation }) => {
         {searchByUser && (
           <ProfilePic
             extUrl={item.picture}
+            uid={item.uid}
             isMe={false}
             size={USER_ICON_SIZE}
             style={styles.userIconImage}

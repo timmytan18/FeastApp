@@ -135,7 +135,6 @@ const FollowButton = ({
       : {
         PK, SK: `#FOLLOWER#${myID}`, GSI1: 'USER#', name, username, ...(picture && { picture }), identityId, uid, follower,
       };
-    console.log(input);
     try {
       await API.graphql(graphqlOperation(
         mutation,
@@ -155,7 +154,6 @@ const FollowButton = ({
 
     // Increment/decrement follower and following counts
     const one = currFollow ? -1 : 1;
-    console.log('UPDATING FOLLOWS');
     try {
       await API.graphql(graphqlOperation(
         incrementFeastItem,
@@ -175,7 +173,6 @@ const FollowButton = ({
   // Add followed user's posts to feed in batches
   const addPostsToFeed = async () => {
     const allPosts = reviewsForFeed.current;
-    console.log(allPosts);
     if (allPosts.length) {
       let i; let j;
       const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
@@ -196,7 +193,6 @@ const FollowButton = ({
   // Remove followed user's posts from feed in batches
   const removePostsFromFeed = async () => {
     const allPosts = reviewsToDelete.current;
-    console.log(allPosts);
     if (allPosts.length) {
       let i; let j;
       const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max

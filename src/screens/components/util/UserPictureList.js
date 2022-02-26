@@ -13,14 +13,22 @@ const UserPictureList = ({ userPics, size, limit }) => {
     borderRadius: sizeWithBorder,
     marginRight: -(sizeWithBorder) / 7,
   };
-  const uniqueUserPics = Array.from(new Set(userPics)); // unique user pics
+  const uniqueUserPics = [];
+  const seenUsers = new Set();
+  userPics.forEach(({ uid, picture }) => {
+    if (!seenUsers.has(uid)) {
+      seenUsers.add(uid);
+      uniqueUserPics.push({ uid, picture });
+    }
+  });
   const limitedUserPics = uniqueUserPics.slice(0, limit);
   return (
     <View style={styles.container}>
-      {limitedUserPics.map((pic, index) => (
-        <View style={[imageStyle, styles.image, { zIndex: -index }]} key={pic}>
+      {limitedUserPics.map(({ uid, picture }, index) => (
+        <View style={[imageStyle, styles.image, { zIndex: -index }]} key={uid}>
           <ProfilePic
-            extUrl={pic}
+            extUrl={picture}
+            uid={uid}
             size={size - imageBorderWidth}
           />
         </View>

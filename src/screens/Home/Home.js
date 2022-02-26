@@ -188,6 +188,7 @@ const Home = ({ navigation }) => {
             placeId,
             lat,
             lng,
+            uid,
             userName,
             userPic,
             category: categories ? categories[0] : null,
@@ -302,7 +303,7 @@ const Home = ({ navigation }) => {
       // customMapStyle={mapLessLandmarksStyle}
       >
         {Object.entries(markers).map(([placeKey, {
-          name, placeId, lat, lng, userName, userPic, category, visible, numOtherMarkers,
+          name, placeId, lat, lng, uid, userName, userPic, category, visible, numOtherMarkers,
         }]) => (
           <Marker
             key={placeKey}
@@ -313,6 +314,7 @@ const Home = ({ navigation }) => {
             <MapMarker
               name={name}
               placeId={placeId}
+              uid={uid}
               lat={lat}
               lng={lng}
               userPic={userPic}

@@ -490,6 +490,7 @@ const StoryModal = ({ navigation, route }) => {
       label: item.name,
       icon: <ProfilePic
         extUrl={item.picture}
+        uid={item.uid}
         size={wp(8)}
       />,
     }));

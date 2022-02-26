@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import Stars from 'react-native-stars';
 import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
+import ProfilePic from './ProfilePic';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import {
   colors, sizes, wp,
@@ -42,7 +43,12 @@ const ReviewItem = ({
         activeOpacity={0.7}
         onPress={() => fetchReviewUser({ uid, myUID, navigation })}
       >
-        <Image style={styles.userPicture} source={{ uri: userPicture }} />
+        <ProfilePic
+          extUrl={userPicture}
+          uid={uid}
+          size={USER_PIC_SIZE}
+          style={styles.userPicture}
+        />
       </TouchableOpacity>
       <View style={styles.userNameReviewContainer}>
         <TouchableOpacity
@@ -75,6 +81,7 @@ const ReviewItem = ({
   );
 };
 
+const USER_PIC_SIZE = wp(11);
 const styles = StyleSheet.create({
   userReviewContainer: {
     flexDirection: 'row',
@@ -92,17 +99,17 @@ const styles = StyleSheet.create({
     marginLeft: -wp(0.3),
   },
   userPictureContainer: {
-    width: wp(11),
-    height: wp(11),
-    borderRadius: wp(11) / 2,
+    width: USER_PIC_SIZE,
+    height: USER_PIC_SIZE,
+    borderRadius: USER_PIC_SIZE / 2,
     marginRight: wp(1),
     marginTop: wp(0.4),
     backgroundColor: colors.gray3,
   },
   userPicture: {
-    width: wp(11),
-    height: wp(11),
-    borderRadius: wp(11) / 2,
+    width: USER_PIC_SIZE,
+    height: USER_PIC_SIZE,
+    borderRadius: USER_PIC_SIZE / 2,
   },
   userNameReviewContainer: {
     flex: 1,

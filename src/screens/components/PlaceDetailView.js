@@ -412,7 +412,7 @@ const BodyContent = React.memo(({
             end={gradients.purple.end}
             style={styles.openMap}
           >
-            <Car color='#fff' size={wp(5.3)} />
+            <Car color="#fff" size={wp(5.3)} />
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   distanceText: {
     opacity: 0.9,
     color: colors.black,
-    fontFamily: 'Medium',
+    fontFamily: 'Book',
     fontSize: sizes.b2,
     textAlign: 'center',
   },
