@@ -88,6 +88,11 @@ function HomeStackScreen() {
           headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
+      <HomeStack.Screen
+        name="PlaceDetail"
+        component={PlaceDetail}
+        options={{ headerShown: false }}
+      />
     </HomeStack.Navigator>
   );
 }

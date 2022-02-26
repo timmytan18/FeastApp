@@ -69,6 +69,7 @@ const SaveButton = ({
       } catch (e) {
         console.warn('Error saving post to saved posts: ', e);
         stopBarAnimation();
+        setPressed(!currSaved);
         Alert.alert(
           'Error',
           'Could not save post. Please try again.',
@@ -87,6 +88,7 @@ const SaveButton = ({
       } catch (err) {
         console.warn('Error deleting post from saved post:', err);
         stopBarAnimation();
+        setPressed(!currSaved);
         Alert.alert(
           'Error',
           'Could not unsave post. Please try again.',

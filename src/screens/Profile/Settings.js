@@ -37,7 +37,6 @@ const Settings = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Settings</Text>
       <View style={styles.mainContainer} />
       <View style={styles.logOutContainer}>
         <Line length={wp(90)} color={colors.accent} />

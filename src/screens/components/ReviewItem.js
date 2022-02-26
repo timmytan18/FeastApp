@@ -34,7 +34,6 @@ const ReviewItem = ({
   navigation,
 }) => {
   const [textExpanded, setTextExpanded] = useState(false);
-  // const placeholder = 'Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing. Wow, this restaurant is amazing.';
   if (!review) return null;
   return (
     <View style={styles.userReviewContainer}>

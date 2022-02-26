@@ -2,14 +2,13 @@
 
 import { API, graphqlOperation } from 'aws-amplify';
 import {
-  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, searchUsers,
+  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, searchUsers, searchPlaces,
   getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getNumFollows,
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
   getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
   getUserYumsReceived, getPostYumsNoDetails,
 } from '../graphql/queries';
-import { SEARCH_TYPES } from '../../constants/constants';
 
 // Fetch user profile data
 async function getUserProfileQuery({ PK, SK, uid }) {
@@ -119,23 +118,10 @@ async function getFollowersQuery({ PK, onlyReturnPKs }) {
   return users;
 }
 
-// Search for users or places by name
-async function searchQuery({ name, type }) {
-  let GSI1;
-  let SK;
-  switch (type) {
-    case SEARCH_TYPES.NAME:
-      SK = `#PROFILE#${name}`;
-      GSI1 = 'USER#';
-      break;
-    case SEARCH_TYPES.PLACE:
-      SK = `#INFO#${name}`;
-      GSI1 = 'PLACE#';
-      break;
-    default:
-      SK = `#PROFILE#${name}`;
-      GSI1 = 'USER#';
-  }
+// Search for users by name
+async function searchUsersQuery({ name }) {
+  const GSI1 = 'USER#';
+  const SK = `#PROFILE#${name}`;
   let searchResults;
   try {
     const res = await API.graphql(graphqlOperation(
@@ -145,6 +131,23 @@ async function searchQuery({ name, type }) {
     searchResults = res.data.itemsByGSI1.items;
   } catch (err) {
     console.warn('Error searching for users: ', err);
+  }
+  return searchResults;
+}
+
+// Search for places by name
+async function searchPlacesQuery({ name }) {
+  const GSI2 = 'PLACE#';
+  const LSI1 = `#NAME#${name}`;
+  let searchResults;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      searchPlaces,
+      { GSI2, LSI1: { beginsWith: LSI1 }, limit: 50 },
+    ));
+    searchResults = res.data.itemsByGSI2.items;
+  } catch (err) {
+    console.warn('Error searching for places: ', err);
   }
   return searchResults;
 }
@@ -382,9 +385,10 @@ async function getUserYumsReceivedQuery({ uid }) {
 }
 
 export {
-  getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchQuery, getIsFollowingQuery,
-  getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery, getFollowingPostsQuery,
-  getFollowingPostsByUserQuery, batchGetUserPostsQuery, getPlaceDetailsQuery,
-  batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery,
-  getUserAllSavedPostsQuery, getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery,
+  getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery, searchPlacesQuery,
+  getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
+  getFollowingPostsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
+  getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
+  getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
+  getPostYumsQuery, getUserYumsReceivedQuery,
 };

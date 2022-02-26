@@ -315,16 +315,16 @@ const Profile = ({ navigation, route }) => {
 
   // More modal
   const moreItems = [
-    {
-      onPress: () => navigation.navigate('RestaurantList', { type: 'favorites' }),
-      icon: <HeartEyes size={wp(6)} />,
-      label: 'My Favorites',
-    },
-    {
-      onPress: () => navigation.navigate('RestaurantList', { type: 'likes' }),
-      icon: <Heart size={wp(6)} />,
-      label: 'My Likes',
-    },
+    // {
+    //   onPress: () => navigation.navigate('RestaurantList', { type: 'favorites' }),
+    //   icon: <HeartEyes size={wp(6)} />,
+    //   label: 'My Favorites',
+    // },
+    // {
+    //   onPress: () => navigation.navigate('RestaurantList', { type: 'likes' }),
+    //   icon: <Heart size={wp(6)} />,
+    //   label: 'My Likes',
+    // },
     {
       onPress: () => navigation.navigate('Settings'),
       icon: <Gear />,

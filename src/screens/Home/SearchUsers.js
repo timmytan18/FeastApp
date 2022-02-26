@@ -2,16 +2,21 @@ import React, {
   useState, useContext, useRef,
 } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Animated, FlatList, Keyboard,
+  StyleSheet, Text, View, TouchableOpacity, Animated, FlatList, Keyboard, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Context } from '../../Store';
-import { getUserProfileQuery, searchQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
+import {
+  getUserProfileQuery,
+  searchUsersQuery,
+  searchPlacesQuery,
+  getIsFollowingQuery,
+  getPlaceDetailsQuery,
+} from '../../api/functions/queryFunctions';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
-import { SEARCH_TYPES } from '../../constants/constants';
 import {
   colors, sizes, wp, hp, shadows,
 } from '../../constants/theme';
@@ -23,7 +28,7 @@ const SearchUsers = ({ navigation }) => {
   const ID = state.user.uid;
 
   const position = useRef(new Animated.Value(0)).current;
-  const [searchByName, setSearchByName] = useState(true);
+  const [searchByUser, setSearchByUser] = useState(true);
 
   const translate = position.interpolate({
     inputRange: [0, 1],
@@ -54,19 +59,18 @@ const SearchUsers = ({ navigation }) => {
     },
   ];
 
-  const [usersList, setUsersList] = useState(users);
+  const [searchList, setSearchList] = useState([]);
 
-  const searchForUser = async (query) => {
+  const fetchSearchItems = async (query) => {
     if (query) {
       setLoading(true);
       const name = query.replace(/\s+/g, '').toLowerCase();
-      const itemList = await searchQuery({
-        name, type: searchByName ? SEARCH_TYPES.NAME : SEARCH_TYPES.PLACE,
-      });
-      setUsersList(itemList);
+      const itemList = searchByUser
+        ? await searchUsersQuery({ name }) : await searchPlacesQuery({ name });
+      setSearchList(itemList);
       setLoading(false);
     } else {
-      setUsersList(users);
+      setSearchList([]);
     }
   };
 
@@ -86,27 +90,55 @@ const SearchUsers = ({ navigation }) => {
     }
   };
 
-  const renderUserItem = ({ item }) => (
+  const openPlace = async ({ placeId }) => {
+    const place = await getPlaceDetailsQuery({ placeId });
+    navigation.push('PlaceDetail', { place });
+  };
+
+  const renderSearchItem = ({ item }) => (
     <TouchableOpacity
       style={styles.userItemContainer}
       activeOpacity={0.5}
-      onPress={() => fetchCurrentUser(item.PK, item.SK, item.picture)}
+      onPress={() => (searchByUser
+        ? fetchCurrentUser(item.PK, item.SK, item.picture)
+        : openPlace({ placeId: item.placeId }))}
     >
-      <View style={styles.userIconContainer}>
-        <ProfilePic
-          extUrl={item.picture}
-          isMe={false}
-          size={USER_ICON_SIZE}
-          style={styles.userIconImage}
-        />
+      <View style={[
+        styles.userIconContainer,
+        !searchByUser && { borderRadius: PLACE_ICON_BORDER_RADIUS },
+      ]}
+      >
+        {searchByUser && (
+          <ProfilePic
+            extUrl={item.picture}
+            isMe={false}
+            size={USER_ICON_SIZE}
+            style={styles.userIconImage}
+          />
+        )}
+        {!searchByUser && (
+          <View style={styles.placeIconImage}>
+            <Image source={{ uri: item.placeInfo.imgUrl }} style={styles.placeIconImage} />
+          </View>
+        )}
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.userNameText}>{item.name}</Text>
         {item.city && <Text style={styles.userCityText}>{item.city}</Text>}
       </View>
-      <View style={styles.distanceContainer} />
     </TouchableOpacity>
   );
+
+  const changeTab = ({ toLeft }) => {
+    setSearchList([]);
+    setSearchByUser(toLeft);
+    Animated.spring(position, {
+      toValue: toLeft ? 0 : 1,
+      speed: 40,
+      bounciness: 2,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -115,8 +147,8 @@ const SearchUsers = ({ navigation }) => {
           <View style={styles.headerContainer}>
             <View style={{ flex: 1, paddingHorizontal: sizes.margin }}>
               <SearchBox
-                completeSearch={searchForUser}
-                placeholder={searchByName ? 'Search for a user' : 'Search for a place'}
+                completeSearch={fetchSearchItems}
+                placeholder={`Search for a ${searchByUser ? 'user' : 'place'}`}
                 autofocus
               />
             </View>
@@ -131,15 +163,7 @@ const SearchUsers = ({ navigation }) => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.tab}
-              onPress={() => {
-                setSearchByName(true);
-                Animated.spring(position, {
-                  toValue: 0,
-                  speed: 40,
-                  bounciness: 2,
-                  useNativeDriver: true,
-                }).start();
-              }}
+              onPress={() => changeTab({ toLeft: true })}
             >
               <Text style={styles.tabText}>User</Text>
               <Animated.View style={[styles.slider, { transform: [{ translateX: translate }] }]} />
@@ -147,15 +171,7 @@ const SearchUsers = ({ navigation }) => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.tab}
-              onPress={() => {
-                setSearchByName(false);
-                Animated.spring(position, {
-                  toValue: 1,
-                  speed: 40,
-                  bounciness: 2,
-                  useNativeDriver: true,
-                }).start();
-              }}
+              onPress={() => changeTab({ toLeft: false })}
             >
               <Text style={styles.tabText}>Place</Text>
             </TouchableOpacity>
@@ -166,10 +182,10 @@ const SearchUsers = ({ navigation }) => {
             && (
               <FlatList
                 style={{ flex: 1, width: '100%' }}
-                data={usersList}
-                extraData={usersList}
-                renderItem={renderUserItem}
-                keyExtractor={(item) => item.PK}
+                data={searchList}
+                extraData={searchList}
+                renderItem={renderSearchItem}
+                keyExtractor={(item) => item.uid || item.placeId}
                 showsVerticalScrollIndicator
                 onScrollBeginDrag={Keyboard.dismiss}
                 keyboardShouldPersistTaps="handled"
@@ -183,6 +199,7 @@ const SearchUsers = ({ navigation }) => {
 };
 
 const USER_ICON_SIZE = wp(12);
+const PLACE_ICON_BORDER_RADIUS = wp(1.5);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -206,6 +223,10 @@ const styles = StyleSheet.create({
   userIconImage: {
     flex: 1,
     borderRadius: USER_ICON_SIZE / 2,
+  },
+  placeIconImage: {
+    flex: 1,
+    borderRadius: PLACE_ICON_BORDER_RADIUS,
   },
   userNameText: {
     fontFamily: 'Medium',
