@@ -35,6 +35,7 @@ import LocationArrow from '../components/util/icons/LocationArrow';
 import BackArrow from '../components/util/icons/BackArrow';
 import Save from '../components/util/icons/Save';
 import Cam from '../components/util/icons/Cam';
+import X from '../components/util/icons/X';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import {
@@ -324,11 +325,18 @@ const Profile = ({ navigation, route }) => {
   const place = useRef({});
 
   // More modal
-  const moreItems = [
+  const moreItems = isMe ? [
     {
       onPress: () => navigation.navigate('Settings'),
       icon: <Gear />,
       label: 'Settings',
+      end: true,
+    },
+  ] : [
+    {
+      onPress: () => { },
+      icon: <X size={wp(7.2)} color={colors.black} />,
+      label: 'Report user',
       end: true,
     },
   ];
@@ -543,7 +551,11 @@ const Profile = ({ navigation, route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
       <StatusBar animated barStyle="dark-content" />
-      <MoreView items={moreItems} morePressed={morePressed} setMorePressed={setMorePressed} />
+      <MoreView
+        items={moreItems}
+        morePressed={morePressed}
+        setMorePressed={setMorePressed}
+      />
       {mapOpen && (
         <>
           <TouchableOpacity

@@ -34,6 +34,7 @@ import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
+import X from './util/icons/X';
 import { GET_SAVED_POST_ID } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
@@ -457,11 +458,13 @@ const StoryModal = ({ navigation, route }) => {
     ? [
       {
         onPress: deletePostConfirmation,
+        icon: <X size={wp(7.2)} color="red" />,
         label: 'Delete Post',
       },
     ] : [
       {
         onPress: () => reportPost({ currTimestamp: timestamp, s3Key: picture }),
+        icon: <X size={wp(7.2)} color={colors.black} />,
         label: 'Report Post',
       },
     ];
