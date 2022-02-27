@@ -715,7 +715,7 @@ const StoryModal = ({ navigation, route }) => {
             // onAnimationCompleted={this.onAnimationCompleted}
             /> */}
             <View style={styles.emojiContainer}>
-              <Text style={styles.emojiText}>😋</Text>
+              {/* <Text style={styles.emojiText}>😋</Text> */}
             </View>
             {dish && <Text style={styles.menuItemText}>{dish}</Text>}
           </ImageBackground>
