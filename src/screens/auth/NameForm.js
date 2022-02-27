@@ -10,6 +10,9 @@ import {
   colors, sizes, wp,
 } from '../../constants/theme';
 
+const NAME_MIN_LENGTH = 2;
+const NAME_MAX_LENGTH = 26;
+
 const NameForm = ({ navigation }) => {
   const [name, changeName] = useState('');
   const [error, setError] = useState(null);
@@ -47,11 +50,17 @@ const NameForm = ({ navigation }) => {
           </Text>
           <NameInput onChange={onChangeName} value={name} />
         </View>
+        <Text style={styles.noteText}>
+          Note: Your name will be displayed to other Feast users.
+        </Text>
         <View style={styles.buttonContainer}>
           <BigButton
             gradient="purple"
             text="Next"
-            disabled={name === '' || error != null}
+            disabled={
+              !name || name.length < NAME_MIN_LENGTH
+              || name.length > NAME_MAX_LENGTH || error != null
+            }
             error={error}
             pressed={onSubmit}
           />
@@ -81,6 +90,14 @@ const styles = StyleSheet.create({
     fontSize: sizes.h3,
     color: colors.tertiary,
     marginTop: wp(1),
+    marginLeft: wp(1),
+  },
+  noteText: {
+    fontFamily: 'Book',
+    fontSize: sizes.b3,
+    color: colors.tertiary,
+    opacity: 0.8,
+    marginTop: wp(4),
     marginLeft: wp(1),
   },
   buttonContainer: {
