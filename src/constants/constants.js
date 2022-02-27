@@ -1,6 +1,5 @@
 // Map over categories and set each value to default 4
-const DEFAULT_RATING = 4;
-const RATING_CATEGORIES = ['overall', 'food', 'value', 'service', 'atmosphere'].reduce((k, v) => (k[v] = DEFAULT_RATING, k), {});
+const POST_IMAGE_ASPECT = [4, 5];
 
 const GEOHASH_PRECISION_AREAS = [
   2025.0, 63.28125, 1.9775390625, 0.061798095703125, parseFloat('0.0019311904907226562'), parseFloat('6.034970283508301e-05'),
@@ -12,5 +11,5 @@ const MONTHS = ['Jan', 'Feb', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', '
 const GET_SAVED_POST_ID = ({ uid, timestamp }) => `${uid}_${timestamp}`;
 
 export {
-  RATING_CATEGORIES, GEOHASH_PRECISION_AREAS, MONTHS, GET_SAVED_POST_ID,
+  POST_IMAGE_ASPECT, GEOHASH_PRECISION_AREAS, MONTHS, GET_SAVED_POST_ID,
 };

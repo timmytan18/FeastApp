@@ -252,13 +252,7 @@ export const getUserPosts = /* GraphQL */ `
         imgUrl
         dish
         review
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         createdAt
       }
       nextToken
@@ -295,13 +289,7 @@ export const getUserPostsWithUserInfo = /* GraphQL */ `
         imgUrl
         dish
         review
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         placeUserInfo {
           uid
           name
@@ -436,13 +424,7 @@ export const batchGetUserPosts = /* GraphQL */ `
       picture
       placeId
       dish
-      rating {
-        overall
-        food
-        value
-        service
-        atmosphere
-      }
+      rating
       review
       placeUserInfo {
         uid
@@ -548,13 +530,7 @@ export const getPlaceFollowingUserReviews = /* GraphQL */ `
         SK
         placeId
         name
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         placeUserInfo {
           uid
@@ -589,13 +565,7 @@ export const getPlaceAllUserReviews = /* GraphQL */ `
         SK
         placeId
         name
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         placeUserInfo {
           uid
@@ -637,13 +607,7 @@ export const getUserAllSavedPosts = /* GraphQL */ `
         dish
         review
         imgUrl
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         placeUserInfo {
           uid
           name
@@ -792,143 +756,3 @@ export const getUserYumsReceived = /* GraphQL */ `
     }
   }
 `;
-
-// export const getBusiness = /* GraphQL */ `
-//   query ListFeastItems(
-//     $PK: String
-//     $SK: ModelStringKeyConditionInput
-//     $filter: ModelFeastItemFilterInput
-//     $limit: Int
-//     $nextToken: String
-//     $sortDirection: ModelSortDirection
-//   ) {
-//     listFeastItems(
-//       PK: $PK
-//       SK: $SK
-//       filter: $filter
-//       limit: $limit
-//       nextToken: $nextToken
-//       sortDirection: $sortDirection
-//     ) {
-//       items {
-//         PK
-//         SK
-//         GSI3
-//         LSI4
-//         city
-//         bizId
-//         bizCount
-//         bizInfo {
-//           name
-//           priceLvl
-//           delivery
-//           displayPhone
-//           bizUrl
-//           description
-//           menuUrl
-//           imgUrl
-//           phone
-//           yelpAlias
-//           categories
-//           address {
-//             addressRaw
-//             address1
-//             city
-//             zip
-//             state
-//             country
-//           }
-//           coordinates {
-//             latitude
-//             longitude
-//           }
-//         }
-//         bizType
-//       }
-//       nextToken
-//     }
-//   }
-// `;
-
-// export const getBusinessCountInGrid = /* GraphQL */ `
-//   query GetFeastItem($PK: String!, $SK: String!) {
-//     getFeastItem(PK: $PK, SK: $SK) {
-//       bizCount
-//     }
-//   }
-// `;
-
-// export const getBusinessesByGrid = /* GraphQL */ `
-//   query ItemsByGsi3(
-//     $GSI3: String
-//     $LSI4: ModelIntKeyConditionInput
-//     $sortDirection: ModelSortDirection
-//     $filter: ModelFeastItemFilterInput
-//     $limit: Int
-//     $nextToken: String
-//   ) {
-//     itemsByGSI3(
-//       GSI3: $GSI3
-//       LSI4: $LSI4
-//       sortDirection: $sortDirection
-//       filter: $filter
-//       limit: $limit
-//       nextToken: $nextToken
-//     ) {
-//       items {
-//         PK
-//         SK
-//         GSI3
-//         LSI4
-//         city
-//         bizId
-//         bizCount
-//         bizInfo {
-//           name
-//           priceLvl
-//           delivery
-//           displayPhone
-//           bizUrl
-//           description
-//           menuUrl
-//           imgUrl
-//           phone
-//           yelpAlias
-//           categories
-//           address {
-//             addressRaw
-//             address1
-//             city
-//             zip
-//             state
-//             country
-//           }
-//           coordinates {
-//             latitude
-//             longitude
-//           }
-//         }
-//         bizType
-//         reviews {
-//           user
-//           review
-//         }
-//       }
-//       nextToken
-//     }
-//   }
-// `;
-
-// export const getReviews = /* GraphQL */ `
-//   query GetFeastItem($PK: String!, $SK: String!) {
-//     getFeastItem(PK: $PK, SK: $SK) {
-//       reviews {
-//         user
-//         review
-//         rating {
-//           overall
-//         }
-//       }
-//     }
-//   }
-// `;

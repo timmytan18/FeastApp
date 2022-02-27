@@ -1,9 +1,10 @@
 import React, {
-  useState, useEffect, useCallback, useRef,
+  useState, useEffect, useCallback, useRef, useContext,
 } from 'react';
 import {
-  StyleSheet, Text, View, SafeAreaView, TouchableOpacity, TextInput, Animated, Image, FlatList,
+  StyleSheet, Text, View, TouchableOpacity, TextInput, Animated, Image, FlatList,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { Auth } from 'aws-amplify';
@@ -22,8 +23,10 @@ import X from '../components/util/icons/X';
 import Cam from '../components/util/icons/Cam';
 import Library from '../components/util/icons/Library';
 import Dish from '../components/util/icons/Dish';
+import { POST_IMAGE_ASPECT } from '../../constants/constants';
+import { Context } from '../../Store';
 import {
-  colors, sizes, header, wp, hp,
+  colors, sizes, header, wp,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -54,6 +57,8 @@ const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws
 const UploadImages = ({ navigation, route }) => {
   // FIND BUSINESS IN DYNAMO
   const { business } = route.params;
+  const [{ review }, dispatch] = useContext(Context);
+  const insets = useSafeAreaInsets();
 
   const placeExists = useRef(false);
   const placeCategoriesImgUrl = useRef({ categories: null, imgUrl: null });
@@ -152,6 +157,14 @@ const UploadImages = ({ navigation, route }) => {
   const [picture, setPicture] = useState(null);
   const pictureFromPreview = useRef(true);
 
+  useEffect(() => {
+    // Clear and reset review and rating
+    dispatch({
+      type: 'SET_REVIEW_RATING',
+      payload: { review, rating: null },
+    });
+  }, [picture]);
+
   // Menu item input
   const [menuItem, setMenuItem] = useState(null);
   const [inputActive, setInputActive] = useState(false);
@@ -168,23 +181,6 @@ const UploadImages = ({ navigation, route }) => {
     }).start();
   }
 
-  const cropImage = async () => {
-    const size = Math.min(picture.width, picture.height);
-    const origin = Math.max(picture.width, picture.height) / 2 - size / 2;
-    const manipResult = await manipulateAsync(
-      picture.localUri || picture.uri,
-      [{
-        crop: {
-          height: size,
-          width: size,
-          originX: picture.height > picture.width ? 0 : origin,
-          originY: picture.height > picture.width ? origin : 0,
-        },
-      }],
-    );
-    return manipResult;
-  };
-
   // Set navigation with button, set header title to place name
   useEffect(() => {
     const headerRight = () => (
@@ -192,7 +188,8 @@ const UploadImages = ({ navigation, route }) => {
         style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}
         disabled={!picture}
         onPress={async () => {
-          const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
+          // const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
+          const croppedImg = ({ ...picture });
           navigation.navigate('PostDetails', {
             business,
             picture: croppedImg,
@@ -342,7 +339,7 @@ const UploadImages = ({ navigation, route }) => {
     const image = await ImagePicker.launchImageLibraryAsync(
       {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        aspect: [1, 1],
+        aspect: POST_IMAGE_ASPECT,
         allowsEditing: true,
         quality: 1,
       },
@@ -355,7 +352,7 @@ const UploadImages = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeAreaContainer}>
+    <SafeAreaView style={[styles.safeAreaContainer, { marginTop: -insets.top }]}>
       <View style={styles.container}>
         <DismissKeyboardView style={styles.camContainer}>
           {!picture && tab === CAMERA_TAB
@@ -485,10 +482,11 @@ const UploadImages = ({ navigation, route }) => {
 
 UploadImages.propTypes = propTypes;
 
+const bottomTabColor = colors.gray4;
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    backgroundColor: colors.gray2,
+    backgroundColor: bottomTabColor,
   },
   container: {
     flex: 1,
@@ -510,7 +508,7 @@ const styles = StyleSheet.create({
   },
   camContainer: {
     width: wp(99),
-    aspectRatio: 1,
+    aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
   },
   camera: {
     flex: 1,
@@ -535,7 +533,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    paddingBottom: wp(20),
+    paddingBottom: wp(15),
   },
   itemInputContainer: {
     position: 'absolute',
@@ -582,16 +580,15 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     width: '100%',
-    height: wp(20),
+    height: wp(15),
     position: 'absolute',
     bottom: 0,
-    backgroundColor: colors.gray2,
+    backgroundColor: bottomTabColor,
     flexDirection: 'row',
   },
   tabContainer: {
     flex: 0.5,
     alignItems: 'center',
-    paddingBottom: wp(4.6),
     justifyContent: 'center',
     flexDirection: 'row',
   },

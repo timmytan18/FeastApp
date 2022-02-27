@@ -57,7 +57,7 @@ const propTypes = {
   }).isRequired,
 };
 
-const ADDED_ATTR = ['imgUrl', 's3Photo', 'visible', 'avgOverallRating'];
+const ADDED_ATTR = ['imgUrl', 's3Photo', 'visible', 'avgRating'];
 
 const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
 
@@ -178,7 +178,7 @@ const Profile = ({ navigation, route }) => {
     (async () => {
       const userReviews = await getUserPostsQuery({ PK: user.PK, withUserInfo: false });
       const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
-      const placePostsOverallRatingSum = {};
+      const placePostsRatingSum = {};
       if (userReviews && userReviews.length) {
         allReviews.current = userReviews;
         // Get yums received for current user
@@ -194,15 +194,15 @@ const Profile = ({ navigation, route }) => {
             const { placeId } = currPosts[i];
             if (!placePosts[placeId]) {
               placePosts[placeId] = [currPosts[i]];
-              placePostsOverallRatingSum[placeId] = currPosts[i].rating.overall;
+              placePostsRatingSum[placeId] = currPosts[i].rating;
               placePosts[placeId][0].visible = true;
             } else {
               placePosts[placeId].push(currPosts[i]);
-              placePostsOverallRatingSum[placeId] += currPosts[i].rating.overall;
+              placePostsRatingSum[placeId] += currPosts[i].rating;
             }
           }
-          Object.entries(placePostsOverallRatingSum).forEach(([placeId, sum]) => {
-            placePosts[placeId][0].avgOverallRating = sum / placePosts[placeId].length;
+          Object.entries(placePostsRatingSum).forEach(([placeId, sum]) => {
+            placePosts[placeId][0].avgRating = sum / placePosts[placeId].length;
           });
 
           // Format posts for FlatList, include numYums
@@ -617,7 +617,7 @@ const Profile = ({ navigation, route }) => {
           onRegionChangeComplete={() => onRegionChanged({ markersCopy: { ...reviews } })}
         >
           {reviews && Object.entries(reviews).map(([placeKey, [{
-            name, geo, avgOverallRating, visible,
+            name, geo, avgRating, visible,
           }]]) => {
             const {
               latitude: placeLat,
@@ -629,7 +629,7 @@ const Profile = ({ navigation, route }) => {
                 identifier={placeKey}
                 coordinate={{ latitude: placeLat, longitude: placeLng }}
               >
-                <RatingMapMarker name={name} rating={avgOverallRating} visible={visible} />
+                <RatingMapMarker name={name} rating={avgRating} visible={visible} />
               </Marker>
             );
           })}

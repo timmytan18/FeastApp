@@ -17,7 +17,7 @@ const propTypes = {
     s3Photo: PropTypes.string,
     name: PropTypes.string,
     categories: PropTypes.arrayOf(PropTypes.string),
-    avgOverallRating: PropTypes.number,
+    avgRating: PropTypes.number,
   }).isRequired,
 };
 
@@ -61,10 +61,10 @@ const PostListItem = ({
             {item.categories[0]}
           </Text>
         )}
-      {item.avgOverallRating && (
+      {item.avgRating && (
         <View style={styles.starsContainer}>
           <Stars
-            default={Math.round(item.avgOverallRating * 2) / 2}
+            default={Math.round(item.avgRating * 2) / 2}
             count={5}
             half
             disabled

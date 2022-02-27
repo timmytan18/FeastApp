@@ -65,13 +65,7 @@ export const batchGetFeastItems = /* GraphQL */ `
         identityId
       }
       dish
-      rating {
-        overall
-        food
-        value
-        service
-        atmosphere
-      }
+      rating
       review
       updatedAt
       createdAt
@@ -142,13 +136,7 @@ export const getFeastItem = /* GraphQL */ `
         identityId
       }
       dish
-      rating {
-        overall
-        food
-        value
-        service
-        atmosphere
-      }
+      rating
       review
       updatedAt
       createdAt
@@ -230,13 +218,7 @@ export const listFeastItems = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -320,13 +302,7 @@ export const itemsByGSI1 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -410,13 +386,7 @@ export const itemsByGSI2 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -500,13 +470,7 @@ export const itemsByLSI1 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -590,13 +554,7 @@ export const itemsByLSI2 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -680,13 +638,7 @@ export const itemsByLSI3 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -770,13 +722,7 @@ export const itemsByLSI4 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt
@@ -860,13 +806,7 @@ export const itemsByLSI5 = /* GraphQL */ `
           identityId
         }
         dish
-        rating {
-          overall
-          food
-          value
-          service
-          atmosphere
-        }
+        rating
         review
         updatedAt
         createdAt

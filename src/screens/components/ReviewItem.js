@@ -32,7 +32,7 @@ const fetchReviewUser = async ({ uid, myUID, navigation }) => {
 
 const ReviewItem = ({
   item: {
-    review, rating: { overall }, placeUserInfo: { name: userName, picture: userPicture, uid },
+    review, rating, placeUserInfo: { name: userName, picture: userPicture, uid },
   },
   myUID,
   navigation,
@@ -62,7 +62,7 @@ const ReviewItem = ({
         </TouchableOpacity>
         <View style={[styles.starsContainer, { marginVertical: wp(1) }]}>
           <Stars
-            default={overall}
+            default={rating}
             count={5}
             half
             disabled

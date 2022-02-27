@@ -17,13 +17,13 @@ const propTypes = {
     imgUrl: PropTypes.string,
     name: PropTypes.string,
     categories: PropTypes.arrayOf(PropTypes.string),
-    avgOverallRating: PropTypes.number,
+    avgRating: PropTypes.number,
   }).isRequired,
 };
 
 const PlaceListItem = ({ item, placePosts, openPlacePosts }) => {
-  const rating = item.avgOverallRating
-    ? Math.round(item.avgOverallRating * 2) / 2 : 0;
+  const rating = item.avgRating
+    ? Math.round(item.avgRating * 2) / 2 : 0;
   const userPics = placePosts.map(({
     placeUserInfo: { uid, picture },
   }) => ({ uid, picture }));

@@ -18,13 +18,9 @@ import SearchBox from '../components/SearchBox';
 import NextArrow from '../components/util/icons/NextArrow';
 import Redirect from '../components/util/icons/Redirect';
 import MapMarker from '../components/util/icons/MapMarker';
-import { RATING_CATEGORIES } from '../../constants/constants';
 import {
   colors, gradients, shadows, sizes, wp,
 } from '../../constants/theme';
-
-// Tests
-import scrapeTest from './ScrapeTest';
 
 const BING_KEY = config.BING_API_KEY;
 const BING_CAT_TYPE = 'EatDrink';
@@ -62,8 +58,8 @@ const NewPost = ({ navigation }) => {
     // Delete and reset current stored review and ratings
     function clearReview() {
       dispatch({
-        type: 'SET_REVIEW_RATINGS',
-        payload: { review: null, ratings: { ...RATING_CATEGORIES } },
+        type: 'SET_REVIEW_RATING',
+        payload: { review: null, rating: null },
       });
     }
 
@@ -94,7 +90,7 @@ const NewPost = ({ navigation }) => {
       headerLeft,
       headerRight,
     });
-  }, [dispatch, navigation, placeList, selected]);
+  }, [placeList, selected]);
 
   // Filter POIs by category and remove duplicates
   async function filterSetResults(results) {

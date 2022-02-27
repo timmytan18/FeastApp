@@ -3,23 +3,25 @@ import React, {
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, TextInput,
-  ScrollView, Keyboard, Alert, ImageBackground, Animated,
+  ScrollView, Keyboard, Alert, ImageBackground,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { manipulateAsync } from 'expo-image-manipulator';
-// import EmojiModal from 'react-native-emoji-modal';
+import Stars from 'react-native-stars';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-community/masked-view';
 import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
 import { createFeastItem, batchCreateFollowingPosts } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
-import RatingsInput from '../components/RatingsInput';
-import { RATING_CATEGORIES } from '../../constants/constants';
+import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
+import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp, header, shadows,
+  colors, sizes, wp, header, gradients,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -55,31 +57,21 @@ const PostDetails = ({ navigation, route }) => {
 
   const [review, setReview] = useState(state.review);
   const reviewRef = useRef(state.review);
-  const ratings = useRef(state.ratings);
+  const ratingRef = useRef(state.rating);
 
   const placeExists = useRef(pExists);
   const placeCategoriesImgUrl = useRef(pCategories);
 
-  // const [emojiOpen, setEmojiOpen] = useState(false);
-  // const [emoji, setEmoji] = useState('😋');
-  // const emojiPosition = useRef(new Animated.Value(0)).current;
-  // const translateAnim = emojiPosition.interpolate({
-  //   inputRange: [0, 1],
-  //   outputRange: [wp(100), 20],
-  // });
-  // const opacityAnim = emojiPosition.interpolate({
-  //   inputRange: [0, 1],
-  //   outputRange: [0, 1],
-  // });
+  const [rating, setRating] = useState(state.rating || 0);
 
-  const [shareDisable, setShareDisable] = useState(false);
+  const [shareDisable, setShareDisable] = useState(!ratingRef.current);
 
   useEffect(() => {
-    // Save current review and ratings
+    // Save current review and rating
     function saveReview() {
       dispatch({
-        type: 'SET_REVIEW_RATINGS',
-        payload: { review: reviewRef.current, ratings: ratings.current },
+        type: 'SET_REVIEW_RATING',
+        payload: { review: reviewRef.current, rating: ratingRef.current },
       });
     }
 
@@ -110,10 +102,11 @@ const PostDetails = ({ navigation, route }) => {
 
     // Resize and compress photo; save to S3
     async function resizeAndSaveS3({ image, timestamp }) {
+      const aspectRatio = POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1];
       const manipResult = await manipulateAsync(
         image.localUri || image.uri,
         [
-          { resize: { height: 500, width: 500 } },
+          { resize: { width: 500 * aspectRatio, height: 500 } },
         ],
         { compress: 0.75 },
       );
@@ -172,7 +165,7 @@ const PostDetails = ({ navigation, route }) => {
       const LSI1 = `#PLACE#${hash}`;
       const LSI2 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
-      const userRatings = ratings.current;
+      const userRating = ratingRef.current;
       const dish = menuItem ? menuItem.trim() : null;
       const userPostInput = {
         PK: userPK,
@@ -190,7 +183,7 @@ const PostDetails = ({ navigation, route }) => {
         picture: postImgS3Url,
         dish,
         review: userReview,
-        rating: userRatings,
+        rating: userRating,
         placeUserInfo: {
           uid,
           name: userName,
@@ -230,7 +223,7 @@ const PostDetails = ({ navigation, route }) => {
         picture: postImgS3Url,
         dish,
         review: userReview,
-        rating: userRatings,
+        rating: userRating,
         placeUserInfo: {
           uid,
           name: userName,
@@ -272,10 +265,10 @@ const PostDetails = ({ navigation, route }) => {
       // Update app state to trigger map re-render
       dispatch({ type: 'SET_RELOAD_MAP' });
 
-      // Clear and reset review and ratings
+      // Clear and reset review and rating
       dispatch({
-        type: 'SET_REVIEW_RATINGS',
-        payload: { review: '', ratings: { ...RATING_CATEGORIES } },
+        type: 'SET_REVIEW_RATING',
+        payload: { review: null, rating: null },
       });
       navigation.navigate('Home');
     }
@@ -294,7 +287,7 @@ const PostDetails = ({ navigation, route }) => {
 
     const headerRight = () => (
       <TouchableOpacity
-        style={styles.shareButtonContainer}
+        style={[styles.shareButtonContainer, { opacity: shareDisable ? 0.5 : 1 }]}
         disabled={shareDisable}
         onPress={() => share()}
       >
@@ -309,57 +302,14 @@ const PostDetails = ({ navigation, route }) => {
       title: business.name,
       headerTitleStyle: header.title,
     });
-  }, [business, shareDisable, state.user.PK, state.user.uid]);
-
-  const changeRatings = ({ value, type }) => {
-    if (ratings.current[type] !== value) {
-      ratings.current[type] = value;
-    }
-  };
-
-  // const handleEmojiSelect = (emojiObject) => {
-  //   setEmoji(emojiObject);
-  //   handleOpenCloseEmoji(false);
-  // };
-
-  // const handleOpenCloseEmoji = (open) => {
-  //   Animated.spring(emojiPosition, {
-  //     toValue: open ? 1 : 0,
-  //     speed: 100,
-  //     bounciness: 2,
-  //     useNativeDriver: true,
-  //   }).start();
-  //   setEmojiOpen(open);
-  //   Keyboard.dismiss();
-  // };
+  }, [business, menuItem, picture, shareDisable, state.user, state.user.PK, state.user.uid]);
 
   return (
     <View style={styles.container}>
-      {/* <Animated.View
-        style={[styles.emojiAnimatedContainer, {
-          height: 0.9 * state.deviceHeight,
-          transform: [{ translateY: translateAnim }],
-          opacity: opacityAnim,
-        }]}
-        pointerEvents={emojiOpen ? 'auto' : 'none'}
-      >
-        <EmojiModal
-          onEmojiSelected={handleEmojiSelect}
-          onPressOutside={() => handleOpenCloseEmoji(false)}
-          columns={8}
-          emojiSize={wp(9)}
-          scrollStyle={{
-            height: '100%',
-          }}
-          scrollContentContainerStyle={{ alignItems: 'center', padding: 0, margin: 0 }}
-          containerStyle={[styles.emojiContainer, shadows.darker]}
-          backgroundStyle={{ opacity: 0.3, backgroundColor: emojiOpen ? colors.gray4 : 'transparent' }}
-        />
-      </Animated.View> */}
       <ScrollView
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
-        style={{ margin: wp(4) }}
+        style={{ padding: wp(4) }}
       >
         <View style={styles.postHeader}>
           <ProfilePic
@@ -376,6 +326,40 @@ const PostDetails = ({ navigation, route }) => {
             </View>
           </View>
         </View>
+        <View style={styles.reviewTitleStarsContainer}>
+          <Text style={styles.reviewTitleText}>
+            Review:
+          </Text>
+          <View style={styles.starsContainer}>
+            <Stars
+              default={rating}
+              update={(val) => {
+                setRating(val);
+                ratingRef.current = val;
+                if (shareDisable) setShareDisable(false);
+              }}
+              count={5}
+              half
+              spacing={wp(0.6)}
+              fullStar={(
+                <MaskedView
+                  maskElement={(
+                    <StarFull size={starSize} />
+                  )}
+                >
+                  <LinearGradient
+                    colors={rating < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
+                    start={[-0.35, 1]}
+                    end={[0.75, 1]}
+                    style={{ width: starSize, height: starSize }}
+                  />
+                </MaskedView>
+              )}
+              halfStar={<StarHalf size={starSize} />}
+              emptyStar={<StarEmpty size={starSize} />}
+            />
+          </View>
+        </View>
         <View style={{ flexDirection: 'row' }}>
           <TextInput
             style={styles.reviewInput}
@@ -384,19 +368,13 @@ const PostDetails = ({ navigation, route }) => {
               reviewRef.current = text;
             }}
             value={review}
-            placeholder="Add a review/caption…"
+            placeholder="📝 Write a review/caption…"
             placeholderTextColor={colors.tertiary}
             multiline
             maxLength={256}
             blurOnSubmit
             returnKeyType="done"
           />
-          {/* <TouchableOpacity
-            style={styles.emojiInput}
-            onPress={() => handleOpenCloseEmoji(true)}
-          >
-            <Text style={{ fontSize: wp(5) }}>{emoji}</Text>
-          </TouchableOpacity> */}
         </View>
         <ImageBackground
           style={styles.imageContainer}
@@ -405,10 +383,6 @@ const PostDetails = ({ navigation, route }) => {
         >
           {menuItem && <Text style={styles.menuItemText}>{menuItem}</Text>}
         </ImageBackground>
-        <Text style={styles.ratingTitle}>My Ratings</Text>
-        <View style={styles.ratingsContainer}>
-          <RatingsInput ratings={ratings} changeRatings={changeRatings} />
-        </View>
       </ScrollView>
     </View>
   );
@@ -416,28 +390,13 @@ const PostDetails = ({ navigation, route }) => {
 
 PostDetails.propTypes = propTypes;
 
+const starSize = wp(5.5);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  // emojiAnimatedContainer: {
-  //   position: 'absolute',
-  //   backgroundColor: 'transparent',
-  //   bottom: 10,
-  //   zIndex: 1,
-  //   width: wp(100),
-  //   alignSelf: 'center',
-  // },
-  // emojiContainer: {
-  //   width: '100%',
-  //   height: wp(103),
-  //   borderRadius: 0,
-  //   borderTopLeftRadius: wp(4),
-  //   borderTopRightRadius: wp(4),
-  //   justifyContent: 'flex-start',
-  //   paddingTop: wp(3),
-  // },
   shareButtonContainer: {
     flex: 1,
     paddingRight: sizes.margin,
@@ -502,7 +461,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   reviewInput: {
-    // flex: 0.9,
     flex: 1,
     fontFamily: 'Book',
     fontSize: sizes.h4,
@@ -514,27 +472,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     backgroundColor: colors.gray4,
     borderRadius: wp(2),
-    height: wp(18),
+    height: wp(24),
   },
-  // emojiInput: {
-  //   flex: 0.1,
-  //   fontSize: sizes.h3,
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   backgroundColor: colors.gray4,
-  //   borderRadius: wp(2),
-  //   height: wp(18),
-  //   paddingHorizontal: wp(3),
-  //   paddingVertical: wp(2),
-  //   marginVertical: wp(3),
-  //   marginLeft: wp(3),
-  // },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1,
+    aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
     justifyContent: 'flex-end',
     marginTop: wp(1),
-    marginBottom: wp(8),
+    marginBottom: wp(25),
   },
   menuItemText: {
     fontFamily: 'Medium',
@@ -544,16 +489,23 @@ const styles = StyleSheet.create({
     paddingBottom: wp(5),
     paddingLeft: wp(5),
   },
-  ratingsContainer: {
-    paddingHorizontal: wp(1),
-    marginBottom: wp(8),
+  reviewTitleStarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: wp(3),
+    marginBottom: wp(1),
+    paddingLeft: 1,
   },
-  ratingTitle: {
-    fontFamily: 'Semi',
-    fontSize: sizes.b0,
-    color: colors.tertiary,
-    paddingLeft: wp(0.5),
-    marginBottom: -wp(2),
+  reviewTitleText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b1,
+    paddingRight: wp(2),
+    marginLeft: 1,
+    alignSelf: 'flex-end',
+  },
+  starsContainer: {
+    marginBottom: wp(1),
+    zIndex: 1,
   },
 });
 

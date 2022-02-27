@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Slider } from '@miblanchard/react-native-slider';
 import { LinearGradient } from 'expo-linear-gradient';
-import { RATING_CATEGORIES } from '../../constants/constants';
 import {
-  colors, gradients, shadows, sizes, wp, hp,
+  colors, gradients, sizes, wp,
 } from '../../constants/theme';
 
 const RatingsInput = ({ ratings, changeRatings }) => {
@@ -37,7 +36,7 @@ const RatingsInput = ({ ratings, changeRatings }) => {
     );
   }
 
-  const sliders = Object.keys(RATING_CATEGORIES).map((type) => renderSlider(type));
+  const sliders = Object.keys(['Overall']).map((type) => renderSlider(type));
 
   return (
     <View style={styles.ratingsContainer}>

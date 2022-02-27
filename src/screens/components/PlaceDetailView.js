@@ -30,7 +30,6 @@ import Grubhub from './util/icons/delivery/Grubhub';
 import Doordash from './util/icons/delivery/Doordash';
 import Chownow from './util/icons/delivery/Chownow';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
-import Ratings from './Ratings';
 import BackArrow from './util/icons/BackArrow';
 import Toggle from './util/Toggle';
 import Pagination from './util/Pagination';
@@ -435,7 +434,7 @@ const NUM_REVIEWS_TO_SHOW = 5;
 
 const Reviews = ({ navigation, placeId, myUID }) => {
   const [reviews, setReviews] = useState([]);
-  const ratings = useRef([0, 0, 0, 0]);
+  const rating = useRef(0);
   const nextToken = useRef(null);
   const seenReviewRatings = useRef({});
 
@@ -456,38 +455,30 @@ const Reviews = ({ navigation, placeId, myUID }) => {
             : await getPlaceAllUserReviewsQuery({
               myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
             });
-        // Calculate average ratings
-        const currRatings = [0, 0, 0, 0];
+        // Calculate average rating
+        let currRating = 0;
         userReviews.forEach((rev) => {
-          const {
-            food, value, service, atmosphere,
-          } = rev.rating;
-          currRatings[0] += food;
-          currRatings[1] += value;
-          currRatings[2] += service;
-          currRatings[3] += atmosphere;
+          currRating += rev.rating;
         });
         if (userReviews.length > 0) {
-          currRatings.forEach((rating, i) => {
-            currRatings[i] = rating / userReviews.length;
-          });
-          ratings.current = currRatings;
+          currRating /= userReviews.length;
+          rating.current = currRating;
         }
         nextToken.current = currNextToken;
-        // Save place reviews and average ratings
+        // Save place reviews and average rating
         seenReviewRatings.current[placeId] = {
           tab: {
-            currReviews: userReviews, currRatings, currNextToken,
+            currReviews: userReviews, currRating, currNextToken,
           },
         };
         setReviews(userReviews);
       })();
     } else {
-      // Set reviews and ratings from saved data
+      // Set reviews and rating from saved data
       const {
-        currReviews, currRatings, currNextToken,
+        currReviews, currRating, currNextToken,
       } = seenReviewRatings.current[placeId].tab;
-      ratings.current = currRatings;
+      rating.current = currRating;
       nextToken.current = currNextToken;
       setReviews(currReviews);
     }
@@ -501,8 +492,6 @@ const Reviews = ({ navigation, placeId, myUID }) => {
       fromFollowingOnly: leftSelected,
     });
   };
-
-  const [food, value, service, atmosphere] = ratings.current;
 
   return (
     <View style={styles.bottomContainer}>
@@ -519,9 +508,6 @@ const Reviews = ({ navigation, placeId, myUID }) => {
         <Text style={[styles.reviewTitleText, { marginBottom: wp(4), marginLeft: 1 }]}>
           {leftSelected ? "Friends' Reviews" : 'All Reviews'}
         </Text>
-        <View style={styles.ratingsContainer}>
-          <Ratings food={food} value={value} service={service} atmosphere={atmosphere} />
-        </View>
         <View style={styles.userReviewsContainer}>
           {reviews.map((item) => (
             <ReviewItem

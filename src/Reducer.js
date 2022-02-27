@@ -28,11 +28,11 @@ const Reducer = (state, action) => {
         ...state,
         reloadMapTrigger: !state.reloadMapTrigger,
       };
-    case 'SET_REVIEW_RATINGS':
+    case 'SET_REVIEW_RATING':
       return {
         ...state,
         review: action.payload.review,
-        ratings: action.payload.ratings,
+        rating: action.payload.rating,
       };
     default:
       return state;

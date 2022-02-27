@@ -28,14 +28,13 @@ import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import ProfilePic from './ProfilePic';
 import MapMarker from './util/icons/MapMarker';
-import Rating from './util/icons/Rating';
 import YumButton from './util/YumButton';
 import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
 import X from './util/icons/X';
-import { GET_SAVED_POST_ID } from '../../constants/constants';
+import { GET_SAVED_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
   colors, shadows, gradients, sizes, wp,
@@ -172,9 +171,7 @@ const StoryModal = ({ navigation, route }) => {
 
   // Calculate scroll thresholds to animate between top/bottom or exit modal
   const topEnabled = useRef(true);
-  // const bottomEnabled = useRef(false);
   const lastContentOffsetY = useRef(0);
-  // const paddingBottom = 90;
   const paddingTop = 50;
   const isCloseToTopBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
     let pos = null;
@@ -183,18 +180,6 @@ const StoryModal = ({ navigation, route }) => {
       && lastContentOffsetY.current > contentOffset.y) {
       pos = 'TOP';
     }
-    // else if (bottomEnabled.current
-    //   && (layoutMeasurement.height + contentOffset.y
-    //     >= contentSize.height + paddingBottom)
-    //   && lastContentOffsetY.current < contentOffset.y) {
-    //   pos = 'BOTTOM';
-    // }
-    // if (layoutMeasurement.height + contentOffset.y
-    //   >= contentSize.height - paddingBottom) {
-    //   bottomEnabled.current = true;
-    // } else {
-    //   bottomEnabled.current = false;
-    // }
     if (contentOffset.y <= paddingTop) {
       topEnabled.current = true;
     } else {
@@ -289,11 +274,9 @@ const StoryModal = ({ navigation, route }) => {
             // if (swipeDirection.current === 'horizontal') {
             //   if (gestureState.dx < -100) {
             //     // swipe left
-            //     console.log('swipe left');
             //     panToLeft();
             //   } else if (gestureState.dx > 100) {
             //     // swipe right
-            //     console.log('swipe right');
             //     panToRight();
             //   } else {
             //     translateXAnim({ value: 0 });
@@ -500,7 +483,6 @@ const StoryModal = ({ navigation, route }) => {
   };
 
   const [numLines, setNumLines] = useState(null);
-  // const numLinesExpanded = useRef(null);
   const [numLinesExpanded, setNumLinesExpanded] = useState(null);
   const lineHeight = useRef(null);
 
@@ -513,31 +495,6 @@ const StoryModal = ({ navigation, route }) => {
   }, []);
 
   const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > NUM_COLLAPSED_LINES);
-
-  // const placeholderReview = 'Ordered so much food - overall good portions and taste was great. Definitely recommend! Ordered so much food - overall good portions and taste was great. Definitely recommend good portions and taste was great. Definitely recommend!';
-
-  // rating = {
-  //   overall: 5, food: 4, service: 4.5, atmosphere: 2, value: 3.5,
-  // };
-
-  // const [firstCardCurrent, setFirstCardCurrent] = useState(true);
-  // const firstCardCurrentRef = useRef(true);
-
-  // const prevCardStyle = {
-  //   backgroundColor: 'blue',
-  //   position: 'absolute',
-  //   width: '100%',
-  //   height: '100%',
-  //   right: wp(100),
-  // };
-
-  // const nextCardStyle = {
-  //   backgroundColor: 'red',
-  //   position: 'absolute',
-  //   width: '100%',
-  //   height: '100%',
-  //   left: wp(100),
-  // };
 
   return (
     <View style={{ flex: 1 }}>
@@ -656,10 +613,10 @@ const StoryModal = ({ navigation, route }) => {
             <Text style={styles.reviewTitleText}>
               Review:
             </Text>
-            {rating && rating.overall && (
+            {rating && (
               <View style={styles.starsContainer}>
                 <Stars
-                  default={rating.overall}
+                  default={rating}
                   count={5}
                   half
                   disabled
@@ -667,19 +624,19 @@ const StoryModal = ({ navigation, route }) => {
                   fullStar={(
                     <MaskedView
                       maskElement={(
-                        <StarFull size={wp(5)} />
+                        <StarFull size={starSize} />
                       )}
                     >
                       <LinearGradient
-                        colors={rating.overall < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
+                        colors={rating < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
                         start={[-0.35, 1]}
                         end={[0.75, 1]}
-                        style={{ width: wp(5), height: wp(5) }}
+                        style={{ width: starSize, height: starSize }}
                       />
                     </MaskedView>
                   )}
-                  halfStar={<StarHalf size={wp(5)} />}
-                  emptyStar={<StarEmpty size={wp(5)} />}
+                  halfStar={<StarHalf size={starSize} />}
+                  emptyStar={<StarEmpty size={starSize} />}
                 />
               </View>
             )}
@@ -704,91 +661,13 @@ const StoryModal = ({ navigation, route }) => {
             {review}
           </Text>
           <ImageBackground
-            style={styles.imageContainer}
+            style={[styles.imageContainer, isExpanded && { aspectRatio: 0.9 }]}
             imageStyle={{ borderRadius: wp(2) }}
             source={{ uri: s3Photo }}
           >
-            {/* <AnimatedEmoji
-              index="emoji.key" // index to identity emoji component
-              style={{ top: wp(40) }} // start bottom position
-              name="sweat_smile" // emoji name
-              size={15} // font size
-              duration={6000} // ms
-            // onAnimationCompleted={this.onAnimationCompleted}
-            /> */}
-            <View style={styles.emojiContainer}>
-              {/* <Text style={styles.emojiText}>😋</Text> */}
-            </View>
+            <View style={styles.emojiContainer} />
             {dish && <Text style={styles.menuItemText}>{dish}</Text>}
           </ImageBackground>
-          {!isExpanded && (
-            <View style={styles.ratingsContainer}>
-              {rating && rating.food && (
-                <View style={styles.ratingContainer}>
-                  <View>
-                    <Rating
-                      color={ratingColor(rating.food)}
-                      size={ratingIconSize}
-                    />
-                    <View style={styles.ratingIconContainer}>
-                      <Text style={styles.ratingText}>
-                        {rating.food}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.ratingLabelText}>Food</Text>
-                </View>
-              )}
-              {rating && rating.value && (
-                <View style={styles.ratingContainer}>
-                  <View>
-                    <Rating
-                      color={ratingColor(rating.value)}
-                      size={ratingIconSize}
-                    />
-                    <View style={styles.ratingIconContainer}>
-                      <Text style={styles.ratingText}>
-                        {rating.value}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.ratingLabelText}>Value</Text>
-                </View>
-              )}
-              {rating && rating.service && (
-                <View style={styles.ratingContainer}>
-                  <View>
-                    <Rating
-                      color={ratingColor(rating.service)}
-                      size={ratingIconSize}
-                    />
-                    <View style={styles.ratingIconContainer}>
-                      <Text style={styles.ratingText}>
-                        {rating.service}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.ratingLabelText}>Service</Text>
-                </View>
-              )}
-              {rating && rating.atmosphere && (
-                <View style={styles.ratingContainer}>
-                  <View>
-                    <Rating
-                      color={ratingColor(rating.atmosphere)}
-                      size={ratingIconSize}
-                    />
-                    <View style={styles.ratingIconContainer}>
-                      <Text style={styles.ratingText}>
-                        {rating.atmosphere}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.ratingLabelText}>Atmosphere</Text>
-                </View>
-              )}
-            </View>
-          )}
         </View>
         <View style={styles.middleContainer}>
           <View style={styles.middleButtonsContainer}>
@@ -891,6 +770,7 @@ const StoryModal = ({ navigation, route }) => {
 };
 
 const ratingIconSize = wp(12);
+const starSize = wp(5);
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -1020,7 +900,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1,
+    aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
     justifyContent: 'space-between',
     marginTop: wp(3),
   },
@@ -1060,6 +940,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Book',
     fontSize: sizes.b2,
     paddingHorizontal: 2,
+    paddingTop: wp(0.4),
+    paddingBottom: wp(1),
     alignSelf: 'center',
     textAlign: 'left',
     width: '100%',

@@ -37,7 +37,7 @@ type FeastItem
   placeInfo: PlaceInfo
   placeUserInfo: PlaceUserInfo
   dish: String
-  rating: Rating
+  rating: Float
   review: String
   updatedAt: String
 }
@@ -70,14 +70,6 @@ type PlaceInfo {
 type Coordinate {
   latitude: Float
   longitude: Float
-}
-
-type Rating {
-  overall: Float!
-  food: Float!
-  value: Float!
-  service: Float!
-  atmosphere: Float!
 }
 
 type PlaceUserInfo {
@@ -131,16 +123,8 @@ input FollowingPostInput {
   categories: [String]
   review: String
   createdAt: String
-  rating: RatingInput
+  rating: Float!
   placeUserInfo: PlaceUserInfoInput
-}
-
-input RatingInput {
-  overall: Float!
-  food: Float!
-  value: Float!
-  service: Float!
-  atmosphere: Float!
 }
 
 input PlaceUserInfoInput {

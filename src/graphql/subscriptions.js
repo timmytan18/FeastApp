@@ -65,13 +65,7 @@ export const onCreateFeastItem = /* GraphQL */ `
         identityId
       }
       dish
-      rating {
-        overall
-        food
-        value
-        service
-        atmosphere
-      }
+      rating
       review
       updatedAt
       createdAt
@@ -142,13 +136,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
         identityId
       }
       dish
-      rating {
-        overall
-        food
-        value
-        service
-        atmosphere
-      }
+      rating
       review
       updatedAt
       createdAt
@@ -219,13 +207,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
         identityId
       }
       dish
-      rating {
-        overall
-        food
-        value
-        service
-        atmosphere
-      }
+      rating
       review
       updatedAt
       createdAt

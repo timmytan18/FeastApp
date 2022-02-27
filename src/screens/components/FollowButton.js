@@ -97,7 +97,7 @@ const FollowButton = ({
             identityId,
           },
         });
-        // Remove s3Photo, imgUrl, visible, & avgOverallRating from FollowingPost item
+        // Remove s3Photo, imgUrl, visible, & avgRating from FollowingPost item
         ADDED_ATTR.forEach((attr) => {
           delete updatedReviews[updatedReviews.length - 1][attr];
         });

@@ -46,49 +46,6 @@ const Ratings = ({
   );
 };
 
-// const Ratings = ({ feed, food, value, service, atmosphere }) => {
-
-//     const ratingTextStyle = feed ? styles.ratingTextFeed: styles.ratingText;
-//     const typeTextStyle = feed ? styles.typeTextFeed : styles.typeText;
-
-//     return (
-//         <View style={styles.container}>
-//             <View style={[styles.ratingContainer, { marginRight: wp(1) }]}>
-//                 <Text style={ratingTextStyle}>
-//                     {food}/5
-//                 </Text>
-//                 <Text style={[typeTextStyle, { letterSpacing: 0.7 }]}>
-//                     Food
-//                 </Text>
-//             </View>
-//             <View style={[styles.ratingContainer, { marginRight: wp(1) }]}>
-//                 <Text style={ratingTextStyle}>
-//                     {value}/5
-//                 </Text>
-//                 <Text style={[typeTextStyle, { letterSpacing: 0.5 }]}>
-//                     Value
-//                 </Text>
-//             </View>
-//             <View style={styles.ratingContainer}>
-//                 <Text style={ratingTextStyle}>
-//                     {service}/5
-//                 </Text>
-//                 <Text style={[typeTextStyle, { letterSpacing: 0.3 }]}>
-//                     Service
-//                 </Text>
-//             </View>
-//             <View style={styles.ratingContainer}>
-//                 <Text style={ratingTextStyle}>
-//                     {atmosphere}/5
-//                 </Text>
-//                 <Text style={typeTextStyle}>
-//                     Atmosphere
-//                 </Text>
-//             </View>
-//         </View>
-//     );
-// }
-
 const styles = StyleSheet.create({
   container: {
     width: '100%',

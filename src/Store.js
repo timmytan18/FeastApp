@@ -1,12 +1,11 @@
 import React, { createContext, useReducer } from 'react';
 import Reducer from './Reducer';
-import { RATING_CATEGORIES } from './constants/constants';
 
 const initialState = {
   user: null,
   reloadMapTrigger: false,
   review: null,
-  ratings: { ...RATING_CATEGORIES },
+  rating: null,
   location: { longitude: null, latitude: null },
   savedPosts: new Set(),
   restaurants: [],
