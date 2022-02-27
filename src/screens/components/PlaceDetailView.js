@@ -10,7 +10,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import PropTypes from 'prop-types';
 import link from './OpenLink';
-import { getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery } from '../../api/functions/queryFunctions';
+import {
+  getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getPlaceRatingQuery,
+} from '../../api/functions/queryFunctions';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import ReviewItem from './ReviewItem';
 import LocationMapMarker from './util/LocationMapMarker';
@@ -217,6 +219,15 @@ const BodyContent = React.memo(({
   const { uid, picture: userPic } = state.user;
   const { latitude: userLat, longitude: userLng } = state.location;
 
+  const [rating, setRating] = useState({ sum: 0, count: 1 });
+
+  useEffect(() => {
+    (async () => {
+      const updatedRating = await getPlaceRatingQuery({ placeId: place.placeId });
+      setRating(updatedRating);
+    })();
+  }, [place.placeId]);
+
   const { latitude: placeLat, longitude: placeLng } = place.placeInfo.coordinates;
   const { categories } = place.placeInfo;
 
@@ -274,27 +285,27 @@ const BodyContent = React.memo(({
       <View style={styles.topContainer}>
         <View style={styles.starsContainer}>
           <Stars
-            default={place.rating ? place.rating : 0}
+            default={rating.sum / rating.count}
             count={5}
             half
             starSize={100}
             disabled
             fullStar={<StarFull size={wp(5)} style={styles.myStarStyle} />}
             halfStar={<StarHalf size={wp(5)} style={styles.myStarStyle} />}
-            emptyStar={<StarEmpty size={wp(5)} style={styles.myStarStyle} color={place.rating ? '#FFC529' : colors.gray3} />}
+            emptyStar={<StarEmpty size={wp(5)} style={styles.myStarStyle} color={rating.sum ? '#FFC529' : colors.gray3} />}
           />
           <Text style={[
             styles.reviewText,
             {
-              color: place.review_count
+              color: rating.count
                 ? colors.black : colors.gray,
-              fontSize: place.review_count
+              fontSize: rating.count
                 ? wp(3.7) : sizes.b3,
             },
           ]}
           >
             (
-            {place.review_count ? place.review_count : 'No reviews'}
+            {rating.count ? rating.count : 'No reviews'}
             )
           </Text>
         </View>

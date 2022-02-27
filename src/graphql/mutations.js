@@ -67,6 +67,8 @@ export const incrementFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -138,6 +140,8 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -209,6 +213,8 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -283,6 +289,8 @@ export const createFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -357,6 +365,8 @@ export const updateFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -431,6 +441,8 @@ export const deleteFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }

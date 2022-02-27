@@ -756,3 +756,12 @@ export const getUserYumsReceived = /* GraphQL */ `
     }
   }
 `;
+
+export const getPlaceRating = /* GraphQL */ `
+  query GetFeastItem($PK: String!, $SK: String!) {
+    getFeastItem(PK: $PK, SK: $SK) {
+      count
+      sum
+    }
+  }
+`;

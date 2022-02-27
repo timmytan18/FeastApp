@@ -67,6 +67,8 @@ export const batchGetFeastItems = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -138,6 +140,8 @@ export const getFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -220,6 +224,8 @@ export const listFeastItems = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -304,6 +310,8 @@ export const itemsByGSI1 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -388,6 +396,8 @@ export const itemsByGSI2 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -472,6 +482,8 @@ export const itemsByLSI1 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -556,6 +568,8 @@ export const itemsByLSI2 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -640,6 +654,8 @@ export const itemsByLSI3 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -724,6 +740,8 @@ export const itemsByLSI4 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }
@@ -808,6 +826,8 @@ export const itemsByLSI5 = /* GraphQL */ `
         dish
         rating
         review
+        count
+        sum
         updatedAt
         createdAt
       }

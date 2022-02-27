@@ -39,6 +39,8 @@ type FeastItem
   dish: String
   rating: Float
   review: String
+  count: Int
+  sum: Float
   updatedAt: String
 }
 
@@ -98,6 +100,8 @@ input IncrementFeastItemInput {
   SK: String!
   numFollowers: Int
   numFollowing: Int
+  count: Int
+  sum: Float
 }
 
 input BatchCreateFollowingPostsInput {

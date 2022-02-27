@@ -13,7 +13,9 @@ import Stars from 'react-native-stars';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
 import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
-import { createFeastItem, batchCreateFollowingPosts } from '../../api/graphql/mutations';
+import {
+  createFeastItem, batchCreateFollowingPosts, incrementFeastItem, deleteFeastItem,
+} from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
@@ -125,6 +127,39 @@ const PostDetails = ({ navigation, route }) => {
       return null;
     }
 
+    // Delete post from user's profile
+    async function deletePostFromProfile({ myPK, currTimestamp }) {
+      const input = { PK: myPK, SK: `#PLACE#${currTimestamp}` };
+      try {
+        await API.graphql(graphqlOperation(
+          deleteFeastItem,
+          { input },
+        ));
+      } catch (err) {
+        console.warn('Error deleting post from user profile:', err);
+      }
+    }
+
+    // Delete post image from S3
+    async function deletePostFromS3({ s3Key }) {
+      try {
+        await Storage.remove(s3Key, { level: 'protected' });
+      } catch (err) {
+        console.warn('Error deleting post image from S3:', err);
+      }
+    }
+
+    const onShareFailed = async ({ postImgS3Url }) => {
+      await deletePostFromS3({ s3Key: postImgS3Url });
+      Alert.alert(
+        'Error',
+        'Could not share your review. Please try again.',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+      setShareDisable(false);
+    };
+
     // Share user review for this place
     async function share() {
       if (shareDisable) {
@@ -135,6 +170,7 @@ const PostDetails = ({ navigation, route }) => {
       const date = new Date();
       const timestamp = date.toISOString();
 
+      // Resize and store post image in S3
       let postImgS3Url;
       try {
         postImgS3Url = await resizeAndSaveS3({ image: picture, timestamp });
@@ -198,14 +234,47 @@ const PostDetails = ({ navigation, route }) => {
         ));
       } catch (e) {
         console.warn('Error saving post to user posts in DB: ', e);
-        Alert.alert(
-          'Error',
-          'Could not share your review. Please try again.',
-          [{ text: 'OK' }],
-          { cancelable: false },
-        );
-        setShareDisable(false);
+        onShareFailed({ postImgS3Url });
         return;
+      }
+
+      // Update place rating count and sum
+      const ratingSK = '#RATING';
+      try {
+        await API.graphql(graphqlOperation(
+          incrementFeastItem,
+          {
+            input: {
+              PK: placePK, SK: ratingSK, count: 1, sum: userRating,
+            },
+          },
+        ));
+      } catch (e) {
+        // If place rating item doesn't exist, create it
+        if (e.errors && e.errors.length
+          && e.errors.some(({ errorType }) => errorType === 'DynamoDB:ConditionalCheckFailedException')) {
+          const placeRatingInput = {
+            PK: placePK, SK: ratingSK, count: 1, sum: userRating, placeId,
+          };
+          try {
+            await API.graphql(graphqlOperation(
+              createFeastItem,
+              { input: placeRatingInput },
+            ));
+          } catch (e2) {
+            console.warn('Error create place rating item: ', e2);
+            // If error creating place rating item, delete post from user profile
+            deletePostFromProfile({ myPK: userPK, currTimestamp: timestamp });
+            onShareFailed({ postImgS3Url });
+            return;
+          }
+        } else {
+          console.warn('Error updating place rating count and sum: ', e);
+          // If error creating place rating item, delete post from user profile
+          deletePostFromProfile({ myPK: userPK, currTimestamp: timestamp });
+          onShareFailed({ postImgS3Url });
+          return;
+        }
       }
 
       // Share post to user's followers' feeds
@@ -244,7 +313,6 @@ const PostDetails = ({ navigation, route }) => {
         });
       });
 
-      // TODO: Add error handling for this
       // Add user's post to followers' feeds in batches
       if (allUserFeedPosts.length) {
         let i; let j;
@@ -258,6 +326,8 @@ const PostDetails = ({ navigation, route }) => {
             ));
           } catch (err) {
             console.warn("Error adding posts to followers' feeds: ", err);
+            onShareFailed({ postImgS3Url });
+            return;
           }
         }
       }

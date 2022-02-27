@@ -12,7 +12,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
-// import { AnimatedEmoji } from 'react-native-animated-emoji';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import PlaceDetailView from './PlaceDetailView';
 import MoreView from './MoreView';
@@ -23,7 +22,7 @@ import {
   getAllSavedPostItemsQuery,
   getPostYumsQuery,
 } from '../../api/functions/queryFunctions';
-import { deleteFeastItem, batchDeleteFollowingPosts } from '../../api/graphql/mutations';
+import { deleteFeastItem, batchDeleteFollowingPosts, incrementFeastItem } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import ProfilePic from './ProfilePic';
@@ -41,18 +40,7 @@ import {
 } from '../../constants/theme';
 import CenterSpinner from './util/CenterSpinner';
 
-const ratingColor = (rating) =>
-  // switch (rating) {
-  //   case 4.5: case 4:
-  //     return colors.secondary;
-  //   case 3.5: case 3:
-  //     return colors.tertiary;
-  //   default:
-  //     return colors.gray;
-  // }
-  colors.tertiary;
 const NUM_COLLAPSED_LINES = 2;
-
 const storyDuration = 6000;
 
 const StoryModal = ({ navigation, route }) => {
@@ -362,6 +350,28 @@ const StoryModal = ({ navigation, route }) => {
       await Storage.remove(s3Key, { level: 'protected' });
     } catch (err) {
       console.warn('Error deleting post image from S3:', err);
+      Alert.alert(
+        'Error',
+        'Could not delete post',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+      return;
+    }
+
+    // Update place's average rating
+    const ratingSK = '#RATING';
+    try {
+      await API.graphql(graphqlOperation(
+        incrementFeastItem,
+        {
+          input: {
+            PK: `PLACE#${placeId}`, SK: ratingSK, count: -1, sum: -rating,
+          },
+        },
+      ));
+    } catch (err) {
+      console.warn('Error updating place rating:', err);
       Alert.alert(
         'Error',
         'Could not delete post',

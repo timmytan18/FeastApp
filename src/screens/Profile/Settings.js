@@ -63,6 +63,7 @@ const Settings = ({ route }) => {
           </Text>
           <View>
             <Text style={styles.textInput}>
+              {' '}
               {email}
             </Text>
             <Line length={INPUT_WIDTH} color={colors.tertiary} />
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   textInput: {
-    height: wp(7.8),
+    height: wp(7.2),
     width: INPUT_WIDTH,
     fontFamily: 'Book',
     fontSize: sizes.b1,

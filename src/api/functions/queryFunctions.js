@@ -7,7 +7,7 @@ import {
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
   getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
-  getUserYumsReceived, getPostYumsNoDetails, getUserEmail,
+  getUserYumsReceived, getPostYumsNoDetails, getUserEmail, getPlaceRating,
 } from '../graphql/queries';
 
 // Fetch user profile data
@@ -400,11 +400,28 @@ async function getUserEmailQuery({ uid }) {
   return email;
 }
 
+// Fetch place average rating
+async function getPlaceRatingQuery({ placeId }) {
+  let rating;
+  try {
+    const res = await API.graphql(
+      graphqlOperation(getPlaceRating, { PK: `PLACE#${placeId}`, SK: '#RATING' }),
+    );
+    const { count, sum } = res.data.getFeastItem;
+    if (count > 0 && count != null && sum != null) {
+      rating = { count, sum };
+    }
+  } catch (err) {
+    console.warn('Error fetching place rating: ', err);
+  }
+  return rating;
+}
+
 export {
   getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery, searchPlacesQuery,
   getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
   getFollowingPostsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
   getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
   getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
-  getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery,
+  getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery, getPlaceRatingQuery,
 };

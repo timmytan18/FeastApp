@@ -38,7 +38,6 @@ const ReviewItem = ({
   navigation,
 }) => {
   const [textExpanded, setTextExpanded] = useState(false);
-  if (!review) return null;
   return (
     <View style={styles.userReviewContainer}>
       <TouchableOpacity

@@ -57,7 +57,7 @@ const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws
 const UploadImages = ({ navigation, route }) => {
   // FIND BUSINESS IN DYNAMO
   const { business } = route.params;
-  const [{ review }, dispatch] = useContext(Context);
+  const [{ review, rating }, dispatch] = useContext(Context);
   const insets = useSafeAreaInsets();
 
   const placeExists = useRef(false);
@@ -159,10 +159,12 @@ const UploadImages = ({ navigation, route }) => {
 
   useEffect(() => {
     // Clear and reset review and rating
-    dispatch({
-      type: 'SET_REVIEW_RATING',
-      payload: { review, rating: null },
-    });
+    if (rating) {
+      dispatch({
+        type: 'SET_REVIEW_RATING',
+        payload: { review, rating: null },
+      });
+    }
   }, [picture]);
 
   // Menu item input
@@ -562,10 +564,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   takePhotoBtnOuter: {
-    width: wp(20),
+    width: wp(18),
     aspectRatio: 1,
-    borderRadius: wp(20) / 2,
-    borderColor: colors.black,
+    borderRadius: wp(18) / 2,
+    borderColor: colors.tertiary,
     borderWidth: wp(1.2),
     alignItems: 'center',
     justifyContent: 'center',
@@ -573,9 +575,9 @@ const styles = StyleSheet.create({
     marginTop: wp(16),
   },
   takePhotoBtnInner: {
-    width: wp(16),
+    width: wp(14),
     aspectRatio: 1,
-    borderRadius: wp(16) / 2,
+    borderRadius: wp(14) / 2,
     backgroundColor: colors.black,
   },
   bottomBar: {

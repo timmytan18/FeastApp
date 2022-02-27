@@ -67,6 +67,8 @@ export const onCreateFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -138,6 +140,8 @@ export const onUpdateFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
@@ -209,6 +213,8 @@ export const onDeleteFeastItem = /* GraphQL */ `
       dish
       rating
       review
+      count
+      sum
       updatedAt
       createdAt
     }
