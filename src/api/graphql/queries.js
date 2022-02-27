@@ -90,6 +90,31 @@ export const getUserProfile = /* GraphQL */ `
   }
 `;
 
+export const getUserEmail = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        email
+      }
+      nextToken
+    }
+  }
+`;
+
 export const getIsFollowing = /* GraphQL */ `
   query GetFeastItem($PK: String!, $SK: String!) {
     getFeastItem(PK: $PK, SK: $SK) {

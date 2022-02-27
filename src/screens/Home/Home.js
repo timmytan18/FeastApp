@@ -78,7 +78,7 @@ const Home = ({ navigation }) => {
   const storiesGroups = useRef({}); // obj of placeId: [placeId]
 
   // Show / hide markers when region changed based on zoom level & geohash
-  const onRegionChanged = async ({ markersCopy }) => {
+  const onRegionChanged = async ({ markersCopy, firstLoad }) => {
     const {
       southWest: { longitude: startX, latitude: startY },
       northEast: { longitude: endX, latitude: endY },
@@ -112,7 +112,7 @@ const Home = ({ navigation }) => {
         }
       }
     });
-    if (didAlterMarkers) {
+    if (didAlterMarkers || firstLoad) {
       setMarkers(markersCopy);
     }
   };
@@ -198,7 +198,7 @@ const Home = ({ navigation }) => {
         }
       }
       placePosts.current = placePostsUpdated;
-      await onRegionChanged({ markersCopy: placeMarkers });
+      await onRegionChanged({ markersCopy: placeMarkers, firstLoad: true });
     })();
   }, [dispatch, state.user.PK, state.user.uid, state.reloadMapTrigger]);
 

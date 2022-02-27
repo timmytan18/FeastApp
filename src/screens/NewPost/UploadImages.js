@@ -413,7 +413,7 @@ const UploadImages = ({ navigation, route }) => {
           {picture && tab === CAMERA_TAB
             && (
               <TouchableOpacity style={styles.xContainer} onPress={() => setPicture(null)}>
-                <X color='#fff' size={wp(10)} />
+                <X color="#fff" size={wp(10)} />
               </TouchableOpacity>
             )}
         </DismissKeyboardView>

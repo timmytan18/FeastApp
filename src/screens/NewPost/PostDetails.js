@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { manipulateAsync } from 'expo-image-manipulator';
-import EmojiModal from 'react-native-emoji-modal';
+// import EmojiModal from 'react-native-emoji-modal';
 import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
 import { createFeastItem, batchCreateFollowingPosts } from '../../api/graphql/mutations';
 import MapMarker from '../components/util/icons/MapMarker';
@@ -60,17 +60,17 @@ const PostDetails = ({ navigation, route }) => {
   const placeExists = useRef(pExists);
   const placeCategoriesImgUrl = useRef(pCategories);
 
-  const [emojiOpen, setEmojiOpen] = useState(false);
-  const [emoji, setEmoji] = useState('😋');
-  const emojiPosition = useRef(new Animated.Value(0)).current;
-  const translateAnim = emojiPosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [wp(100), 20],
-  });
-  const opacityAnim = emojiPosition.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
+  // const [emojiOpen, setEmojiOpen] = useState(false);
+  // const [emoji, setEmoji] = useState('😋');
+  // const emojiPosition = useRef(new Animated.Value(0)).current;
+  // const translateAnim = emojiPosition.interpolate({
+  //   inputRange: [0, 1],
+  //   outputRange: [wp(100), 20],
+  // });
+  // const opacityAnim = emojiPosition.interpolate({
+  //   inputRange: [0, 1],
+  //   outputRange: [0, 1],
+  // });
 
   const [shareDisable, setShareDisable] = useState(false);
 
@@ -319,25 +319,25 @@ const PostDetails = ({ navigation, route }) => {
     }
   };
 
-  const handleEmojiSelect = (emojiObject) => {
-    setEmoji(emojiObject);
-    handleOpenCloseEmoji(false);
-  };
+  // const handleEmojiSelect = (emojiObject) => {
+  //   setEmoji(emojiObject);
+  //   handleOpenCloseEmoji(false);
+  // };
 
-  const handleOpenCloseEmoji = (open) => {
-    Animated.spring(emojiPosition, {
-      toValue: open ? 1 : 0,
-      speed: 100,
-      bounciness: 2,
-      useNativeDriver: true,
-    }).start();
-    setEmojiOpen(open);
-    Keyboard.dismiss();
-  };
+  // const handleOpenCloseEmoji = (open) => {
+  //   Animated.spring(emojiPosition, {
+  //     toValue: open ? 1 : 0,
+  //     speed: 100,
+  //     bounciness: 2,
+  //     useNativeDriver: true,
+  //   }).start();
+  //   setEmojiOpen(open);
+  //   Keyboard.dismiss();
+  // };
 
   return (
     <View style={styles.container}>
-      <Animated.View
+      {/* <Animated.View
         style={[styles.emojiAnimatedContainer, {
           height: 0.9 * state.deviceHeight,
           transform: [{ translateY: translateAnim }],
@@ -357,7 +357,7 @@ const PostDetails = ({ navigation, route }) => {
           containerStyle={[styles.emojiContainer, shadows.darker]}
           backgroundStyle={{ opacity: 0.3, backgroundColor: emojiOpen ? colors.gray4 : 'transparent' }}
         />
-      </Animated.View>
+      </Animated.View> */}
       <ScrollView
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
@@ -393,12 +393,12 @@ const PostDetails = ({ navigation, route }) => {
             blurOnSubmit
             returnKeyType="done"
           />
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.emojiInput}
             onPress={() => handleOpenCloseEmoji(true)}
           >
             <Text style={{ fontSize: wp(5) }}>{emoji}</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <ImageBackground
           style={styles.imageContainer}
@@ -423,23 +423,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  emojiAnimatedContainer: {
-    position: 'absolute',
-    backgroundColor: 'transparent',
-    bottom: 10,
-    zIndex: 1,
-    width: wp(100),
-    alignSelf: 'center',
-  },
-  emojiContainer: {
-    width: '100%',
-    height: wp(103),
-    borderRadius: 0,
-    borderTopLeftRadius: wp(4),
-    borderTopRightRadius: wp(4),
-    justifyContent: 'flex-start',
-    paddingTop: wp(3),
-  },
+  // emojiAnimatedContainer: {
+  //   position: 'absolute',
+  //   backgroundColor: 'transparent',
+  //   bottom: 10,
+  //   zIndex: 1,
+  //   width: wp(100),
+  //   alignSelf: 'center',
+  // },
+  // emojiContainer: {
+  //   width: '100%',
+  //   height: wp(103),
+  //   borderRadius: 0,
+  //   borderTopLeftRadius: wp(4),
+  //   borderTopRightRadius: wp(4),
+  //   justifyContent: 'flex-start',
+  //   paddingTop: wp(3),
+  // },
   shareButtonContainer: {
     flex: 1,
     paddingRight: sizes.margin,
@@ -504,7 +504,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   reviewInput: {
-    flex: 0.9,
+    // flex: 0.9,
+    flex: 1,
     fontFamily: 'Book',
     fontSize: sizes.h4,
     color: colors.black,
@@ -517,19 +518,19 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
     height: wp(18),
   },
-  emojiInput: {
-    flex: 0.1,
-    fontSize: sizes.h3,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.gray4,
-    borderRadius: wp(2),
-    height: wp(18),
-    paddingHorizontal: wp(3),
-    paddingVertical: wp(2),
-    marginVertical: wp(3),
-    marginLeft: wp(3),
-  },
+  // emojiInput: {
+  //   flex: 0.1,
+  //   fontSize: sizes.h3,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   backgroundColor: colors.gray4,
+  //   borderRadius: wp(2),
+  //   height: wp(18),
+  //   paddingHorizontal: wp(3),
+  //   paddingVertical: wp(2),
+  //   marginVertical: wp(3),
+  //   marginLeft: wp(3),
+  // },
   imageContainer: {
     width: '100%',
     aspectRatio: 1,

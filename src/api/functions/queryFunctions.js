@@ -7,7 +7,7 @@ import {
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
   getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
-  getUserYumsReceived, getPostYumsNoDetails,
+  getUserYumsReceived, getPostYumsNoDetails, getUserEmail,
 } from '../graphql/queries';
 
 // Fetch user profile data
@@ -384,11 +384,27 @@ async function getUserYumsReceivedQuery({ uid }) {
   return yums;
 }
 
+// Fetch user email
+async function getUserEmailQuery({ uid }) {
+  const userPK = `USER#${uid}`;
+  const userSK = '#PROFILE#';
+  let email;
+  try {
+    const res = await API.graphql(
+      graphqlOperation(getUserEmail, { PK: userPK, SK: { beginsWith: userSK } }),
+    );
+    email = res.data.listFeastItems.items[0].email;
+  } catch (err) {
+    console.warn('Error fetching user email: ', err);
+  }
+  return email;
+}
+
 export {
   getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery, searchPlacesQuery,
   getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
   getFollowingPostsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
   getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
   getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
-  getPostYumsQuery, getUserYumsReceivedQuery,
+  getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery,
 };

@@ -327,7 +327,7 @@ const Profile = ({ navigation, route }) => {
   // More modal
   const moreItems = isMe ? [
     {
-      onPress: () => navigation.navigate('Settings'),
+      onPress: () => navigation.navigate('Settings', { uid: user.uid }),
       icon: <Gear />,
       label: 'Settings',
       end: true,
