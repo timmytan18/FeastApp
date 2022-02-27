@@ -15,6 +15,12 @@
       "auth": {
         "feastapp0f0eb2fd": {},
         "feastappf77f5e1c": {}
+      },
+      "function": {
+        "fetchkeys": {
+          "deploymentBucketName": "amplify-feastapp-dev-171846-deployment",
+          "s3Key": "amplify-builds/fetchkeys-654d477069423946367a-build.zip"
+        }
       }
     }
   }

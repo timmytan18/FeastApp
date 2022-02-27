@@ -4,8 +4,9 @@ import React, {
 import {
   Text, StyleSheet, TouchableOpacity, SafeAreaView,
 } from 'react-native';
+import { API } from 'aws-amplify';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator, TransitionSpecs } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
 import { getUserAllSavedPostsQuery } from '../api/functions/queryFunctions';
@@ -28,6 +29,7 @@ import NewPostIcon from './icons/NewPost';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import BackArrow from '../screens/components/util/icons/BackArrow';
 import { GET_SAVED_POST_ID } from '../constants/constants';
+import { secureSave, getSecureValue, keys } from '../api/functions/SecureStore';
 import { Context } from '../Store';
 import {
   colors, sizes, header, wp,
@@ -380,6 +382,12 @@ const AppNavigator = () => {
         type: 'SET_SAVED_POSTS',
         payload: { savedPosts: new Set(savedPostsIds) },
       });
+      // Get API keys
+      if (!(await getSecureValue(keys.BING_KEY)) || !(await getSecureValue(keys.GOOGLE_KEY))) {
+        const { BING_KEY, GOOGLE_KEY } = await API.get('feastapi', '/keys');
+        await secureSave(keys.BING_KEY, BING_KEY);
+        await secureSave(keys.GOOGLE_KEY, GOOGLE_KEY);
+      }
     })();
   }, [PK]);
 

@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { API, graphqlOperation } from 'aws-amplify';
 import geohash from 'ngeohash';
 import { getPlaceInDBQuery } from './queryFunctions';
-import FSCATEGORIES from '../../constants/FSCategories';
+
 import coordinateDistance from './CoordinateDistance';
-import config from '../../config';
+
+import { getSecureValue, keys } from './SecureStore';
 
 const Category = PropTypes.shape({
   id: PropTypes.number,
@@ -278,6 +278,7 @@ export default async function filterFSItems({ results }) {
   const groups = groupMatches(matches);
 
   if (groups.length) {
+    const key = await getSecureValue(keys.GOOGLE_KEY);
     for (let i = 0; i < groups.length; i += 1) {
       // If any item in group is in db, remove
       let removed = false;
@@ -292,7 +293,6 @@ export default async function filterFSItems({ results }) {
       // Remove duplicates by checking Google Places API
       if (groups[i].size && !removed) {
         // For every item in a group, call GPlaces API to find potential match
-        const key = config.GOOGLE_GEO_API_KEY;
         const places = {};
         for (const a of groups[i].keys()) {
           const { name, point } = items[a];
@@ -347,23 +347,3 @@ export default async function filterFSItems({ results }) {
 }
 
 filterFSItems.propTypes = propTypes;
-
-// async function filterFSItems({ results }) {
-//   // Filter out places that aren't in dining and drinking categories and null items
-//   const items = [];
-//   results.forEach((item) => {
-//     if (item && item.categories) {
-//       for (let i = 0; i < item.categories.length; i += 1) {
-//         if (item.categories[i].id in FSCATEGORIES) {
-//           items.push(item);
-//           break;
-//         }
-//       }
-//     }
-//   });
-//   return items;
-// }
-
-// filterFSItems.propTypes = propTypes;
-
-// export default filterFSItems;

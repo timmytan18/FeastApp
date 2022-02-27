@@ -11,18 +11,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MapModal from '../components/MapModal';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import filterFSItems from '../../api/functions/FilterFSItems';
-import config from '../../config';
 import { Context } from '../../Store';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import NextArrow from '../components/util/icons/NextArrow';
 import Redirect from '../components/util/icons/Redirect';
 import MapMarker from '../components/util/icons/MapMarker';
+import { getSecureValue, keys } from '../../api/functions/SecureStore';
 import {
   colors, gradients, shadows, sizes, wp,
 } from '../../constants/theme';
 
-const BING_KEY = config.BING_API_KEY;
 const BING_CAT_TYPE = 'EatDrink';
 const BING_NEARBY_RADIUS = '1000'; // 1 km radius
 const BING_SEARCH_RADIUS = '5000'; // 5 km radius (max); is more when no results within 5 km
@@ -131,6 +130,7 @@ const NewPost = ({ navigation }) => {
 
     // Fetch nearby POIs from Bing
     async function getNearby() {
+      const BING_KEY = await getSecureValue(keys.BING_KEY);
       try {
         await updateCurrentLocation();
       } catch (err) {
@@ -165,6 +165,7 @@ const NewPost = ({ navigation }) => {
 
   // Search for nearby POIs using query string
   const searchPlace = async (queryInput) => {
+    const BING_KEY = await getSecureValue(keys.BING_KEY);
     const query = queryInput ? queryInput.replace(/\s+/g, '%20') : '';
     setLoading(true);
     setSelected(null);

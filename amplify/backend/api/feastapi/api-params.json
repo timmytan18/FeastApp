@@ -1,0 +1,38 @@
+{
+  "paths": [
+    {
+      "name": "/keys",
+      "lambdaFunction": "fetchkeys",
+      "privacy": {
+        "private": true,
+        "auth": [
+          "/GET"
+        ]
+      },
+      "policyResourceName": "/keys"
+    }
+  ],
+  "resourceName": "feastapi",
+  "apiName": "feastapi",
+  "functionArns": [
+    {
+      "lambdaFunction": "fetchkeys"
+    }
+  ],
+  "privacy": {
+    "auth": 1,
+    "unauth": 0,
+    "authRoleName": "amplify-feastapp-dev-171846-authRole",
+    "unAuthRoleName": "amplify-feastapp-dev-171846-unauthRole"
+  },
+  "dependsOn": [
+    {
+      "category": "function",
+      "resourceName": "fetchkeys",
+      "attributes": [
+        "Name",
+        "Arn"
+      ]
+    }
+  ]
+}

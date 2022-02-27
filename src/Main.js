@@ -15,26 +15,16 @@ import AuthNavigator from './screens/auth/AuthNavigator';
 import { Context } from './Store';
 
 Amplify.configure(awsconfig);
+API.configure(awsconfig);
 
 const Main = () => {
   const [state, dispatch] = useContext(Context);
   const frame = useSafeAreaFrame();
 
   useEffect(() => {
-    // listen to changes in sign in status
-    Hub.listen('auth', ({ payload: { event, data } }) => {
-      switch (event) {
-        case 'signIn':
-          getUser().catch((e) => noUser(e));
-          break;
-        case 'signOut':
-          noUser();
-          break;
-      }
-    });
-
-    // set device height
-    dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
+    function noUser(e) {
+      dispatch({ type: 'SET_USER', payload: 'none' });
+    }
 
     async function updateIdentityId(PK, SK) {
       const currentCreds = await Auth.currentCredentials();
@@ -91,9 +81,22 @@ const Main = () => {
       dispatch({ type: 'SET_USER', payload: user });
     }
 
-    function noUser(e) {
-      dispatch({ type: 'SET_USER', payload: 'none' });
-    }
+    // listen to changes in sign in status
+    Hub.listen('auth', ({ payload: { event, data } }) => {
+      switch (event) {
+        case 'signIn':
+          getUser().catch((e) => noUser(e));
+          break;
+        case 'signOut':
+          noUser();
+          break;
+        default:
+          noUser();
+      }
+    });
+
+    // set device height
+    dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
 
     getUser().catch((e) => noUser(e));
   }, [dispatch]);
