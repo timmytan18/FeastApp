@@ -146,9 +146,7 @@ const Home = ({ navigation }) => {
       const placeMarkers = {}; // place marker for user location
 
       // Fetch all posts for map feed from following users
-      console.log('FETCHING FOLLOWING POSTS...');
       const allPosts = await getFollowingPostsQuery({ PK: state.user.PK });
-      console.log('All feed posts: ', allPosts);
       for (let i = 0; i < allPosts.length; i += 1) {
         allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
         // Desconstruct attributes needed from post
@@ -252,7 +250,7 @@ const Home = ({ navigation }) => {
       Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
         stories.current = posts.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
         setLoadingStories('none');
-        navigation.push('StoryModal', {
+        navigation.push('StoryModalModal', {
           screen: 'StoryModal',
           params: {
             stories: stories.current,

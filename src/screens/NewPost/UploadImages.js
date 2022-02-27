@@ -94,7 +94,6 @@ const UploadImages = ({ navigation, route }) => {
         zip: postcode,
         country,
       };
-      console.log(JSON.stringify(data));
 
       try {
         await fetch(API_GATEWAY_ENDPOINT, {
@@ -120,7 +119,6 @@ const UploadImages = ({ navigation, route }) => {
           // Scrape data on screen load if place does not exist
           createPlaceItem();
         } else {
-          console.log('Place already in DB');
           placeExists.current = true;
           placeCategoriesImgUrl.current = { categories: categoriesDB, imgUrl: imgUrlDB };
         }

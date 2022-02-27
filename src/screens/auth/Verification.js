@@ -34,7 +34,6 @@ const Verification = ({ navigation, route }) => {
     setError(null);
     try {
       await Auth.resendSignUp(email);
-      console.log('code resent succesfully');
     } catch (err) {
       console.warn('error resending code: ', err);
       setError('Error resending code');
@@ -50,7 +49,6 @@ const Verification = ({ navigation, route }) => {
       navigation.navigate('LogIn', { email });
     } catch (err) {
       setLoading(false);
-      console.log('error confirming sign up', err);
       if (err.code === 'CodeMismatchException') {
         setError('Error: Invalid code');
       } else {

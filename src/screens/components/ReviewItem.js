@@ -21,7 +21,10 @@ const fetchReviewUser = async ({ uid, myUID, navigation }) => {
     if (currentUser.uid !== myUID) {
       currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
     }
-    navigation.push('Profile', { user: currentUser });
+    navigation.push(
+      'ProfileStack',
+      { screen: 'Profile', params: { user: currentUser } },
+    );
   } catch (err) {
     console.warn('Error fetching current user: ', err);
   }

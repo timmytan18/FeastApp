@@ -8,9 +8,7 @@ import { getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery } from '
 import ReviewItem from '../components/ReviewItem';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
-import {
-  colors, sizes, wp,
-} from '../../constants/theme';
+import { sizes, wp } from '../../constants/theme';
 
 const NUM_REVIEWS_TO_FETCH = 10;
 

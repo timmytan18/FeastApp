@@ -26,7 +26,6 @@ import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
 import NewPostIcon from './icons/NewPost';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
-import Logo from '../screens/components/util/icons/Logo';
 import BackArrow from '../screens/components/util/icons/BackArrow';
 import { GET_SAVED_POST_ID } from '../constants/constants';
 import { Context } from '../Store';
@@ -42,88 +41,6 @@ const renderBackArrow = ({ onPress }) => (
     pressed={onPress}
   />
 );
-
-const HomeStack = createStackNavigator();
-function HomeStackScreen() {
-  return (
-    <HomeStack.Navigator>
-      <HomeStack.Screen
-        name="Home"
-        component={Home}
-        options={{ headerShown: false }}
-      />
-      <HomeStack.Screen
-        name="SearchUsers"
-        component={SearchUsers}
-        options={{ headerShown: false }}
-      />
-      <HomeStack.Screen
-        name="Profile"
-        component={Profile}
-        options={{ headerShown: false }}
-      />
-      <HomeStack.Screen
-        name="FollowsList"
-        component={FollowsList}
-        options={{
-          headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
-        }}
-      />
-      <HomeStack.Screen
-        name="ProfileReviews"
-        component={ProfileReviews}
-        options={{
-          title: <Text style={header.title}>User Reviews</Text>,
-          headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
-        }}
-      />
-      <HomeStack.Screen
-        name="Reviews"
-        component={Reviews}
-        options={{
-          title: <Text style={header.title}>Reviews</Text>,
-          headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
-        }}
-      />
-      <HomeStack.Screen
-        name="PlaceDetail"
-        component={PlaceDetail}
-        options={{ headerShown: false }}
-      />
-    </HomeStack.Navigator>
-  );
-}
-
-const NewPostStack = createStackNavigator();
-function NewPostStackScreen() {
-  return (
-    <NewPostStack.Navigator>
-      <NewPostStack.Screen
-        name="NewPost"
-        component={NewPost}
-        options={{
-          title: 'New Post',
-          headerTitleStyle: header.title,
-        }}
-      />
-      <NewPostStack.Screen
-        name="UploadImages"
-        component={UploadImages}
-        options={{
-          headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
-        }}
-      />
-      <NewPostStack.Screen
-        name="PostDetails"
-        component={PostDetails}
-      />
-    </NewPostStack.Navigator>
-  );
-}
 
 const ProfileStack = createStackNavigator();
 function ProfileStackScreen() {
@@ -187,6 +104,43 @@ function ProfileStackScreen() {
   );
 }
 
+const HomeStack = createStackNavigator();
+function HomeStackScreen() {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen
+        name="Home"
+        component={Home}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="SearchUsers"
+        component={SearchUsers}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="ProfileStack"
+        component={ProfileStackScreen}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="PlaceDetail"
+        component={PlaceDetail}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="Reviews"
+        component={Reviews}
+        options={{
+          title: <Text style={header.title}>Reviews</Text>,
+          headerLeft: renderBackArrow,
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+    </HomeStack.Navigator>
+  );
+}
+
 const StoryModalStack = createStackNavigator();
 function StoryModalStackScreen() {
   return (
@@ -201,26 +155,9 @@ function StoryModalStackScreen() {
         options={{ headerShown: false, ...ModalTransition }}
       />
       <StoryModalStack.Screen
-        name="Profile"
-        component={Profile}
+        name="ProfileStack"
+        component={ProfileStackScreen}
         options={{ headerShown: false }}
-      />
-      <StoryModalStack.Screen
-        name="FollowsList"
-        component={FollowsList}
-        options={{
-          headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
-        }}
-      />
-      <StoryModalStack.Screen
-        name="ProfileReviews"
-        component={ProfileReviews}
-        options={{
-          title: <Text style={header.title}>User Reviews</Text>,
-          headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
-        }}
       />
       <StoryModalStack.Screen
         name="Reviews"
@@ -232,6 +169,34 @@ function StoryModalStackScreen() {
         }}
       />
     </StoryModalStack.Navigator>
+  );
+}
+
+const NewPostStack = createStackNavigator();
+function NewPostStackScreen() {
+  return (
+    <NewPostStack.Navigator>
+      <NewPostStack.Screen
+        name="NewPost"
+        component={NewPost}
+        options={{
+          title: 'New Post',
+          headerTitleStyle: header.title,
+        }}
+      />
+      <NewPostStack.Screen
+        name="UploadImages"
+        component={UploadImages}
+        options={{
+          headerLeft: renderBackArrow,
+          headerLeftContainerStyle: { paddingLeft: sizes.margin },
+        }}
+      />
+      <NewPostStack.Screen
+        name="PostDetails"
+        component={PostDetails}
+      />
+    </NewPostStack.Navigator>
   );
 }
 
@@ -384,9 +349,9 @@ const TabNavigator = ({ picture }) => {
         showLabel: false,
       }}
     >
-      <Tab.Screen name="Home" component={HomeStackScreen} />
-      <Tab.Screen name="NewPost" component={NewPostStackScreen} />
-      <Tab.Screen name="Profile" component={ProfileStackScreen} />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen} />
+      <Tab.Screen name="NewPostTab" component={NewPostStackScreen} />
+      <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
     </Tab.Navigator>
   );
 };
@@ -428,7 +393,7 @@ const AppNavigator = () => {
           {() => <TabNavigator picture={picture} />}
         </RootStack.Screen>
         <RootStack.Screen
-          name="StoryModal"
+          name="StoryModalModal"
           component={StoryModalStackScreen}
           options={{ headerShown: false, ...ModalTransition }}
         />

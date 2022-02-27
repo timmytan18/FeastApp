@@ -18,11 +18,11 @@ import SearchBox from '../components/SearchBox';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
 import {
-  colors, sizes, wp, hp, shadows,
+  colors, sizes, wp, shadows,
 } from '../../constants/theme';
 
 const SearchUsers = ({ navigation }) => {
-  const [{ user: { PK, uid: myUID } }, dispatch] = useContext(Context);
+  const [{ user: { PK, uid: myUID } }] = useContext(Context);
   const [loading, setLoading] = useState(false);
 
   const position = useRef(new Animated.Value(0)).current;
@@ -32,30 +32,6 @@ const SearchUsers = ({ navigation }) => {
     inputRange: [0, 1],
     outputRange: [0, wp(50)],
   });
-
-  const users = [
-    {
-      PK: '123',
-      SK: '123',
-      name: 'Robert Carter',
-      city: 'Atlanta, GA',
-      picture: 'https://s3-media0.fl.yelpcdn.com/bphoto/kJsqljnVkJQOnEwhMJXxDg/o.jpg',
-    },
-    {
-      PK: '321',
-      SK: '123',
-      name: 'John Smith',
-      city: 'Atlanta, GA',
-      picture: 'https://images.unsplash.com/photo-1534614971-6be99a7a3ffd?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
-    },
-    {
-      PK: '214',
-      SK: '123',
-      name: 'Daniel Craig',
-      city: 'Atlanta, GA',
-      picture: 'https://images.unsplash.com/photo-1534614971-6be99a7a3ffd?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
-    },
-  ];
 
   const [searchList, setSearchList] = useState([]);
 
@@ -82,7 +58,10 @@ const SearchUsers = ({ navigation }) => {
       if (currentPK !== PK) {
         currentUser.following = await getIsFollowingQuery({ currentPK, myUID });
       }
-      navigation.push('Profile', { user: currentUser });
+      navigation.push(
+        'ProfileStack',
+        { screen: 'Profile', params: { user: currentUser } },
+      );
     } catch (err) {
       console.warn('Error fetching current user: ', err);
     }

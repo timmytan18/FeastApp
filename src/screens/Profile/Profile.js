@@ -204,7 +204,6 @@ const Profile = ({ navigation, route }) => {
           Object.entries(placePostsOverallRatingSum).forEach(([placeId, sum]) => {
             placePosts[placeId][0].avgOverallRating = sum / placePosts[placeId].length;
           });
-          console.log('User Reviews: ', placePosts);
 
           // Format posts for FlatList, include numYums
           const placeIdKeys = Object.keys(placePosts);
@@ -327,7 +326,7 @@ const Profile = ({ navigation, route }) => {
   // More modal
   const moreItems = isMe ? [
     {
-      onPress: () => navigation.navigate('Settings', { uid: user.uid }),
+      onPress: () => navigation.push('Settings', { uid: user.uid }),
       icon: <Gear />,
       label: 'Settings',
       end: true,
@@ -444,7 +443,7 @@ const Profile = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.savedContainer}
-                      onPress={() => navigation.navigate('SavedPosts', { type: 'saved' })}
+                      onPress={() => navigation.push('SavedPosts', { type: 'saved' })}
                       activeOpacity={0.7}
                     >
                       <Save size={wp(5)} color="none" outlineColor={colors.black} outlineWidth={2.6} />
@@ -516,24 +515,14 @@ const Profile = ({ navigation, route }) => {
     if (place.current.placeId !== placeId) {
       place.current = await getPlaceDetailsQuery({ placeId });
     }
-    // Check if current navigation stack contains StoryModal
-    // Pass in params in params object if it doesn't
-    if (navigation.getState().routeNames.includes('StoryModal')) {
-      navigation.push('StoryModal', {
+    navigation.push('StoryModalModal', {
+      screen: 'StoryModal',
+      params: {
         stories,
         places: { [place.current.placeId]: place.current },
         deviceHeight: state.deviceHeight,
-      });
-    } else {
-      navigation.push('StoryModal', {
-        screen: 'StoryModal',
-        params: {
-          stories,
-          places: { [place.current.placeId]: place.current },
-          deviceHeight: state.deviceHeight,
-        },
-      });
-    }
+      },
+    });
   };
 
   const renderRow = (item) => (
@@ -604,7 +593,7 @@ const Profile = ({ navigation, route }) => {
         stickyHeaderIndices={[1]}
         contentContainerStyle={{
           paddingBottom: posts.current.length > 3 || numReviews.current === 0
-            ? wp(1) : wp(50) + wp(57) * (3 - posts.current.length),
+            ? wp(12) : wp(71) + wp(60) * (3 - posts.current.length),
         }}
       />
       <Animated.View

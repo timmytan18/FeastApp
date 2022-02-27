@@ -35,7 +35,6 @@ const ForgotEmail = ({ navigation }) => {
         navigation.navigate('ForgotPassword', { email, back: false });
       })
       .catch((err) => {
-        console.log(err);
         setLoading(false);
         if (err.code === 'UserNotFoundException') {
           setError("Sorry, we don't recognize that email");

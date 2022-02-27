@@ -49,7 +49,6 @@ const Register = ({ navigation, route }) => {
       setLoading(false);
       navigation.navigate('Verification', { email: user.user.username, back: false });
     } catch (err) {
-      console.log('error signing up:', err);
       setLoading(false);
       if (err.code === 'UsernameExistsException') {
         setError('It seems like this email already has an account - try logging in or use another email!');

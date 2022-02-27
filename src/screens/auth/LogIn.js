@@ -45,7 +45,6 @@ const LogIn = ({ navigation, route }) => {
       const user = await Auth.signIn(currEmail, password);
       setLoading(false);
     } catch (err) {
-      console.log('error signing in', err);
       setLoading(false);
       if (err.code === 'UserNotConfirmedException') {
         navigation.navigate('Verification', { email, back: true });

@@ -42,7 +42,6 @@ const App = () => {
   }
 
   if (!isSplashReady || !fontsLoaded) {
-    console.log('splash not ready');
     return (
       <AppLoading
         startAsync={() => cacheSplashResourcesAsync()}
@@ -54,7 +53,6 @@ const App = () => {
   }
 
   if (!isAppReady) {
-    console.log('app not ready');
     return (
       <View style={{ flex: 1 }}>
         <Image

@@ -55,7 +55,6 @@ function scrapePlaceData(currItem) {
       zip: postcode,
       country,
     };
-    console.log(JSON.stringify(data));
 
     try {
       await fetch('https://fyjcth1v7d.execute-api.us-east-2.amazonaws.com/dev/scraper', {
@@ -103,7 +102,6 @@ function scrapeTest({ places }) {
   // Send data to Lambda to scrape
   try {
     places.forEach((item) => {
-      console.log(item);
       scrapePlaceData(item);
     });
   } catch (e) {

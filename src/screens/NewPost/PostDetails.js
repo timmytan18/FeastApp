@@ -100,7 +100,6 @@ const PostDetails = ({ navigation, route }) => {
           { placePK, withCategoriesAndPicture: true },
         );
         if (placeInDB) {
-          console.log('Place already in DB');
           placeExists.current = true;
           placeCategoriesImgUrl.current = { categories: categoriesDB, imgUrl: imgUrlDB };
         }
@@ -254,7 +253,6 @@ const PostDetails = ({ navigation, route }) => {
 
       // TODO: Add error handling for this
       // Add user's post to followers' feeds in batches
-      console.log('User feed posts:', allUserFeedPosts);
       if (allUserFeedPosts.length) {
         let i; let j;
         const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max

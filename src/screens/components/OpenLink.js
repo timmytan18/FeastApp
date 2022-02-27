@@ -24,8 +24,6 @@ function extractPostmatesAlias(url) {
 }
 
 export default function link(type, alias) {
-  console.log(type, alias);
-
   if (!alias) {
     return;
   }
@@ -78,7 +76,6 @@ export default function link(type, alias) {
   }
 
   if (links[0]) {
-    console.log(links[0]);
     Linking.openURL(links[0]).catch((err) => {
       WebBrowser.openBrowserAsync(links[1]);
     });

@@ -102,7 +102,6 @@ const NewPost = ({ navigation }) => {
       return [];
     }
     const items = await filterFSItems({ results });
-    console.log('Filtered items', items);
     setLoading(false);
     setPlaceList(items || []);
     return items || [];
@@ -163,7 +162,6 @@ const NewPost = ({ navigation }) => {
     }
 
     return () => {
-      console.log('Aborting Bing API calls');
       getNearbyAbortController.abort();
       searchAbortController.abort();
     };
@@ -188,7 +186,6 @@ const NewPost = ({ navigation }) => {
         const data = await res.json();
         isSearch.current = true;
         const items = data.resourceSets[0].resources;
-        console.log(items);
         await filterSetResults(items);
         // Run scraper test
         // scrapeTest({ places: searchResults });
@@ -245,7 +242,7 @@ const NewPost = ({ navigation }) => {
                   <TouchableOpacity
                     onPressIn={() => WebBrowser.openBrowserAsync(item.Website)}
                   >
-                    <Redirect color='#fff' size={wp(4.2)} />
+                    <Redirect color="#fff" size={wp(4.2)} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -259,7 +256,7 @@ const NewPost = ({ navigation }) => {
             </View>
             <View style={styles.distanceContainer}>
               <TouchableOpacity onPress={() => showMapPressed(item)}>
-                <MapMarker size={wp(5.5)} color='#fff' />
+                <MapMarker size={wp(5.5)} color="#fff" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => showMapPressed(item)}>
                 <Text style={[styles.distanceText, { color: '#fff' }]}>

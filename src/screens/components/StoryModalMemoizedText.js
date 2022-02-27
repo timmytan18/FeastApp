@@ -63,8 +63,6 @@ const ReviewText = ({
     shouldExpand.current = null;
   });
 
-  console.log('render');
-
   return (
     <Text
       style={styles.reviewText}
@@ -261,7 +259,6 @@ const StoryModal = ({ navigation, route }) => {
             } else if (gestureState.x0 < 150) {
               goToPrevStory();
             } else {
-              console.log('large image');
               // open up larger image ?
             }
             break;
@@ -362,7 +359,6 @@ const StoryModal = ({ navigation, route }) => {
       });
     });
 
-    console.log(postInUserFeeds);
     let i; let j;
     const BATCH_NUM = 25; // DynamoDB batch requests are 25 items max
     for (i = 0, j = postInUserFeeds.length; i < j; i += BATCH_NUM) {
@@ -406,7 +402,10 @@ const StoryModal = ({ navigation, route }) => {
       if (currentUser.uid !== myUID) {
         currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
       }
-      navigation.push('Profile', { user: currentUser });
+      navigation.push(
+        'ProfileStack',
+        { screen: 'Profile', params: { user: currentUser } },
+      );
     } catch (err) {
       console.warn('Error fetching current user: ', err);
     }
@@ -426,7 +425,6 @@ const StoryModal = ({ navigation, route }) => {
     //   lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
     //   setNumLines(NUM_COLLAPSED_LINES);
     // }
-    console.log('onTextLayout');
   }, []);
 
   return (

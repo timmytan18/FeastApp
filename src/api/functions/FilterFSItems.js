@@ -285,7 +285,6 @@ export default async function filterFSItems({ results }) {
         const exists = await getPlaceInDBQuery({ placePK: `PLACE#${items[a].placeId}` });
         if (exists) {
           removed = true;
-          console.log('Chosen bc already in DB: ', items[a]);
           groups[i].delete(a);
         }
       }
@@ -328,7 +327,6 @@ export default async function filterFSItems({ results }) {
           // Remove items in group with highest scores that should be kept
           for (let j = 0; j < Object.keys(places).length; j += 1) {
             groups[i].delete(scores[j].res);
-            console.log('Chosen: ', items[scores[j].res]);
           }
         } else { // If there are the same or more potential matches than items in group,
           groups[i].clear(); // remove all items in group
@@ -338,7 +336,6 @@ export default async function filterFSItems({ results }) {
       // Remove remaining places in group from overall items
       if (groups[i].size) {
         for (const a of groups[i].keys()) {
-          console.log('Deleted: ', items[a]);
           items[a] = null;
         }
       }

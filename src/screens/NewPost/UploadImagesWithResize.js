@@ -97,7 +97,6 @@ const UploadImages = ({ navigation, route }) => {
         zip: postcode,
         country,
       };
-      console.log(JSON.stringify(data));
 
       try {
         await fetch(API_GATEWAY_ENDPOINT, {
@@ -123,7 +122,6 @@ const UploadImages = ({ navigation, route }) => {
           // Scrape data on screen load if place does not exist
           createPlaceItem();
         } else {
-          console.log('Place already in DB');
           placeExists.current = true;
           placeCategoriesImgUrl.current = { categories: categoriesDB, imgUrl: imgUrlDB };
         }
@@ -188,8 +186,6 @@ const UploadImages = ({ navigation, route }) => {
         //     * ((pictureToEdit.current.height / pictureToEdit.current.width) * wp(99) - wp(99)))) {
 
         // }
-        console.log(gestureState.dy);
-        console.log(pan.y._value);
         pan.setValue({ x: 0, y: currOffset.current + gestureState.dy });
         // if () {
 
@@ -488,7 +484,7 @@ const UploadImages = ({ navigation, route }) => {
           {picture && tab === CAMERA_TAB
             && (
               <TouchableOpacity style={styles.xContainer} onPress={() => setPicture(null)}>
-                <X color='#fff' size={wp(10)} />
+                <X color="#fff" size={wp(10)} />
               </TouchableOpacity>
             )}
         </DismissKeyboardView>

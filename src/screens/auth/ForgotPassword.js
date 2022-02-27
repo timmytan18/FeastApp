@@ -41,7 +41,6 @@ const ForgotPassword = ({ navigation, route }) => {
         navigation.navigate('LogIn', { email, reset: true });
       })
       .catch((err) => {
-        console.log('Verification code error: ', err);
         setLoading(false);
         if (err.code === 'CodeMismatchException') {
           setError('Error: Invalid verification code');

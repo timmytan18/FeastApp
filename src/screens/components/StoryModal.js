@@ -278,7 +278,6 @@ const StoryModal = ({ navigation, route }) => {
             } else if (gestureState.x0 < 150) {
               goToPrevStory();
             } else {
-              console.log('large image');
               // open up larger image ?
             }
             break;
@@ -476,7 +475,10 @@ const StoryModal = ({ navigation, route }) => {
       if (currentUser.uid !== myUID) {
         currentUser.following = await getIsFollowingQuery({ currentUID: fetchUID, myUID });
       }
-      navigation.push('Profile', { user: currentUser });
+      navigation.push(
+        'ProfileStack',
+        { screen: 'Profile', params: { user: currentUser } },
+      );
     } catch (err) {
       console.warn('Error fetching current user: ', err);
     }

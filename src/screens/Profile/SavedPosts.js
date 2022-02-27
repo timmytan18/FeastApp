@@ -97,26 +97,15 @@ const SavedPosts = ({ navigation, route }) => {
       place.current = await getPlaceDetailsQuery({ placeId });
     }
     const { uid, name: userName, picture: userPic } = user;
-    // Check if current navigation stack contains StoryModal
-    // Pass in params in params object if it doesn't
-    if (navigation.getState().routeNames.includes('StoryModal')) {
-      navigation.push('StoryModal', {
+    navigation.push('StoryModalModal', {
+      screen: 'StoryModal',
+      params: {
         stories,
         users: { [uid]: { userName, userPic } },
         places: { [place.current.placeId]: place.current },
         deviceHeight,
-      });
-    } else {
-      navigation.push('StoryModal', {
-        screen: 'StoryModal',
-        params: {
-          stories,
-          users: { [uid]: { userName, userPic } },
-          places: { [place.current.placeId]: place.current },
-          deviceHeight,
-        },
-      });
-    }
+      },
+    });
   };
 
   const renderRow = (item) => (

@@ -25,11 +25,9 @@ const Main = () => {
     Hub.listen('auth', ({ payload: { event, data } }) => {
       switch (event) {
         case 'signIn':
-          console.log('sign in');
           getUser().catch((e) => noUser(e));
           break;
         case 'signOut':
-          console.log('sign out');
           noUser();
           break;
       }
@@ -40,7 +38,6 @@ const Main = () => {
 
     async function updateIdentityId(PK, SK) {
       const currentCreds = await Auth.currentCredentials();
-      console.log(currentCreds);
       const { identityId } = currentCreds;
       try {
         await API.graphql(graphqlOperation(
@@ -56,7 +53,6 @@ const Main = () => {
     async function getUser() {
       // Fetch user Cognito credentials
       const cognitoUser = await Auth.currentAuthenticatedUser();
-      console.log(cognitoUser);
       const id = cognitoUser.attributes.sub;
 
       // Fetch user profile from DynamoDB
@@ -82,7 +78,6 @@ const Main = () => {
         // state.user.picture can be overwritten when updating picture from local storage
         s3Picture: picture,
       };
-      console.log('User profile:', user);
 
       if (picture) {
         try {
@@ -97,8 +92,6 @@ const Main = () => {
     }
 
     function noUser(e) {
-      console.log('Not signed in');
-      console.log(e);
       dispatch({ type: 'SET_USER', payload: 'none' });
     }
 

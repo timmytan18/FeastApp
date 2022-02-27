@@ -12,9 +12,7 @@ function TwoButtonAlert({
         {
           text: 'Cancel',
           onPress: () => {
-            onCancel
-              ? onCancel()
-              : console.log('Cancel Pressed');
+            onCancel && onCancel(); Z;
           },
           style: 'cancel',
         },
