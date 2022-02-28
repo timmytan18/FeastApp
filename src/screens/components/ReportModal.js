@@ -44,7 +44,15 @@ const ReportModal = ({
       return;
     }
     setLoading(false);
-    closeModal();
+    Alert.alert(
+      'Success',
+      'Your report has been sent!',
+      [{
+        text: 'OK',
+        onPress: closeModal,
+      }],
+      { cancelable: false },
+    );
   };
 
   const closeModal = () => {
