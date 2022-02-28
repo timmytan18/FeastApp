@@ -28,6 +28,8 @@ const PlaceListItem = ({
     placeUserInfo: { uid, picture },
   }) => ({ uid, picture }));
 
+  const currRating = rating || { count: 0, sum: 0 };
+
   return (
     <TouchableOpacity
       style={styles.postItem}
@@ -61,7 +63,7 @@ const PlaceListItem = ({
           )}
         <View style={styles.starsContainer}>
           <Stars
-            default={rating && rating.sum && rating.count ? rating.sum / rating.count : 0}
+            default={currRating.sum / currRating.count}
             count={5}
             half
             disabled
@@ -73,13 +75,13 @@ const PlaceListItem = ({
           <Text style={[
             styles.reviewText,
             {
-              color: rating && rating.count
+              color: currRating.count
                 ? colors.black : colors.gray,
             },
           ]}
           >
             (
-            {rating && rating.count ? rating.count : '0'}
+            {currRating.sum ? currRating.count : '0'}
             )
           </Text>
         </View>

@@ -27,7 +27,7 @@ const ReviewItem = ({ item, openPlace }) => {
       style={styles.reviewItemContainer}
       activeOpacity={0.5}
     >
-      <TouchableOpacity activeOpacity={0.8} onPress={() => openPlace({ placeId, name })}>
+      <TouchableOpacity activeOpacity={0.8} onPress={() => openPlace({ placeId, placeName: name })}>
         <Image
           style={styles.imageContainer}
           source={{ uri: imgUrl || s3Photo }}

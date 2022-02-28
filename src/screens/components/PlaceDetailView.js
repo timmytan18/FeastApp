@@ -329,6 +329,8 @@ const BodyContent = React.memo(({
     mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
   };
 
+  const currRating = rating || { count: 1, sum: 0 };
+
   return (
     <View style={styles.rootInfoContainer}>
       <View style={{ height: wp(5), width: wp(100), backgroundColor: '#fff' }} />
@@ -345,27 +347,27 @@ const BodyContent = React.memo(({
       <View style={styles.topContainer}>
         <View style={styles.starsContainer}>
           <Stars
-            default={rating.sum / rating.count}
+            default={currRating.sum / currRating.count}
             count={5}
             half
             starSize={100}
             disabled
             fullStar={<StarFull size={wp(5)} style={styles.myStarStyle} />}
             halfStar={<StarHalf size={wp(5)} style={styles.myStarStyle} />}
-            emptyStar={<StarEmpty size={wp(5)} style={styles.myStarStyle} color={rating.sum ? '#FFC529' : colors.gray3} />}
+            emptyStar={<StarEmpty size={wp(5)} style={styles.myStarStyle} color={currRating.sum ? '#FFC529' : colors.gray3} />}
           />
           <Text style={[
             styles.reviewText,
             {
-              color: rating.count
+              color: currRating.count
                 ? colors.black : colors.gray,
-              fontSize: rating.count
+              fontSize: currRating.count
                 ? wp(3.7) : sizes.b3,
             },
           ]}
           >
             (
-            {rating.count ? rating.count : 'No reviews'}
+            {currRating.sum ? currRating.count : 'No reviews'}
             )
           </Text>
         </View>
