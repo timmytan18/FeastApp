@@ -34,6 +34,14 @@
             "Name",
             "Arn"
           ]
+        },
+        {
+          "category": "function",
+          "resourceName": "reportIssue",
+          "attributes": [
+            "Name",
+            "Arn"
+          ]
         }
       ]
     }
@@ -46,6 +54,12 @@
   },
   "function": {
     "fetchkeys": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda",
+      "dependsOn": []
+    },
+    "reportIssue": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda",

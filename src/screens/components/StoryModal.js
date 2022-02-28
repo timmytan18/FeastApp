@@ -15,6 +15,7 @@ import MaskedView from '@react-native-community/masked-view';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import PlaceDetailView from './PlaceDetailView';
 import MoreView from './MoreView';
+import ReportModal from './ReportModal';
 import {
   getUserProfileQuery,
   getIsFollowingQuery,
@@ -33,12 +34,12 @@ import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
 import X from './util/icons/X';
+import CenterSpinner from './util/CenterSpinner';
 import { GET_SAVED_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
   colors, shadows, gradients, sizes, wp,
 } from '../../constants/theme';
-import CenterSpinner from './util/CenterSpinner';
 
 const NUM_COLLAPSED_LINES = 2;
 const storyDuration = 6000;
@@ -309,6 +310,12 @@ const StoryModal = ({ navigation, route }) => {
 
   const [loading, setLoading] = useState(false);
 
+  const [reportPressed, setReportPressed] = useState(false);
+  const reportPressedRef = useRef(false);
+
+  const isMe = uid === myUID;
+  const [morePressed, setMorePressed] = useState(false);
+
   const deletePostConfirmation = () => {
     TwoButtonAlert({
       title: 'Delete Post',
@@ -441,11 +448,17 @@ const StoryModal = ({ navigation, route }) => {
     dispatch({ type: 'SET_RELOAD_MAP' });
   };
 
-  const reportPost = async ({ currTimestamp, s3Key }) => {
+  const reportPost = async () => {
+    reportPressedRef.current = true;
   };
 
-  const isMe = uid === myUID;
-  const [morePressed, setMorePressed] = useState(false);
+  const shouldOpenReportModal = () => {
+    if (reportPressedRef.current) {
+      setReportPressed(true);
+      reportPressedRef.current = false;
+    }
+  };
+
   const moreItems = isMe
     ? [
       {
@@ -455,7 +468,7 @@ const StoryModal = ({ navigation, route }) => {
       },
     ] : [
       {
-        onPress: () => reportPost({ currTimestamp: timestamp, s3Key: picture }),
+        onPress: reportPost,
         icon: <X size={wp(7.2)} color={colors.black} />,
         label: 'Report Post',
       },
@@ -526,6 +539,7 @@ const StoryModal = ({ navigation, route }) => {
           morePressed={morePressed}
           setMorePressed={setMorePressed}
           onDismiss={() => continueBarAnimation()}
+          onModalHide={shouldOpenReportModal}
         />
         <MoreView
           items={yummedUsersRef.current}
@@ -533,6 +547,20 @@ const StoryModal = ({ navigation, route }) => {
           setMorePressed={setShowYummedUsers}
           onDismiss={() => continueBarAnimation()}
           labelSize={sizes.b1}
+        />
+        <ReportModal
+          reportPressed={reportPressed}
+          setReportPressed={setReportPressed}
+          onDismiss={() => continueBarAnimation()}
+          sender={{ senderUID: myUID, senderName: myName }}
+          post={{
+            picture,
+            userName,
+            userUID: uid,
+            timestamp,
+            placeId,
+          }}
+          type="user post"
         />
         {loading
           && (

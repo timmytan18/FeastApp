@@ -22,9 +22,22 @@ const Main = () => {
   const frame = useSafeAreaFrame();
 
   useEffect(() => {
-    function noUser(e) {
-      dispatch({ type: 'SET_USER', payload: 'none' });
-    }
+    // listen to changes in sign in status
+    Hub.listen('auth', ({ payload: { event, data } }) => {
+      switch (event) {
+        case 'signIn':
+          getUser().catch((e) => noUser(e));
+          break;
+        case 'signOut':
+          noUser();
+          break;
+        default:
+          noUser();
+      }
+    });
+
+    // set device height
+    dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
 
     async function updateIdentityId(PK, SK) {
       const currentCreds = await Auth.currentCredentials();
@@ -81,22 +94,9 @@ const Main = () => {
       dispatch({ type: 'SET_USER', payload: user });
     }
 
-    // listen to changes in sign in status
-    Hub.listen('auth', ({ payload: { event, data } }) => {
-      switch (event) {
-        case 'signIn':
-          getUser().catch((e) => noUser(e));
-          break;
-        case 'signOut':
-          noUser();
-          break;
-        default:
-          noUser();
-      }
-    });
-
-    // set device height
-    dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
+    function noUser(e) {
+      dispatch({ type: 'SET_USER', payload: 'none' });
+    }
 
     getUser().catch((e) => noUser(e));
   }, [dispatch]);

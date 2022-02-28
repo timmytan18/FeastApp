@@ -1,4 +1,3 @@
-import React from 'react';
 import { Alert } from 'react-native';
 
 function TwoButtonAlert({
@@ -12,7 +11,7 @@ function TwoButtonAlert({
         {
           text: 'Cancel',
           onPress: () => {
-            onCancel && onCancel(); Z;
+            onCancel && onCancel();
           },
           style: 'cancel',
         },

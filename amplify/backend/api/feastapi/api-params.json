@@ -1,38 +1,62 @@
 {
-  "paths": [
-    {
-      "name": "/keys",
-      "lambdaFunction": "fetchkeys",
-      "privacy": {
-        "private": true,
-        "auth": [
-          "/GET"
-        ]
-      },
-      "policyResourceName": "/keys"
-    }
-  ],
-  "resourceName": "feastapi",
-  "apiName": "feastapi",
-  "functionArns": [
-    {
-      "lambdaFunction": "fetchkeys"
-    }
-  ],
-  "privacy": {
-    "auth": 1,
-    "unauth": 0,
-    "authRoleName": "amplify-feastapp-dev-171846-authRole",
-    "unAuthRoleName": "amplify-feastapp-dev-171846-unauthRole"
-  },
-  "dependsOn": [
-    {
-      "category": "function",
-      "resourceName": "fetchkeys",
-      "attributes": [
-        "Name",
-        "Arn"
-      ]
-    }
-  ]
+    "paths": [
+        {
+            "name": "/keys",
+            "lambdaFunction": "fetchkeys",
+            "privacy": {
+                "private": true,
+                "auth": [
+                    "/GET"
+                ]
+            },
+            "policyResourceName": "/keys"
+        },
+        {
+            "name": "/report",
+            "lambdaFunction": "reportIssue",
+            "privacy": {
+                "private": true,
+                "auth": [
+                    "/POST",
+                    "/GET"
+                ]
+            },
+            "policyResourceName": "/report"
+        }
+    ],
+    "resourceName": "feastapi",
+    "apiName": "feastapi",
+    "functionArns": [
+        {
+            "lambdaFunction": "fetchkeys"
+        },
+        {
+            "lambdaFunction": "reportIssue"
+        }
+    ],
+    "privacy": {
+        "auth": 2,
+        "unauth": 0,
+        "authRoleName": "amplify-feastapp-dev-171846-authRole",
+        "unAuthRoleName": "amplify-feastapp-dev-171846-unauthRole"
+    },
+    "dependsOn": [
+        {
+            "category": "function",
+            "resourceName": "fetchkeys",
+            "attributes": [
+                "Name",
+                "Arn"
+            ]
+        },
+        {
+            "category": "function",
+            "resourceName": "reportIssue",
+            "attributes": [
+                "Name",
+                "Arn"
+            ]
+        }
+    ],
+    "uuid": "c202c5ba"
 }

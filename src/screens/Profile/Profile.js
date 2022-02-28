@@ -21,12 +21,11 @@ import EditProfile from './EditProfile';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
+import ReportModal from '../components/ReportModal';
 import FollowButton from '../components/FollowButton';
 import More from '../components/util/icons/More';
 import PostListItem from '../components/PostListItem';
 import ThreeDots from '../components/util/icons/ThreeDots';
-// import HeartEyes from '../components/util/icons/HeartEyes';
-// import Heart from '../components/util/icons/Heart';
 import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
@@ -134,6 +133,8 @@ const Profile = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const numRefresh = useRef(0);
   const [morePressed, setMorePressed] = useState(false);
+  const [reportPressed, setReportPressed] = useState(false);
+  const reportPressedRef = useRef(false);
   const [editPressed, setEditPressed] = useState(false);
 
   const onTab = !(route && route.params && route.params.user);
@@ -323,6 +324,18 @@ const Profile = ({ navigation, route }) => {
 
   const place = useRef({});
 
+  // Report modal
+  const reportPost = async () => {
+    reportPressedRef.current = true;
+  };
+
+  const shouldOpenReportModal = () => {
+    if (reportPressedRef.current) {
+      setReportPressed(true);
+      reportPressedRef.current = false;
+    }
+  };
+
   // More modal
   const moreItems = isMe ? [
     {
@@ -333,7 +346,7 @@ const Profile = ({ navigation, route }) => {
     },
   ] : [
     {
-      onPress: () => { },
+      onPress: reportPost,
       icon: <X size={wp(7.2)} color={colors.black} />,
       label: 'Report user',
       end: true,
@@ -544,6 +557,14 @@ const Profile = ({ navigation, route }) => {
         items={moreItems}
         morePressed={morePressed}
         setMorePressed={setMorePressed}
+        onModalHide={shouldOpenReportModal}
+      />
+      <ReportModal
+        reportPressed={reportPressed}
+        setReportPressed={setReportPressed}
+        sender={{ senderUID: state.user.uid, senderName: state.user.name }}
+        post={{ userName: user.name, userUID: user.uid }}
+        type="user account"
       />
       {mapOpen && (
         <>

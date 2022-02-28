@@ -37,7 +37,7 @@ const MoreItem = ({ item, setMorePressed, labelSize }) => (
 );
 
 const MoreView = ({
-  morePressed, setMorePressed, items, onDismiss, labelSize,
+  morePressed, setMorePressed, items, onDismiss, labelSize, onModalHide,
 }) => {
   const [state] = useContext(Context);
   return (
@@ -45,6 +45,7 @@ const MoreView = ({
       isVisible={morePressed}
       backdropOpacity={0.5}
       backdropTransitionOutTiming={0}
+      onModalHide={onModalHide && onModalHide}
       onBackdropPress={() => {
         setMorePressed(false);
         if (onDismiss) {
