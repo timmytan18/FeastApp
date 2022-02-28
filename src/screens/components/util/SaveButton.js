@@ -15,7 +15,9 @@ const SaveButton = ({
   const [pressed, setPressed] = useState(isSaved);
 
   useEffect(() => {
+    const controller = new AbortController();
     setPressed(isSaved);
+    return () => controller.abort();
   }, [isSaved]);
 
   const {

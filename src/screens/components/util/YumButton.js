@@ -17,6 +17,7 @@ const YumButton = ({
   const [yums, setYums] = useState([]);
 
   useEffect(() => {
+    const controller = new AbortController();
     // Fetch yums
     (async () => {
       const yumsItems = await getPostYumsQuery({ uid, timestamp });
@@ -37,6 +38,7 @@ const YumButton = ({
         setPressed(yummed);
       }
     })();
+    return () => controller.abort();
   }, [myUID, placeId, timestamp, uid]);
 
   const yumPressed = async () => {

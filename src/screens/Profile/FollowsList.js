@@ -25,6 +25,7 @@ const FollowsList = ({ navigation, route }) => {
   }, [navigation, type]);
 
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       let dynamoUsers;
       if (type === 'Followers') {
@@ -34,6 +35,7 @@ const FollowsList = ({ navigation, route }) => {
       }
       setUsersList(dynamoUsers);
     })();
+    return () => controller.abort();
   }, [PK, type, uid]);
 
   const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {

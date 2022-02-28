@@ -21,12 +21,14 @@ const AnimatedModal = memo(
     ]);
 
     useEffect(() => {
+      const controller = new AbortController();
       Animated.timing(visibility, {
         toValue: visible ? 1 : 0,
         easing: Easing.cubic,
         duration: duration || 300,
         useNativeDriver: true,
       }).start();
+      return () => controller.abort();
     }, [visibility, visible]);
 
     const defaultAnimationStyle = useMemo(

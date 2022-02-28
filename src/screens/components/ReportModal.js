@@ -19,10 +19,12 @@ const ReportModal = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       const userEmail = await getUserEmailQuery({ uid: sender.senderUID });
       setEmail(userEmail);
     })();
+    return () => controller.abort();
   }, [sender.senderUID]);
 
   const sendReport = async () => {

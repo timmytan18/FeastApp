@@ -65,6 +65,7 @@ const UploadImages = ({ navigation, route }) => {
 
   // Fetch place from DB if exists, if not, scrape and create new place
   useEffect(() => {
+    const controller = new AbortController();
     // Destructure place attributes
     const {
       placeId,
@@ -136,6 +137,7 @@ const UploadImages = ({ navigation, route }) => {
     if (!placeExists.current) {
       checkPlaceInDB();
     }
+    return () => controller.abort();
   }, [business]);
 
   // Tab
@@ -183,6 +185,23 @@ const UploadImages = ({ navigation, route }) => {
     }).start();
   }
 
+  const cropImage = async () => {
+    const size = Math.min(picture.width, picture.height);
+    const origin = Math.max(picture.width, picture.height) / 2 - size / 2;
+    const manipResult = await manipulateAsync(
+      picture.localUri || picture.uri,
+      [{
+        crop: {
+          height: size,
+          width: size,
+          originX: picture.height > picture.width ? 0 : origin,
+          originY: picture.height > picture.width ? origin : 0,
+        },
+      }],
+    );
+    return manipResult;
+  };
+
   // Set navigation with button, set header title to place name
   useEffect(() => {
     const headerRight = () => (
@@ -190,8 +209,7 @@ const UploadImages = ({ navigation, route }) => {
         style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}
         disabled={!picture}
         onPress={async () => {
-          // const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
-          const croppedImg = ({ ...picture });
+          const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
           navigation.navigate('PostDetails', {
             business,
             picture: croppedImg,
@@ -235,11 +253,13 @@ const UploadImages = ({ navigation, route }) => {
 
   // Camera roll permissions, open camera roll preview
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       setHasLibraryPermission(status === 'granted');
     })();
     openLibraryPreview();
+    return () => controller.abort();
   }, []);
 
   const takePicture = async () => {

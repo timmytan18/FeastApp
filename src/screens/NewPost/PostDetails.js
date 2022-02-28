@@ -110,7 +110,7 @@ const PostDetails = ({ navigation, route }) => {
         [
           { resize: { width: 500 * aspectRatio, height: 500 } },
         ],
-        { compress: 0.75 },
+        { compress: 1 },
       );
 
       const img = manipResult.uri;

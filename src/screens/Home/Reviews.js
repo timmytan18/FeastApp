@@ -43,7 +43,9 @@ const Reviews = ({ navigation, route }) => {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
     fetchNextReviews();
+    return () => controller.abort();
   }, [myUID, placeId]);
 
   return (

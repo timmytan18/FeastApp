@@ -39,6 +39,7 @@ const SavedPosts = ({ navigation, route }) => {
   const place = useRef({});
 
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       if (ratings === null && batch) {
         // Batch fetch average ratings
@@ -55,9 +56,11 @@ const SavedPosts = ({ navigation, route }) => {
         setRatings(updatedRatings);
       }
     })();
+    return () => controller.abort();
   }, [batch]);
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
 
     const getPostPictures = (item) => new Promise((resolve, reject) => {
@@ -118,6 +121,7 @@ const SavedPosts = ({ navigation, route }) => {
         setLoading(false);
       }
     })();
+    return () => controller.abort();
   }, [user.PK, user.identityId]);
 
   const openPlacePosts = async ({ stories }) => {

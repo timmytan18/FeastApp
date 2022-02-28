@@ -9,10 +9,12 @@ try:
     from selenium.webdriver.support import expected_conditions as EC
     import shutil
     import boto3
+    from botocore.exceptions import ClientError
     from boto3.dynamodb.conditions import Key
     import datetime
     import json
     from decimal import Decimal
+    import os
 
     client = boto3.resource('dynamodb')
     table = client.Table('FeastItem-dbi6udtvrnb2pbuc2bfbuh4fhe-dev')
@@ -251,7 +253,6 @@ def normalize(query):
 
 
 def lambda_handler(*args, **kwargs):
-
     instance_ = WebDriver()
     driver = instance_.get()
 
@@ -324,17 +325,23 @@ def lambda_handler(*args, **kwargs):
         requiredInfoFound.append(
             'not permanently_Closed, looking for center container')
         try:
+            requiredInfoFound.append('looking for b_results & lgb_ans')
             centerResult = page.find_element_by_id(
                 'b_results').find_element_by_class_name('lgb_ans')
+            requiredInfoFound.append('looking for b_hPanel')
             centerInfo = centerResult.find_element_by_class_name('b_hPanel')
+            requiredInfoFound.append('looking for lgb_info')
             centerInfoMain = centerInfo.find_element_by_id('lgb_info')
-
+            requiredInfoFound.append('looking for name (h2/a)')
             # name
             name = centerInfoMain.find_element_by_xpath('h2/a').text
 
+            requiredInfoFound.append('looking for coordinates')
             # coordinates
+            requiredInfoFound.append('looking for bm_details_overlay')
             locationContainer = centerInfoMain.find_element_by_class_name(
                 'bm_details_overlay')
+            requiredInfoFound.append('looking for detailsoverlay')
             locationDetails = json.loads(locationContainer.get_attribute(
                 'data-detailsoverlay'))
             lat = locationDetails['centerLatitude']
@@ -346,11 +353,13 @@ def lambda_handler(*args, **kwargs):
                 'no center container found, looking for side layout')
             sideResultMain = sideResult.find_element_by_class_name('compInfo')
 
+            requiredInfoFound.append('side layout found, looking for name')
             # name
             name = sideResultMain.find_element_by_class_name(
                 'eh_text_outer').find_element_by_xpath('h2').text
             name = remove_url_params(name).strip()
 
+            requiredInfoFound.append('looking for coordinates')
             # coordinates
             locationContainer = sideResultMain.find_element_by_class_name(
                 'bm_details_overlay')
@@ -364,20 +373,35 @@ def lambda_handler(*args, **kwargs):
     # If failed due to permanently closed, return
     # If failed due to not found, attempt again with category in query
     isNormalLayout = True
+
+    def get_restaurant_info():
+        try:
+            isNormalLayout = getRequiredInfo(search_url)
+        except Exception as e:
+            if str(e) == 'PERMANENTLY_CLOSED':
+                print('PERMANENTLY CLOSED')
+                return
+            requiredInfoFound.append(
+                'no center container found or side layout found')
+            element = driver.find_element_by_xpath('//*')
+            element = element.get_attribute('innerHTML')
+            print(element)
+            print(search_url)
+            print(requiredInfoFound)
+            raise Exception('COULD NOT FIND RESTAURANT')
+
+    # Attempt to scrape, if failed, try again with different driver instance
     try:
-        isNormalLayout = getRequiredInfo(search_url)
+        get_restaurant_info()
     except Exception as e:
-        if str(e) == 'PERMANENTLY_CLOSED':
-            print('PERMANENTLY CLOSED')
+        print('ATTEMPTING WITH NEW DRIVER')
+        instance_ = WebDriver()
+        driver = instance_.get()
+        try:
+            get_restaurant_info()
+        except:
+            sendScrapeFailedEmail(args[0], search_url, requiredInfoFound)
             return
-        requiredInfoFound.append(
-            'no center container found or side layout found')
-        element = driver.find_element_by_xpath('//*')
-        element = element.get_attribute('innerHTML')
-        print(element)
-        print(search_url)
-        print(requiredInfoFound)
-        raise Exception('COULD NOT FIND RESTAURANT')
 
     # default placeType to IND if not chain in FSQ
     placeType = 'IND'
@@ -605,3 +629,62 @@ def lambda_handler(*args, **kwargs):
         print('Put item error: ', e)
         print(e.__traceback__)
         return {'code': 500, 'msg': str(e)}
+
+
+SENDER = "SCRAPER <tim@feastapp.io>"
+RECIPIENT = "tim@feastapp.io"
+# CONFIGURATION_SET = "ConfigSet"
+AWS_REGION = "us-east-2"
+SUBJECT = "PLACE SCRAPE FAILED"
+
+
+def sendScrapeFailedEmail(queryinput, url, infoFound):
+
+    logname = os.environ['AWS_LAMBDA_LOG_STREAM_NAME']
+
+    # The email body for recipients with non-HTML email clients.
+    BODY_TEXT = ("Scrape Failed\r\n\n"
+                 f"Log: {logname}\r\n\n"
+                 f"Input: {queryinput}\r\n\n"
+                 f"Url: {url}\r\n\n"
+                 f"Info Found: {infoFound}\r\n"
+                 )
+
+    # The character encoding for the email.
+    CHARSET = "UTF-8"
+
+    # Create a new SES resource and specify a region.
+    client = boto3.client('ses', region_name=AWS_REGION)
+
+    # Try to send the email.
+    try:
+        # Provide the contents of the email.
+        response = client.send_email(
+            Destination={
+                'ToAddresses': [
+                    RECIPIENT,
+                ],
+            },
+            Message={
+                'Body': {
+                    'Text': {
+                        'Charset': CHARSET,
+                        'Data': BODY_TEXT,
+                    },
+                },
+                'Subject': {
+                    'Charset': CHARSET,
+                    'Data': SUBJECT,
+                },
+            },
+            Source=SENDER,
+            # If you are not using a configuration set, comment or delete the
+            # following line
+            # ConfigurationSetName=CONFIGURATION_SET,
+        )
+    # Display an error if something goes wrong.
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])

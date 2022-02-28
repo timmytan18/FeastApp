@@ -260,12 +260,14 @@ const BodyContent = React.memo(({
   const [rating, setRating] = useState({ sum: 0, count: 1 });
 
   useEffect(() => {
+    const controller = new AbortController();
     (async () => {
       if (place && place.placeId) {
         const updatedRating = await getPlaceRatingQuery({ placeId: place.placeId });
         setRating(updatedRating);
       }
     })();
+    return () => controller.abort();
   }, [place.placeId]);
 
   // Open map route details
@@ -351,6 +353,7 @@ const BodyContent = React.memo(({
             count={5}
             half
             starSize={100}
+            spacing={wp(0.6)}
             disabled
             fullStar={<StarFull size={wp(5)} style={styles.myStarStyle} />}
             halfStar={<StarHalf size={wp(5)} style={styles.myStarStyle} />}
@@ -509,6 +512,7 @@ const Reviews = ({ navigation, placeId, myUID }) => {
   const [leftSelected, setLeftSelected] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
     const tab = leftSelected ? 'FRIENDS' : 'ALL';
     // Fetch reviews if not already fetched for current selected tab (friends or all)
     if (!(placeId in seenReviewRatings.current) || !(tab in seenReviewRatings.current[placeId])) {
@@ -550,6 +554,7 @@ const Reviews = ({ navigation, placeId, myUID }) => {
       nextToken.current = currNextToken;
       setReviews(currReviews);
     }
+    return () => controller.abort();
   }, [placeId, myUID, leftSelected]);
 
   const navigateToAllReviews = () => {

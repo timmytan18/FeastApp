@@ -40,6 +40,7 @@ const Settings = ({ route }) => {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
     awsconfig.oauth.urlOpener = urlOpenerExpo;
     Amplify.configure(awsconfig);
 
@@ -47,6 +48,7 @@ const Settings = ({ route }) => {
       const userEmail = await getUserEmailQuery({ uid });
       setEmail(userEmail);
     })();
+    return () => controller.abort();
   }, []);
 
   if (isLoading) {

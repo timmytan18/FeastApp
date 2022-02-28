@@ -96,8 +96,10 @@ const StoryModal = ({ navigation, route }) => {
 
   // restart animation when current story index changes
   useEffect(() => {
+    const controller = new AbortController();
     stopBarAnimation();
     startBarAnimation();
+    return () => controller.abort();
   }, [indexState]);
 
   // restart animation when screen in focus
