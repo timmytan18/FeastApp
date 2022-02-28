@@ -7,7 +7,7 @@ import {
   getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
   getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
-  getUserYumsReceived, getPostYumsNoDetails, getUserEmail, getPlaceRating,
+  getUserYumsReceived, getPostYumsNoDetails, getUserEmail, getPlaceRating, batchGetPlaceRatings,
 } from '../graphql/queries';
 
 // Fetch user profile data
@@ -417,6 +417,21 @@ async function getPlaceRatingQuery({ placeId }) {
   return rating;
 }
 
+// Batch get places average ratings
+async function batchGetPlaceRatingsQuery({ batch }) {
+  let ratings;
+  try {
+    const res = await API.graphql(graphqlOperation(
+      batchGetPlaceRatings,
+      { input: { items: batch } },
+    ));
+    ratings = res.data.batchGetFeastItems;
+  } catch (err) {
+    console.warn('Error batch getting place ratings: ', err);
+  }
+  return ratings;
+}
+
 export {
   getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery, searchPlacesQuery,
   getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
@@ -424,4 +439,5 @@ export {
   getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
   getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
   getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery, getPlaceRatingQuery,
+  batchGetPlaceRatingsQuery,
 };

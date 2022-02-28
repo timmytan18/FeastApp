@@ -69,7 +69,7 @@ const SearchUsers = ({ navigation }) => {
 
   const openPlace = async ({ placeId }) => {
     const place = await getPlaceDetailsQuery({ placeId });
-    navigation.push('PlaceDetail', { place });
+    navigation.push('PlaceDetail', { place, placeId, placeName: place.name });
   };
 
   const renderSearchItem = ({ item }) => (

@@ -209,11 +209,19 @@ def remove_url_params(curr_url):
     return curr_url
 
 
+image_types = ['.jpg', '.jpeg', '.png', '.gif', '.bmp',
+               '.tiff', '.svg', '.webp', '.ico', '.avif', '.apng', '.heic']
+
+
 def get_image_url(curr_url):
     i = curr_url.find('mediaurl=')
     if i > -1:
         curr_url = remove_url_params(curr_url[i+9:])
-        print("IMAGE URL", curr_url)
+        for image_type in image_types:
+            j = curr_url.find(image_type)
+            if j > -1:
+                curr_url = curr_url[:j+len(image_type)]
+                break
         i = curr_url.rfind('http')
         curr_url = curr_url[i:].replace("%3a", ":")
         return curr_url.replace("%2f", "/")

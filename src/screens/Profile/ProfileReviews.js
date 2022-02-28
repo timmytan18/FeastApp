@@ -22,16 +22,12 @@ const ReviewItem = ({ item, openPlace }) => {
 
   const [textExpanded, setTextExpanded] = useState(false);
 
-  if (!review) {
-    return null;
-  }
-
   return (
     <View
       style={styles.reviewItemContainer}
       activeOpacity={0.5}
     >
-      <TouchableOpacity activeOpacity={0.8} onPress={() => openPlace({ placeId })}>
+      <TouchableOpacity activeOpacity={0.8} onPress={() => openPlace({ placeId, name })}>
         <Image
           style={styles.imageContainer}
           source={{ uri: imgUrl || s3Photo }}
@@ -51,13 +47,15 @@ const ReviewItem = ({ item, openPlace }) => {
             emptyStar={<StarEmpty size={wp(3.8)} />}
           />
         </View>
-        <Text
-          style={styles.reviewText}
-          numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
-          onPress={() => setTextExpanded(!textExpanded)}
-        >
-          {review}
-        </Text>
+        {review && (
+          <Text
+            style={styles.reviewText}
+            numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
+            onPress={() => setTextExpanded(!textExpanded)}
+          >
+            {review}
+          </Text>
+        )}
         <Text style={styles.dateText}>
           {MONTHS[date.getMonth()]}
           {' '}
@@ -75,13 +73,13 @@ const ProfileReviews = ({ navigation, route }) => {
   const { reviews } = route.params;
   const place = useRef(null);
 
-  const openPlace = async ({ placeId }) => {
+  const openPlace = async ({ placeId, placeName }) => {
     if (!place.current || place.current.placeId !== placeId) {
       place.current = await getPlaceDetailsQuery({ placeId });
     }
     navigation.push(
       'PlaceDetail',
-      { place: place.current },
+      { place: place.current, placeId, placeName },
     );
   };
 

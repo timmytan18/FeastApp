@@ -3,11 +3,12 @@ import React, {
 } from 'react';
 import {
   Text, View, StyleSheet, ImageBackground, Animated,
-  TouchableOpacity, Image, Platform, Linking, useColorScheme,
+  TouchableOpacity, Platform, Linking, useColorScheme,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
+import { PacmanIndicator } from 'react-native-indicators';
 import PropTypes from 'prop-types';
 import link from './OpenLink';
 import {
@@ -63,18 +64,65 @@ const propTypes = {
       priceLvl: PropTypes.number,
       yelpAlias: PropTypes.string,
     }),
-  }).isRequired,
+  }),
+  placeName: PropTypes.string.isRequired,
+  placeId: PropTypes.string.isRequired,
 };
 
-const PlaceDetailView = React.memo(({ place, navigation }) => {
+const defaultProps = {
+  place: null,
+};
+
+const getDeliveryIcon = (type) => {
+  if (type === 'ubereats') {
+    return <Ubereats />;
+  } if (type === 'trycaviar') {
+    return <Trycaviar />;
+  } if (type === 'seamless') {
+    return <Seamless />;
+  } if (type === 'postmates') {
+    return <Postmates />;
+  } if (type === 'grubhub') {
+    return <Grubhub />;
+  } if (type === 'doordash') {
+    return <Doordash />;
+  } if (type === 'chownow') {
+    return <Chownow />;
+  }
+  return <Order size={wp(6.5)} />;
+};
+
+const NoImageContainer = () => (
+  <LinearGradient
+    colors={gradients.orange.colors}
+    start={gradients.orange.start}
+    end={gradients.orange.end}
+    style={{ flex: 1, justifyContent: 'center' }}
+  >
+    <View style={styles.noImageContainer}>
+      <View>
+        <PacmanIndicator
+          color={colors.tertiary}
+          style={{ marginTop: wp(2) }}
+        />
+        <Text style={styles.noImageSubText}>
+          Currently Feasting...
+        </Text>
+      </View>
+      <Text style={styles.noImageText}>
+        Please check back later
+        {'\n'}
+        for more details
+      </Text>
+    </View>
+  </LinearGradient>
+);
+
+const PlaceDetailView = React.memo(({
+  place, placeName, placeId, navigation,
+}) => {
   const [deliveryPressed, setDeliveryPressed] = useState(false);
   const [menuWebPressed, setMenuWebPressed] = useState(false);
-
-  if (!place || !place.placeInfo) {
-    return <View />;
-  }
-
-  const images = [place.placeInfo.imgUrl];
 
   const renderPage = (item) => (
     <View
@@ -113,65 +161,55 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
     extrapolate: 'clamp',
   });
 
-  const pages = images.map((image) => renderPage(image));
-
   const pagesScroll = scroll.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -1],
   });
 
-  const delivery = place.placeInfo.orderUrls === '{}'
-    ? null : JSON.parse(place.placeInfo.orderUrls);
-
-  const getDeliveryIcon = (type) => {
-    if (type === 'ubereats') {
-      return <Ubereats />;
-    } if (type === 'trycaviar') {
-      return <Trycaviar />;
-    } if (type === 'seamless') {
-      return <Seamless />;
-    } if (type === 'postmates') {
-      return <Postmates />;
-    } if (type === 'grubhub') {
-      return <Grubhub />;
-    } if (type === 'doordash') {
-      return <Doordash />;
-    } if (type === 'chownow') {
-      return <Chownow />;
-    }
-    return <Order size={wp(6.5)} />;
-  };
-
+  // Necessary variables to correctly render
+  let images = [];
+  let pages = [<NoImageContainer />];
+  let delivery = null;
   const deliveryItems = [];
-  if (delivery) {
-    Object.entries(delivery).forEach(([_type, url]) => {
-      const type = _type.replace(/\s+/g, '').toLowerCase();
-      deliveryItems.push({
-        onPress: () => link(type, url),
-        icon: (
-          <View style={{ width: '10%', alignItems: 'center' }}>
-            {getDeliveryIcon(type)}
-          </View>
-        ),
-        label: _type,
-      });
-    });
-  }
-
   const menuWebItems = [];
-  if (place.placeInfo.menuUrl) {
-    menuWebItems.push({
-      onPress: () => link('DEFAULT', place.placeInfo.menuUrl),
-      icon: <View style={{ width: '10%', alignItems: 'center' }}><Menu /></View>,
-      label: 'See menu',
-    });
-  }
-  if (place.placeInfo.placeUrl) {
-    menuWebItems.push({
-      onPress: () => link('DEFAULT', place.placeInfo.placeUrl),
-      icon: <View style={{ width: '10%', alignItems: 'center' }}><Redirect /></View>,
-      label: 'Visit website',
-    });
+
+  if (place && place.placeInfo) {
+    const { placeInfo } = place;
+
+    images = [placeInfo.imgUrl];
+    pages = images.map((image) => renderPage(image));
+
+    delivery = placeInfo.orderUrls === '{}'
+      ? null : JSON.parse(placeInfo.orderUrls);
+
+    if (delivery) {
+      Object.entries(delivery).forEach(([_type, url]) => {
+        const type = _type.replace(/\s+/g, '').toLowerCase();
+        deliveryItems.push({
+          onPress: () => link(type, url),
+          icon: (
+            <View style={{ width: '10%', alignItems: 'center' }}>
+              {getDeliveryIcon(type)}
+            </View>
+          ),
+          label: _type,
+        });
+      });
+    }
+    if (placeInfo.menuUrl) {
+      menuWebItems.push({
+        onPress: () => link('DEFAULT', placeInfo.menuUrl),
+        icon: <View style={{ width: '10%', alignItems: 'center' }}><Menu /></View>,
+        label: 'See menu',
+      });
+    }
+    if (placeInfo.placeUrl) {
+      menuWebItems.push({
+        onPress: () => link('DEFAULT', placeInfo.placeUrl),
+        icon: <View style={{ width: '10%', alignItems: 'center' }}><Redirect /></View>,
+        label: 'Visit website',
+      });
+    }
   }
 
   return (
@@ -185,7 +223,7 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
         <Pagination length={images.length} index={0} />
       </Animated.View>
       <BodyContent
-        place={place}
+        place={place || { name: placeName, placeId }}
         scroll={scroll}
         delivery={delivery}
         setDeliveryPressed={setDeliveryPressed}
@@ -215,7 +253,7 @@ const PlaceDetailView = React.memo(({ place, navigation }) => {
 const BodyContent = React.memo(({
   place, scroll, delivery, setDeliveryPressed, setMenuWebPressed, navigation,
 }) => {
-  const [state, dispatch] = useContext(Context);
+  const [state] = useContext(Context);
   const { uid, picture: userPic } = state.user;
   const { latitude: userLat, longitude: userLng } = state.location;
 
@@ -223,47 +261,69 @@ const BodyContent = React.memo(({
 
   useEffect(() => {
     (async () => {
-      const updatedRating = await getPlaceRatingQuery({ placeId: place.placeId });
-      setRating(updatedRating);
+      if (place && place.placeId) {
+        const updatedRating = await getPlaceRatingQuery({ placeId: place.placeId });
+        setRating(updatedRating);
+      }
     })();
   }, [place.placeId]);
 
-  const { latitude: placeLat, longitude: placeLng } = place.placeInfo.coordinates;
-  const { categories } = place.placeInfo;
+  // Open map route details
+  const scheme = Platform.OS === 'ios' ? 'maps:0,0?q=' : 'geo:0,0?q=';
+  const label = place.name;
 
-  const distance = coordinateDistance(userLat, userLng, placeLat, placeLng);
+  const isDarkMode = useColorScheme() === 'dark';
 
-  let priceInd = 0;
-  const price = place.placeInfo.priceLvl
-    ? Array.apply(0, new Array(4)).map(() => {
-      priceInd += 1;
-      if (priceInd <= place.placeInfo.priceLvl) {
+  // Necessary variables to correctly render
+  let placeLat = null; let placeLng = null;
+  let categories = null;
+  let distance = 0;
+  let price;
+  let latLng = `${userLat},${userLng}`;
+  const markers = [
+    { lat: userLat, lng: userLng },
+  ];
+
+  const PLACE_SCRAPED = place && place.placeInfo;
+  if (PLACE_SCRAPED) {
+    ({
+      latitude: placeLat,
+      longitude: placeLng,
+    } = place.placeInfo.coordinates);
+    categories = place.placeInfo.categories;
+    distance = coordinateDistance(userLat, userLng, placeLat, placeLng);
+    if (place.placeInfo.priceLvl) {
+      let priceInd = 0;
+      price = Array.apply(0, new Array(4)).map(() => {
+        priceInd += 1;
+        if (priceInd <= place.placeInfo.priceLvl) {
+          return (
+            <View key={priceInd} style={{ marginHorizontal: wp(0.3) }}>
+              <DollarSign />
+            </View>
+          );
+        }
         return (
           <View key={priceInd} style={{ marginHorizontal: wp(0.3) }}>
-            <DollarSign />
+            <DollarSignEmpty />
           </View>
         );
-      }
-      return (
-        <View key={priceInd} style={{ marginHorizontal: wp(0.3) }}>
-          <DollarSignEmpty />
-        </View>
-      );
-    })
-    : null;
+      });
+    }
+    latLng = `${placeLat},${placeLng}`;
+    markers.push({ lat: placeLat, lng: placeLng });
+  } else {
+    price = Array.apply(0, new Array(4)).map((_, i) => (
+      <View key={i} style={{ marginHorizontal: wp(0.3) }}>
+        <DollarSignEmpty />
+      </View>
+    ));
+  }
 
-  const scheme = Platform.OS === 'ios' ? 'maps:0,0?q=' : 'geo:0,0?q=';
-  const latLng = `${placeLat},${placeLng}`;
-  const label = place.name;
   const mapUrl = Platform.OS === 'ios'
     ? `${scheme}${label}&ll=${latLng}`
     : `${scheme}${latLng}(${label})`;
-  const isDarkMode = useColorScheme() === 'dark';
 
-  const markers = [
-    { lat: userLat, lng: userLng },
-    { lat: placeLat, lng: placeLng },
-  ];
   const mapRef = useRef(null);
   const fitToMarkers = () => {
     mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
@@ -310,7 +370,7 @@ const BodyContent = React.memo(({
           </Text>
         </View>
         <View style={styles.infoContainer}>
-          <View style={styles.infoSubContainer}>
+          <View style={[styles.infoSubContainer, !PLACE_SCRAPED && { opacity: 0.5 }]}>
             <View style={styles.distancePriceContainer}>
               <View style={styles.carContainer}><Car /></View>
               <Text style={styles.distanceText}>
@@ -322,30 +382,28 @@ const BodyContent = React.memo(({
             <View style={styles.priceContainer}>{price}</View>
           </View>
           <View style={styles.actionsContainer}>
-            {place.placeInfo.yelpAlias && (
+            {PLACE_SCRAPED && place.placeInfo.yelpAlias ? (
               <TouchableOpacity
                 style={[styles.actionButtonContainer, { backgroundColor: '#fadbdb' }]}
                 onPress={() => link('YELP', place.placeInfo.yelpAlias)}
               >
                 <Yelp />
               </TouchableOpacity>
-            )}
-            {!place.placeInfo.yelpAlias && (
+            ) : (
               <View
                 style={[styles.actionButtonContainer, { backgroundColor: colors.gray2 }]}
               >
                 <Yelp color={colors.gray} />
               </View>
             )}
-            {(place.placeInfo.placeUrl || place.placeInfo.menuUrl) && (
+            {PLACE_SCRAPED && (place.placeInfo.placeUrl || place.placeInfo.menuUrl) ? (
               <TouchableOpacity
                 style={[styles.actionButtonContainer, { backgroundColor: colors.gray2 }]}
                 onPress={() => setMenuWebPressed(true)}
               >
                 <Redirect />
               </TouchableOpacity>
-            )}
-            {!(place.placeInfo.placeUrl || place.placeInfo.menuUrl) && (
+            ) : (
               <View
                 style={[styles.actionButtonContainer, { backgroundColor: colors.gray2 }]}
               >
@@ -357,8 +415,7 @@ const BodyContent = React.memo(({
               onPress={() => setDeliveryPressed(true)}
               disabled={!delivery}
             >
-              {delivery && <Order />}
-              {!delivery && <OrderNull />}
+              {delivery ? <Order /> : <OrderNull />}
               <Text
                 style={[
                   styles.orderButtonText,
@@ -370,11 +427,11 @@ const BodyContent = React.memo(({
             </TouchableOpacity>
           </View>
         </View>
-        {(categories != null || place.description != null) && (
+        {(categories != null) && (
           <View style={styles.aboutContainer}>
             <Text style={styles.aboutTitleText}>ABOUT</Text>
             <Text style={styles.aboutText}>
-              {place.description ? place.description : categories.join(', ')}
+              {categories.join(', ')}
             </Text>
           </View>
         )}
@@ -396,13 +453,15 @@ const BodyContent = React.memo(({
           ref={mapRef}
           onMapReady={fitToMarkers}
         >
-          <Marker
-            key={`${placeLat}${placeLng}`}
-            identifier={`${placeLat}${placeLng}`}
-            coordinate={{ latitude: placeLat, longitude: placeLng }}
-          >
-            <LocationMapMarker isUser={false} name={place.name} isDarkMode={isDarkMode} />
-          </Marker>
+          {PLACE_SCRAPED && (
+            <Marker
+              key={`${placeLat}${placeLng}`}
+              identifier={`${placeLat}${placeLng}`}
+              coordinate={{ latitude: placeLat, longitude: placeLng }}
+            >
+              <LocationMapMarker isUser={false} name={place.name} isDarkMode={isDarkMode} />
+            </Marker>
+          )}
           <Marker
             key={`${userLat}${userLng}`}
             identifier={`${userLat}${userLng}`}
@@ -436,10 +495,6 @@ const BodyContent = React.memo(({
     </View>
   );
 }, (prevProps, currProps) => false);
-
-const examplePfp = 'https://s3-media0.fl.yelpcdn.com/bphoto/WMojIYn70kkIVyXX1OEC-g/o.jpg';
-
-Image.prefetch(examplePfp);
 
 const NUM_REVIEWS_TO_SHOW = 5;
 
@@ -820,8 +875,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.lightBlue,
   },
+  noImageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: wp(18),
+    marginTop: wp(5),
+  },
+  noImageSubText: {
+    fontSize: sizes.b2,
+    fontFamily: 'Book',
+    color: colors.tertiary,
+    textAlign: 'center',
+    marginTop: wp(0.9),
+  },
+  noImageText: {
+    fontSize: sizes.b1,
+    fontFamily: 'Medium',
+    color: colors.tertiary,
+    textAlign: 'center',
+    marginTop: wp(5),
+  },
 });
 
 PlaceDetailView.propTypes = propTypes;
+PlaceDetailView.defaultProps = defaultProps;
 
 export default PlaceDetailView;

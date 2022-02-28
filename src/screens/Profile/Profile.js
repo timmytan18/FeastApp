@@ -456,7 +456,7 @@ const Profile = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.savedContainer}
-                      onPress={() => navigation.push('SavedPosts', { type: 'saved' })}
+                      onPress={() => navigation.push('SavedPosts')}
                       activeOpacity={0.7}
                     >
                       <Save size={wp(5)} color="none" outlineColor={colors.black} outlineWidth={2.6} />
@@ -526,7 +526,8 @@ const Profile = ({ navigation, route }) => {
   const openPlacePosts = async ({ stories }) => {
     const { placeId } = stories[0];
     if (place.current.placeId !== placeId) {
-      place.current = await getPlaceDetailsQuery({ placeId });
+      const placeDetails = await getPlaceDetailsQuery({ placeId });
+      if (placeDetails) place.current = placeDetails;
     }
     navigation.push('StoryModalModal', {
       screen: 'StoryModal',

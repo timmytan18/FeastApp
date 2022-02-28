@@ -35,7 +35,7 @@ const SaveButton = ({
       categories,
       imgUrl,
     },
-  } = place;
+  } = place ?? { placeInfo: {} };
 
   const savedPostInput = {
     PK: `USER#${myUID}`,
@@ -118,7 +118,7 @@ const SaveButton = ({
   return (
     <View style={styles.buttonContainer}>
       <View style={styles.container}>
-        <TouchableOpacity style={{ width: '100%' }} activeOpacity={0.9} onPress={savePressed}>
+        <TouchableOpacity style={{ width: '100%' }} activeOpacity={0.9} onPress={savePressed} disabled={geo === null}>
           <Save size={size} color={pressed ? colors.accent : '#464A4F'} />
         </TouchableOpacity>
       </View>

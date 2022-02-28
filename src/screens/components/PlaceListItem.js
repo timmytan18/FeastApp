@@ -21,9 +21,9 @@ const propTypes = {
   }).isRequired,
 };
 
-const PlaceListItem = ({ item, placePosts, openPlacePosts }) => {
-  const rating = item.avgRating
-    ? Math.round(item.avgRating * 2) / 2 : 0;
+const PlaceListItem = ({
+  item, placePosts, openPlacePosts, rating,
+}) => {
   const userPics = placePosts.map(({
     placeUserInfo: { uid, picture },
   }) => ({ uid, picture }));
@@ -37,7 +37,7 @@ const PlaceListItem = ({ item, placePosts, openPlacePosts }) => {
       <ImageBackground
         resizeMode="cover"
         style={styles.postImage}
-        source={{ uri: item.imgUrl }}
+        source={{ uri: item.imgUrl || placePosts[0].s3Photo }}
       >
         <View style={styles.gradientContainer}>
           <LinearGradient
@@ -61,7 +61,7 @@ const PlaceListItem = ({ item, placePosts, openPlacePosts }) => {
           )}
         <View style={styles.starsContainer}>
           <Stars
-            default={rating}
+            default={rating && rating.sum && rating.count ? rating.sum / rating.count : 0}
             count={5}
             half
             disabled
@@ -73,13 +73,13 @@ const PlaceListItem = ({ item, placePosts, openPlacePosts }) => {
           <Text style={[
             styles.reviewText,
             {
-              color: item.review_count
+              color: rating && rating.count
                 ? colors.black : colors.gray,
             },
           ]}
           >
             (
-            {item.review_count ? item.review_count : '0'}
+            {rating && rating.count ? rating.count : '0'}
             )
           </Text>
         </View>

@@ -780,7 +780,12 @@ const StoryModal = ({ navigation, route }) => {
               }
             }}
           >
-            <PlaceDetailView place={place.current} navigation={navigation} />
+            <PlaceDetailView
+              place={place.current}
+              placeName={name}
+              placeId={placeId}
+              navigation={navigation}
+            />
           </ScrollView>
           <TouchableOpacity
             style={styles.downArrowContainer}

@@ -9,7 +9,7 @@ import {
 } from '../../constants/theme';
 
 const PlaceDetail = ({ navigation, route }) => {
-  const { place } = route.params;
+  const { place, placeName, placeId } = route.params;
   return (
     <ScrollView
       style={styles.scrollView}
@@ -27,7 +27,12 @@ const PlaceDetail = ({ navigation, route }) => {
           />
         </View>
       </TouchableOpacity>
-      <PlaceDetailView place={place} navigation={navigation} />
+      <PlaceDetailView
+        place={place}
+        placeName={placeName}
+        placeId={placeId}
+        navigation={navigation}
+      />
     </ScrollView>
   );
 };

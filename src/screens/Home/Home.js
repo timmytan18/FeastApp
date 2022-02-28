@@ -243,7 +243,7 @@ const Home = ({ navigation }) => {
       if (placeDetailsBatch.length) {
         const places = await batchGetPlaceDetailsQuery({ batch: placeDetailsBatch });
         places.forEach((place) => {
-          placeDetails.current[place.placeId] = place;
+          if (place) placeDetails.current[place.placeId] = place;
         });
       }
       // Fetch pictures for each post

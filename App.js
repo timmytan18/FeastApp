@@ -47,7 +47,7 @@ const App = () => {
         startAsync={() => cacheSplashResourcesAsync()}
         onFinish={() => setSplashReady(true)}
         onError={console.warn}
-        autoHideSplash={false}
+        autoHideSplash
       />
     );
   }

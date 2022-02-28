@@ -4,13 +4,13 @@ import React, {
 import { StyleSheet, View, FlatList } from 'react-native';
 import { Storage } from 'aws-amplify';
 import PlaceListItem from '../components/PlaceListItem';
-import { getPlaceDetailsQuery, getUserAllSavedPostsQuery } from '../../api/functions/queryFunctions';
+import { getPlaceDetailsQuery, getUserAllSavedPostsQuery, batchGetPlaceRatingsQuery } from '../../api/functions/queryFunctions';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import { wp } from '../../constants/theme';
 
 // Memoize row rendering, only rerender when row content changes
-const RowItem = React.memo(({ row, openPlacePosts }) => (
+const RowItem = React.memo(({ row, openPlacePosts, ratings }) => (
   <View style={styles.postsRowContainer}>
     {row.map((placePosts) => {
       const item = placePosts[0];
@@ -20,20 +20,42 @@ const RowItem = React.memo(({ row, openPlacePosts }) => (
           placePosts={placePosts}
           openPlacePosts={openPlacePosts}
           key={item.timestamp}
+          rating={ratings && ratings[item.placeId] ? ratings[item.placeId] : null}
         />
       );
     })}
   </View>
-), (prevProps, nextProps) => prevProps.row === nextProps.row);
+), (prevProps, nextProps) => prevProps.row
+  === nextProps.row && prevProps.ratings === nextProps.ratings);
 
 const SavedPosts = ({ navigation, route }) => {
-  // const { PK, uid, type } = route.params;
   const [{ user, deviceHeight }, dispatch] = useContext(Context);
 
   const [posts, setPosts] = useState(null);
+  const [batch, setBatch] = useState(null);
+  const [ratings, setRatings] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const place = useRef({});
+
+  useEffect(() => {
+    (async () => {
+      if (ratings === null && batch) {
+        // Batch fetch average ratings
+        const avgRatings = await batchGetPlaceRatingsQuery(
+          { batch },
+        );
+        const updatedRatings = {};
+        if (avgRatings && avgRatings.length) {
+          avgRatings.forEach((rating) => {
+            const { placeId, count, sum } = rating;
+            updatedRatings[placeId] = { count, sum };
+          });
+        }
+        setRatings(updatedRatings);
+      }
+    })();
+  }, [batch]);
 
   useEffect(() => {
     setLoading(true);
@@ -58,16 +80,23 @@ const SavedPosts = ({ navigation, route }) => {
         Promise.all(savedPosts.map(getPostPictures)).then((currPosts) => {
           // Sort placePosts by most recently saved
           currPosts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+          // Batch average rating items
+          const currBatch = [];
+
           for (let i = 0; i < currPosts.length; i += 1) {
             // Add to placePosts map
             const { placeId } = currPosts[i];
             if (!placePosts[placeId]) {
               placePosts[placeId] = [currPosts[i]];
               placePosts[placeId][0].visible = true;
+              currBatch.push({ PK: `PLACE#${placeId}`, SK: '#RATING' });
             } else {
               placePosts[placeId].push(currPosts[i]);
             }
           }
+
+          setBatch(currBatch);
 
           // Format posts for FlatList
           const updatedPosts = [];
@@ -94,7 +123,8 @@ const SavedPosts = ({ navigation, route }) => {
   const openPlacePosts = async ({ stories }) => {
     const { placeId } = stories[0];
     if (place.current.placeId !== placeId) {
-      place.current = await getPlaceDetailsQuery({ placeId });
+      const placeDetails = await getPlaceDetailsQuery({ placeId });
+      if (placeDetails) place.current = placeDetails;
     }
     const { uid, name: userName, picture: userPic } = user;
     navigation.push('StoryModalModal', {
@@ -109,7 +139,7 @@ const SavedPosts = ({ navigation, route }) => {
   };
 
   const renderRow = (item) => (
-    <RowItem row={item} openPlacePosts={openPlacePosts} />
+    <RowItem row={item} openPlacePosts={openPlacePosts} ratings={ratings} />
   );
 
   return (

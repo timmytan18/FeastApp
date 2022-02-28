@@ -765,3 +765,13 @@ export const getPlaceRating = /* GraphQL */ `
     }
   }
 `;
+
+export const batchGetPlaceRatings = /* GraphQL */ `
+  query BatchGetFeastItems($input: BatchGetFeastItemsInput!) {
+    batchGetFeastItems(input: $input) {
+      placeId
+      count
+      sum
+    }
+  }
+`;
