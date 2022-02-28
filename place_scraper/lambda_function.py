@@ -299,14 +299,21 @@ def lambda_handler(*args, **kwargs):
     # For side layout:
     # sideResult contains sideResultMain, images, and order links
     # sideResultMain contains main directory info with actions buttons and restaurant specific info
+    requiredInfoFound = []
+
     def getRequiredInfo(url):
         nonlocal centerResult, centerInfo, centerInfoMain, sideResult, sideResultMain, locationContainer, name, lat, lon
         driver.get(url)
+        requiredInfoFound.append('page loaded, looking for outer container')
         # page containers
         page = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.ID, 'b_content')))
+        requiredInfoFound.append(
+            'outer container (b_content) found, looking for side container')
         sideResult = page.find_element_by_id(
             'b_context').find_element_by_class_name('b_entityTP')
+        requiredInfoFound.append(
+            'side container (b_entityTP) found, looking for permanently_Closed')
         try:
             permanently_closed = sideResult.find_element_by_id(
                 'permanently_Closed')
@@ -314,6 +321,8 @@ def lambda_handler(*args, **kwargs):
             pass
         else:
             raise Exception('PERMANENTLY_CLOSED')
+        requiredInfoFound.append(
+            'not permanently_Closed, looking for center container')
         try:
             centerResult = page.find_element_by_id(
                 'b_results').find_element_by_class_name('lgb_ans')
@@ -330,8 +339,11 @@ def lambda_handler(*args, **kwargs):
                 'data-detailsoverlay'))
             lat = locationDetails['centerLatitude']
             lon = locationDetails['centerLongitude']
+            requiredInfoFound.append('center container found, isNormalLayout')
             return True
         except:
+            requiredInfoFound.append(
+                'no center container found, looking for side layout')
             sideResultMain = sideResult.find_element_by_class_name('compInfo')
 
             # name
@@ -358,10 +370,13 @@ def lambda_handler(*args, **kwargs):
         if str(e) == 'PERMANENTLY_CLOSED':
             print('PERMANENTLY CLOSED')
             return
+        requiredInfoFound.append(
+            'no center container found or side layout found')
         element = driver.find_element_by_xpath('//*')
         element = element.get_attribute('innerHTML')
         print(element)
         print(search_url)
+        print(requiredInfoFound)
         raise Exception('COULD NOT FIND RESTAURANT')
 
     # default placeType to IND if not chain in FSQ

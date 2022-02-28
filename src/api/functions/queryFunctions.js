@@ -168,10 +168,13 @@ async function getPlaceInDBQuery({ placePK, withCategoriesAndPicture }) {
     console.warn('Error checking whether place in DB: ', err);
   }
   if (placeInDB.length) {
-    const { categories, imgUrl } = placeInDB[0].placeInfo;
-    return withCategoriesAndPicture ? {
-      placeInDB: true, categoriesDB: categories, imgUrlDB: imgUrl,
-    } : true;
+    if (withCategoriesAndPicture) {
+      const { categories, imgUrl } = placeInDB[0].placeInfo;
+      return {
+        placeInDB: true, categoriesDB: categories, imgUrlDB: imgUrl,
+      };
+    }
+    return true;
   }
   return false;
 }
