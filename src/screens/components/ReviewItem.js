@@ -4,10 +4,9 @@ import React, {
 import {
   Text, View, StyleSheet, TouchableOpacity,
 } from 'react-native';
-import Stars from 'react-native-stars';
 import { getUserProfileQuery, getIsFollowingQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import ProfilePic from './ProfilePic';
-import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
+import StarsRating from './util/StarsRating';
 import {
   colors, sizes, wp,
 } from '../../constants/theme';
@@ -69,18 +68,12 @@ const ReviewItem = ({
         >
           <Text style={styles.reviewTitleText}>{userName}</Text>
         </TouchableOpacity>
-        <View style={[styles.starsContainer, { marginVertical: wp(1) }]}>
-          <Stars
-            default={rating}
-            count={5}
-            half
-            disabled
-            spacing={wp(0.6)}
-            fullStar={<StarFull size={wp(3.8)} />}
-            halfStar={<StarHalf size={wp(3.8)} />}
-            emptyStar={<StarEmpty size={wp(3.8)} />}
-          />
-        </View>
+        <StarsRating
+          rating={rating}
+          spacing={wp(0.6)}
+          size={wp(3.8)}
+          containerStyle={styles.starsContainer}
+        />
         <Text
           style={styles.userReviewText}
           numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
@@ -109,6 +102,7 @@ const styles = StyleSheet.create({
   starsContainer: {
     flexDirection: 'row',
     marginLeft: -wp(0.3),
+    marginVertical: wp(1),
   },
   userPictureContainer: {
     width: USER_PIC_SIZE,

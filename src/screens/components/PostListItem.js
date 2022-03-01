@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
-import Stars from 'react-native-stars';
-import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
+import StarsRating from './util/StarsRating';
 import Yum from './util/icons/Yum';
 import {
   colors, sizes, wp, shadows,
@@ -63,18 +62,12 @@ const PostListItem = ({
           </Text>
         )}
       {item.avgRating && (
-        <View style={styles.starsContainer}>
-          <Stars
-            default={Math.round(item.avgRating * 2) / 2}
-            count={5}
-            half
-            disabled
-            spacing={wp(0.6)}
-            fullStar={<StarFull size={wp(3.8)} />}
-            halfStar={<StarHalf size={wp(3.8)} />}
-            emptyStar={<StarEmpty size={wp(3.8)} />}
-          />
-        </View>
+        <StarsRating
+          rating={Math.round(item.avgRating * 2) / 2}
+          spacing={wp(0.6)}
+          size={wp(3.8)}
+          containerStyle={styles.starsContainer}
+        />
       )}
     </View>
   </TouchableOpacity>

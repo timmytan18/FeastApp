@@ -9,9 +9,6 @@ import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { API, Storage, graphqlOperation } from 'aws-amplify';
 import { manipulateAsync } from 'expo-image-manipulator';
-import Stars from 'react-native-stars';
-import { LinearGradient } from 'expo-linear-gradient';
-import MaskedView from '@react-native-community/masked-view';
 import { getPlaceInDBQuery, getFollowersQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import {
   createFeastItem, batchCreateFollowingPosts, incrementFeastItem, deleteFeastItem,
@@ -19,11 +16,11 @@ import {
 import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
-import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
+import StarsRating from '../components/util/StarsRating';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp, header, gradients,
+  colors, sizes, wp, header,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -408,35 +405,19 @@ const PostDetails = ({ navigation, route }) => {
           <Text style={styles.reviewTitleText}>
             Review:
           </Text>
-          <View style={styles.starsContainer}>
-            <Stars
-              default={rating}
-              update={(val) => {
-                setRating(val);
-                ratingRef.current = val;
-                if (shareDisable) setShareDisable(false);
-              }}
-              count={5}
-              half
-              spacing={wp(0.6)}
-              fullStar={(
-                <MaskedView
-                  maskElement={(
-                    <StarFull size={starSize} />
-                  )}
-                >
-                  <LinearGradient
-                    colors={rating < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
-                    start={[-0.35, 1]}
-                    end={[0.75, 1]}
-                    style={{ width: starSize, height: starSize }}
-                  />
-                </MaskedView>
-              )}
-              halfStar={<StarHalf size={starSize} />}
-              emptyStar={<StarEmpty size={starSize} />}
-            />
-          </View>
+          <StarsRating
+            rating={rating}
+            spacing={wp(0.6)}
+            size={starSize}
+            starStyle={styles.myStarStyle}
+            containerStyle={styles.starsContainer}
+            enabled
+            update={(val) => {
+              setRating(val);
+              ratingRef.current = val;
+              if (shareDisable) setShareDisable(false);
+            }}
+          />
         </View>
         <View style={{ flexDirection: 'row' }}>
           <TextInput

@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
-import Stars from 'react-native-stars';
-import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
+import StarsRating from './util/StarsRating';
 import UserPictureList from './util/UserPictureList';
 import {
   colors, sizes, wp, shadows,
@@ -63,30 +62,21 @@ const PlaceListItem = ({
               {item.categories[0]}
             </Text>
           )}
-        <View style={styles.starsContainer}>
-          <Stars
-            default={currRating.sum / currRating.count}
-            count={5}
-            half
-            disabled
-            spacing={wp(0.6)}
-            fullStar={<StarFull size={wp(3.8)} />}
-            halfStar={<StarHalf size={wp(3.8)} />}
-            emptyStar={<StarEmpty size={wp(3.8)} />}
-          />
-          <Text style={[
+        <StarsRating
+          rating={currRating.sum / currRating.count}
+          spacing={wp(0.5)}
+          size={wp(3.8)}
+          starStyle={styles.myStarStyle}
+          containerStyle={styles.starsContainer}
+          text={`(${currRating.sum ? currRating.count : '0'})`}
+          textStyle={[
             styles.reviewText,
             {
               color: currRating.count
                 ? colors.black : colors.gray,
             },
           ]}
-          >
-            (
-            {currRating.sum ? currRating.count : '0'}
-            )
-          </Text>
-        </View>
+        />
       </View>
     </TouchableOpacity>
   );

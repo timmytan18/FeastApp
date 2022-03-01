@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
-import Stars from 'react-native-stars';
 import { PacmanIndicator } from 'react-native-indicators';
 import PropTypes from 'prop-types';
 import {
@@ -35,11 +34,11 @@ import Postmates from './util/icons/delivery/Postmates';
 import Grubhub from './util/icons/delivery/Grubhub';
 import Doordash from './util/icons/delivery/Doordash';
 import Chownow from './util/icons/delivery/Chownow';
-import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import BackArrow from './util/icons/BackArrow';
 import Toggle from './util/Toggle';
 import Pagination from './util/Pagination';
 import MoreView from './MoreView';
+import StarsRating from './util/StarsRating';
 import { Context } from '../../Store';
 import {
   colors, sizes, gradients, wp, shadows,
@@ -353,19 +352,14 @@ const BodyContent = React.memo(({
         </Text>
       </View>
       <View style={styles.topContainer}>
-        <View style={styles.starsContainer}>
-          <Stars
-            default={currRating.sum / currRating.count}
-            count={5}
-            half
-            starSize={100}
-            spacing={wp(0.6)}
-            disabled
-            fullStar={<StarFull size={wp(5)} style={styles.myStarStyle} />}
-            halfStar={<StarHalf size={wp(5)} style={styles.myStarStyle} />}
-            emptyStar={<StarEmpty size={wp(5)} style={styles.myStarStyle} color={currRating.sum ? '#FFC529' : colors.gray3} />}
-          />
-          <Text style={[
+        <StarsRating
+          rating={currRating.sum / currRating.count}
+          spacing={wp(0.6)}
+          size={wp(5)}
+          starStyle={styles.myStarStyle}
+          containerStyle={styles.starsContainer}
+          text={`(${currRating.sum ? currRating.count : 'No reviews'})`}
+          textStyle={[
             styles.reviewText,
             {
               color: currRating.count
@@ -374,12 +368,7 @@ const BodyContent = React.memo(({
                 ? wp(3.7) : sizes.b3,
             },
           ]}
-          >
-            (
-            {currRating.sum ? currRating.count : 'No reviews'}
-            )
-          </Text>
-        </View>
+        />
         <View style={styles.infoContainer}>
           <View style={[styles.infoSubContainer, !PLACE_SCRAPED && { opacity: 0.5 }]}>
             <View style={styles.distancePriceContainer}>

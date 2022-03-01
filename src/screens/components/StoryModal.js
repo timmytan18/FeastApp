@@ -10,7 +10,6 @@ import {
 } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import PlaceDetailView from './PlaceDetailView';
@@ -26,7 +25,6 @@ import {
 } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts, incrementFeastItem } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
-import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import ProfilePic from './ProfilePic';
 import MapMarker from './util/icons/MapMarker';
 import YumButton from './util/YumButton';
@@ -34,6 +32,7 @@ import SaveButton from './util/SaveButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
+import StarsRating from './util/StarsRating';
 import X from './util/icons/X';
 import CenterSpinner from './util/CenterSpinner';
 import { mergeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
@@ -695,31 +694,12 @@ const StoryModal = ({ navigation, route }) => {
               Review:
             </Text>
             {rating && (
-              <View style={styles.starsContainer}>
-                <Stars
-                  default={rating}
-                  count={5}
-                  half
-                  disabled
-                  spacing={wp(0.6)}
-                  fullStar={(
-                    <MaskedView
-                      maskElement={(
-                        <StarFull size={starSize} />
-                      )}
-                    >
-                      <LinearGradient
-                        colors={rating < 5 ? ['#FFC529', '#FFC529'] : gradients.orange.colors}
-                        start={[-0.35, 1]}
-                        end={[0.75, 1]}
-                        style={{ width: starSize, height: starSize }}
-                      />
-                    </MaskedView>
-                  )}
-                  halfStar={<StarHalf size={starSize} />}
-                  emptyStar={<StarEmpty size={starSize} />}
-                />
-              </View>
+              <StarsRating
+                rating={rating}
+                spacing={wp(0.6)}
+                size={wp(5)}
+                containerStyle={styles.starsContainer}
+              />
             )}
           </View>
           {numLinesExpanded == null && (

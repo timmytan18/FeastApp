@@ -4,9 +4,8 @@ import React, {
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard, Image,
 } from 'react-native';
-import Stars from 'react-native-stars';
 import { getPlaceDetailsQuery, fulfillPromise } from '../../api/functions/queryFunctions';
-import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
+import StarsRating from '../components/util/StarsRating';
 import { MONTHS } from '../../constants/constants';
 import {
   colors, sizes, wp,
@@ -35,18 +34,13 @@ const ReviewItem = ({ item, openPlace }) => {
       </TouchableOpacity>
       <View style={styles.infoContainer}>
         <Text style={styles.placeNameText}>{name}</Text>
-        <View style={styles.starsContainer}>
-          <Stars
-            default={4}
-            count={5}
-            half
-            disabled
-            spacing={wp(0.6)}
-            fullStar={<StarFull size={wp(3.8)} />}
-            halfStar={<StarHalf size={wp(3.8)} />}
-            emptyStar={<StarEmpty size={wp(3.8)} />}
-          />
-        </View>
+        <StarsRating
+          rating={item.rating}
+          spacing={wp(0.6)}
+          size={wp(3.8)}
+          starStyle={styles.myStarStyle}
+          containerStyle={styles.starsContainer}
+        />
         {review && (
           <Text
             style={styles.reviewText}
