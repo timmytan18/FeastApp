@@ -3,7 +3,7 @@ import {
   StyleSheet, View, TouchableOpacity, Text,
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
-import { getPostYumsQuery } from '../../../api/functions/queryFunctions';
+import { getPostYumsQuery, fulfillPromise } from '../../../api/functions/queryFunctions';
 import { createFeastItem, deleteFeastItem } from '../../../api/graphql/mutations';
 import Yum from './icons/Yum';
 import YumNoFill from './icons/YumNoFill';
@@ -15,12 +15,13 @@ const YumButton = ({
 }) => {
   const [pressed, setPressed] = useState(false);
   const [yums, setYums] = useState([]);
+  // const mounted = useRef(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     // Fetch yums
     (async () => {
-      const yumsItems = await getPostYumsQuery({ uid, timestamp });
+      const { promise, getValue, errorMsg } = await getPostYumsQuery({ uid, timestamp });
+      const yumsItems = await fulfillPromise(promise, getValue, errorMsg);
       if (yumsItems) {
         // Check if user has yummed
         let yummed = false;
@@ -34,11 +35,13 @@ const YumButton = ({
             break;
           }
         }
+        // if (mounted.current) {
         setYums(yumsItems);
         setPressed(yummed);
+        // }
       }
     })();
-    return () => controller.abort();
+    // return () => { mounted.current = false; };
   }, [myUID, placeId, timestamp, uid]);
 
   const yumPressed = async () => {

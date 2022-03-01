@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, Platform,
 } from 'react-native';
 import Amplify, { Auth } from 'aws-amplify';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
-import { getUserEmailQuery } from '../../api/functions/queryFunctions';
+import { getUserEmailQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import CenterSpinner from '../components/util/CenterSpinner';
 import awsconfig from '../components/util/Link';
 import Line from '../components/util/Line';
@@ -18,18 +18,7 @@ const Settings = ({ route }) => {
   const { uid } = route.params;
 
   const [email, setEmail] = useState('');
-  const [isLoading, setLoading] = useState(false);
-
-  const urlOpenerExpo = async (url, redirectUrl) => {
-    const { type, url: newUrl } = await WebBrowser.openAuthSessionAsync(url, redirectUrl);
-    if (type === 'success') {
-      await setLoading(true);
-      await WebBrowser.dismissBrowser();
-      if (Platform.OS === 'ios') {
-        return Linking.openURL(newUrl);
-      }
-    }
-  };
+  // const mounted = useRef(true);
 
   const openPrivacyPolicy = () => {
     WebBrowser.openBrowserAsync('https://www.feastapp.io/privacy/');
@@ -40,20 +29,14 @@ const Settings = ({ route }) => {
   };
 
   useEffect(() => {
-    const controller = new AbortController();
-    awsconfig.oauth.urlOpener = urlOpenerExpo;
-    Amplify.configure(awsconfig);
-
     (async () => {
-      const userEmail = await getUserEmailQuery({ uid });
+      const { promise, getValue, errorMsg } = getUserEmailQuery({ uid });
+      const userEmail = await fulfillPromise(promise, getValue, errorMsg);
+      // if (mounted.current)
       setEmail(userEmail);
     })();
-    return () => controller.abort();
-  }, []);
-
-  if (isLoading) {
-    return <CenterSpinner />;
-  }
+    // return () => { mounted.current = false; };
+  }, [uid]);
 
   return (
     <View style={styles.container}>

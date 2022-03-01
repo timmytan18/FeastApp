@@ -25,17 +25,20 @@ const defaultProps = {
 };
 
 const MapMarker = ({
-  name, placeId, lat, lng, uid, userPic, category, loadingStories, visible, numOtherMarkers,
+  name, placeId, lat, lng, uid, userPic, category,
+  loadingStories, visible, numOtherMarkers, isNew, onlyHasOld,
 }) => {
   const visibilityStyle = visible ? {} : { width: 0 };
+  const borderGradient = isNew ? gradients.purple : gradients.gray;
+  const numIconGradient = onlyHasOld ? gradients.gray : gradients.purple;
   return (
     <View style={styles.container}>
       {visible && numOtherMarkers > 0 && (
         <View style={styles.badgeContainer}>
           <LinearGradient
-            colors={gradients.purple.colors}
-            start={gradients.purple.start}
-            end={gradients.purple.end}
+            colors={numIconGradient.colors}
+            start={numIconGradient.start}
+            end={numIconGradient.end}
             style={styles.badgeInnerContainer}
           >
             <Text style={styles.badgeText}>
@@ -46,9 +49,9 @@ const MapMarker = ({
         </View>
       )}
       <LinearGradient
-        colors={gradients.purple.colors}
-        start={gradients.purple.start}
-        end={gradients.purple.end}
+        colors={borderGradient.colors}
+        start={borderGradient.start}
+        end={borderGradient.end}
         style={[styles.gradientContainer, visibilityStyle]}
       >
         {loadingStories && loadingStories === placeId && (
@@ -99,7 +102,8 @@ function areEqual(prevProps, nextProps) {
     || (prevProps.placeId === prevProps.loadingStories
       && nextProps.loadingStories === 'none')
     || (nextProps.visible !== prevProps.visible)
-    || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)) {
+    || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
+    || (nextProps.isNew !== prevProps.isNew)) {
     return false;
   }
   return true;

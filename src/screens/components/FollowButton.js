@@ -5,7 +5,7 @@ import {
 import { API, graphqlOperation } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import PropTypes from 'prop-types';
-import { getFollowingPostsByUserQuery } from '../../api/functions/queryFunctions';
+import { getFollowingPostsByUserQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import {
   createFeastItem, deleteFeastItem, incrementFeastItem,
   batchCreateFollowingPosts, batchDeleteFollowingPosts,
@@ -108,9 +108,10 @@ const FollowButton = ({
 
   const changeFollowingConfirmation = async () => {
     if (following) {
-      reviewsToDelete.current = await getFollowingPostsByUserQuery(
+      const { promise, getValue, errorMsg } = getFollowingPostsByUserQuery(
         { PK: myPK, followingUID: uid },
       );
+      reviewsToDelete.current = await fulfillPromise(promise, getValue, errorMsg);
       TwoButtonAlert({
         title: `Unfollow ${currentUser.name}?`,
         yesButton: 'Confirm',

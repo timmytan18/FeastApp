@@ -2,7 +2,7 @@ import React, {
   useState, useEffect, useRef, useContext,
 } from 'react';
 import {
-  Text, View, StyleSheet, ImageBackground, Animated,
+  Text, View, StyleSheet, Image, Animated,
   TouchableOpacity, Platform, Linking, useColorScheme,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -10,10 +10,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Stars from 'react-native-stars';
 import { PacmanIndicator } from 'react-native-indicators';
 import PropTypes from 'prop-types';
-import link from './OpenLink';
 import {
-  getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getPlaceRatingQuery,
+  getPlaceFollowingUserReviewsQuery,
+  getPlaceAllUserReviewsQuery,
+  getPlaceRatingQuery,
+  fulfillPromise,
 } from '../../api/functions/queryFunctions';
+import link from './OpenLink';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import ReviewItem from './ReviewItem';
 import LocationMapMarker from './util/LocationMapMarker';
@@ -130,16 +133,17 @@ const PlaceDetailView = React.memo(({
       key={item}
     >
       {item && (
-        <ImageBackground
-          source={{ uri: item }}
-          style={styles.imageContainer}
-          resizeMode="cover"
-        >
+        <View style={{ flex: 1 }}>
+          <Image
+            source={{ uri: item }}
+            style={styles.imageContainer}
+            resizeMode="cover"
+          />
           <LinearGradient
             colors={['rgba(0,0,0,0.32)', 'transparent']}
             style={styles.gradient}
           />
-        </ImageBackground>
+        </View>
       )}
     </View>
   );
@@ -258,16 +262,18 @@ const BodyContent = React.memo(({
   const { latitude: userLat, longitude: userLng } = state.location;
 
   const [rating, setRating] = useState({ sum: 0, count: 1 });
+  // const mounted = useRef(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     (async () => {
       if (place && place.placeId) {
-        const updatedRating = await getPlaceRatingQuery({ placeId: place.placeId });
+        const { promise, getValue, errorMsg } = getPlaceRatingQuery({ placeId: place.placeId });
+        const updatedRating = await fulfillPromise(promise, getValue, errorMsg);
+        // if (mounted.current)
         setRating(updatedRating);
       }
     })();
-    return () => controller.abort();
+    // return () => { mounted.current = false; };
   }, [place.placeId]);
 
   // Open map route details
@@ -508,25 +514,25 @@ const Reviews = ({ navigation, placeId, myUID }) => {
   const rating = useRef(0);
   const nextToken = useRef(null);
   const seenReviewRatings = useRef({});
+  // const mounted = useRef(true);
 
   const [leftSelected, setLeftSelected] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
+    const fetchReviews = async () => {
+      const { promise, getValue, errorMsg } = leftSelected
+        ? getPlaceFollowingUserReviewsQuery({
+          myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
+        }) : getPlaceAllUserReviewsQuery({
+          myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
+        });
+      return fulfillPromise(promise, getValue, errorMsg);
+    };
     const tab = leftSelected ? 'FRIENDS' : 'ALL';
     // Fetch reviews if not already fetched for current selected tab (friends or all)
     if (!(placeId in seenReviewRatings.current) || !(tab in seenReviewRatings.current[placeId])) {
       (async () => {
-        const {
-          userReviews,
-          nextToken: currNextToken,
-        } = leftSelected
-            ? await getPlaceFollowingUserReviewsQuery({
-              myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
-            })
-            : await getPlaceAllUserReviewsQuery({
-              myUID, placeId, limit: NUM_REVIEWS_TO_SHOW,
-            });
+        const { userReviews, nextToken: currNextToken } = await fetchReviews();
         // Calculate average rating
         let currRating = 0;
         userReviews.forEach((rev) => {
@@ -543,6 +549,7 @@ const Reviews = ({ navigation, placeId, myUID }) => {
             currReviews: userReviews, currRating, currNextToken,
           },
         };
+        // if (mounted.current)
         setReviews(userReviews);
       })();
     } else {
@@ -552,9 +559,10 @@ const Reviews = ({ navigation, placeId, myUID }) => {
       } = seenReviewRatings.current[placeId].tab;
       rating.current = currRating;
       nextToken.current = currNextToken;
+      // if (mounted.current)
       setReviews(currReviews);
     }
-    return () => controller.abort();
+    // return () => { mounted.current = false; };
   }, [placeId, myUID, leftSelected]);
 
   const navigateToAllReviews = () => {

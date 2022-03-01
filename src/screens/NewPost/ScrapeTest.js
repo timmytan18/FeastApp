@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
 import { Auth, API, graphqlOperation } from 'aws-amplify';
-import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
+import { getPlaceInDBQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 
 const propTypes = {
   places: PropTypes.shape({
@@ -87,7 +87,8 @@ const fetchPlaces = async ({ places }) => {
     // Remove nonalphanumeric chars from name (spaces, punctionation, underscores, etc.)
     const strippedName = name.replace(/[^0-9a-z]/gi, '').toLowerCase();
     try {
-      const placeInDB = await getPlaceInDBQuery({ placePK });
+      const { promise, getValue, errorMsg } = getPlaceInDBQuery({ placePK });
+      const placeInDB = await fulfillPromise(promise, getValue, errorMsg);
       if (!placeInDB) {
         failedToFetch.push(item);
         console.warn('Failed to fetch place: ', item.name, item.location.address, item.location.locality);

@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, View, TouchableOpacity, Text, Alert,
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
-import { getUserAllSavedPostsQuery } from '../../../api/functions/queryFunctions';
+import { getUserAllSavedPostsQuery, fulfillPromise } from '../../../api/functions/queryFunctions';
 import { createFeastItem, deleteFeastItem } from '../../../graphql/mutations';
 import { GET_SAVED_POST_ID } from '../../../constants/constants';
 import Save from './icons/Save';
@@ -13,11 +13,8 @@ const SaveButton = ({
   isSaved, dispatch, size, post, place, myUID, stopBarAnimation, startBarAnimation,
 }) => {
   const [pressed, setPressed] = useState(isSaved);
-
   useEffect(() => {
-    const controller = new AbortController();
     setPressed(isSaved);
-    return () => controller.abort();
   }, [isSaved]);
 
   const {
@@ -104,7 +101,10 @@ const SaveButton = ({
 
   const updateSavedPosts = async () => {
     // Get all saved posts
-    const savedPosts = await getUserAllSavedPostsQuery({ PK: savedPostInput.PK, noDetails: true });
+    const { promise, getValue, errorMsg } = getUserAllSavedPostsQuery({
+      PK: savedPostInput.PK, noDetails: true,
+    });
+    const savedPosts = await fulfillPromise(promise, getValue, errorMsg);
     const savedPostsIds = savedPosts.map(
       ({
         placeUserInfo: { uid },

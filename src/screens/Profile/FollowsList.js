@@ -1,9 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, {
+  useState, useEffect, useContext, useRef,
+} from 'react';
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard,
 } from 'react-native';
 import {
-  getUserProfileQuery, getFollowingQuery, getIsFollowingQuery, getFollowersQuery,
+  getUserProfileQuery,
+  getFollowingQuery,
+  getIsFollowingQuery,
+  getFollowersQuery,
+  fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
@@ -18,6 +24,8 @@ const FollowsList = ({ navigation, route }) => {
 
   const [usersList, setUsersList] = useState(null);
 
+  const mounted = useRef(true);
+
   useEffect(() => {
     navigation.setOptions({
       title: <Text style={header.title}>{type}</Text>,
@@ -25,29 +33,40 @@ const FollowsList = ({ navigation, route }) => {
   }, [navigation, type]);
 
   useEffect(() => {
-    const controller = new AbortController();
     (async () => {
-      let dynamoUsers;
+      let dynamoUsers = null;
+      let promise; let getValue; let errorMsg;
       if (type === 'Followers') {
-        dynamoUsers = await getFollowersQuery({ PK });
+        ({ promise, getValue, errorMsg } = getFollowersQuery({ PK }));
       } else if (type === 'Following') {
-        dynamoUsers = await getFollowingQuery({ uid });
+        ({ promise, getValue, errorMsg } = getFollowingQuery({ uid }));
       }
-      setUsersList(dynamoUsers);
+      dynamoUsers = await fulfillPromise(promise, getValue, errorMsg);
+      if (mounted.current) setUsersList(dynamoUsers);
     })();
-    return () => controller.abort();
+    return () => { mounted.current = false; };
   }, [PK, type, uid]);
 
   const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
     try {
-      const currentUser = await getUserProfileQuery({ PK: currentPK, SK: currentSK });
+      const { promise, getValue, errorMsg } = getUserProfileQuery({ PK: currentPK, SK: currentSK });
+      const currentUser = await fulfillPromise(promise, getValue, errorMsg);
       currentUser.PK = currentPK;
       currentUser.SK = currentSK;
       currentUser.picture = currentProfilePic;
 
       // Check if my user is following the current user, even if showing list of following users
       // Accounts of edge case of viewing profile immediately after unfollowing
-      currentUser.following = await getIsFollowingQuery({ currentPK, myUID });
+      const {
+        promise: isFollowingPromise,
+        getValue: getIsFollowingValue,
+        errorMsg: isErrorMsg,
+      } = getIsFollowingQuery({ currentPK, myUID });
+      currentUser.following = await fulfillPromise(
+        isFollowingPromise,
+        getIsFollowingValue,
+        isErrorMsg,
+      );
       navigation.push('Profile', { user: currentUser });
     } catch (err) {
       console.warn('Error fetching current user: ', err);

@@ -4,12 +4,12 @@ import React, {
 import {
   Text, StyleSheet, TouchableOpacity, SafeAreaView,
 } from 'react-native';
-import { API } from 'aws-amplify';
+import { API, Storage } from 'aws-amplify';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
-import { getUserAllSavedPostsQuery } from '../api/functions/queryFunctions';
+import { getUserAllSavedPostsQuery, fulfillPromise } from '../api/functions/queryFunctions';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers';
 import StoryModal from '../screens/components/StoryModal';
@@ -34,6 +34,8 @@ import { Context } from '../Store';
 import {
   colors, sizes, header, wp,
 } from '../constants/theme';
+
+Storage.configure({ level: 'protected' });
 
 const renderBackArrow = ({ onPress }) => (
   <BackArrow
@@ -374,7 +376,8 @@ const AppNavigator = () => {
   useEffect(() => {
     (async () => {
       // Get all saved posts
-      const savedPosts = await getUserAllSavedPostsQuery({ PK, noDetails: true });
+      const { promise, getValue, errorMsg } = getUserAllSavedPostsQuery({ PK, noDetails: true });
+      const savedPosts = await fulfillPromise(promise, getValue, errorMsg);
       const savedPostsIds = savedPosts.map(
         ({ placeUserInfo: { uid }, timestamp }) => GET_SAVED_POST_ID({ uid, timestamp }),
       );

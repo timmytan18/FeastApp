@@ -12,7 +12,7 @@ import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { manipulateAsync } from 'expo-image-manipulator';
-import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
+import { getPlaceInDBQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import NextArrow from '../components/util/icons/NextArrow';
@@ -115,9 +115,12 @@ const UploadImages = ({ navigation, route }) => {
     // Check if place exists in DynamoDB
     async function checkPlaceInDB() {
       try {
-        const { placeInDB, categoriesDB, imgUrlDB } = await getPlaceInDBQuery(
+        const { promise, getValue, errorMsg } = getPlaceInDBQuery(
           { placePK, withCategoriesAndPicture: true },
         );
+        const {
+          placeInDB, categoriesDB, imgUrlDB,
+        } = await fulfillPromise(promise, getValue, errorMsg);
         if (!placeInDB) {
           // Scrape data on screen load if place does not exist
           createPlaceItem();

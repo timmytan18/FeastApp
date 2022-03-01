@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ImageBackground, TouchableOpacity,
+  StyleSheet, Text, View, Image, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,11 +29,12 @@ const PostListItem = ({
     activeOpacity={0.9}
     onPress={() => openPlacePosts({ stories: placePosts })}
   >
-    <ImageBackground
-      resizeMode="cover"
-      style={styles.postImage}
-      source={{ uri: item.s3Photo }}
-    >
+    <View style={styles.postImage}>
+      <Image
+        resizeMode="cover"
+        style={[styles.postImage, { flex: 1 }]}
+        source={{ uri: item.s3Photo }}
+      />
       <View style={styles.gradientContainer}>
         <LinearGradient
           colors={['rgba(0,0,0,0.32)', 'transparent']}
@@ -50,7 +51,7 @@ const PostListItem = ({
           </Text>
         </View>
       )}
-    </ImageBackground>
+    </View>
     <View style={styles.postBottomContainer}>
       <Text style={styles.postNameText} numberOfLines={1}>
         {item.name}
@@ -101,6 +102,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   gradientContainer: {
+    position: 'absolute',
     overflow: 'hidden',
     borderTopLeftRadius: wp(3),
     borderTopRightRadius: wp(3),

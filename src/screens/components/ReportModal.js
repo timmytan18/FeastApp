@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, View, Text, TextInput, Keyboard, Alert,
 } from 'react-native';
 import { API } from 'aws-amplify';
 import Modal from 'react-native-modal';
-import { getUserEmailQuery } from '../../api/functions/queryFunctions';
+import { getUserEmailQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import BigButton from './util/BigButton';
 import {
   colors, shadows, sizes, wp,
@@ -17,14 +17,17 @@ const ReportModal = ({
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     (async () => {
-      const userEmail = await getUserEmailQuery({ uid: sender.senderUID });
-      setEmail(userEmail);
+      if (sender && sender.senderUID) {
+        const { promise, getValue, errorMsg } = getUserEmailQuery({ uid: sender.senderUID });
+        const userEmail = await fulfillPromise(promise, getValue, errorMsg);
+        if (mounted.current) setEmail(userEmail);
+      }
     })();
-    return () => controller.abort();
+    return () => { mounted.current = false; };
   }, [sender.senderUID]);
 
   const sendReport = async () => {

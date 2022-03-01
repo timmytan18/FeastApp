@@ -4,7 +4,12 @@ import React, {
 import { StyleSheet, View, FlatList } from 'react-native';
 import { Storage } from 'aws-amplify';
 import PlaceListItem from '../components/PlaceListItem';
-import { getPlaceDetailsQuery, getUserAllSavedPostsQuery, batchGetPlaceRatingsQuery } from '../../api/functions/queryFunctions';
+import {
+  getPlaceDetailsQuery,
+  getUserAllSavedPostsQuery,
+  batchGetPlaceRatingsQuery,
+  fulfillPromise,
+} from '../../api/functions/queryFunctions';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import { wp } from '../../constants/theme';
@@ -36,16 +41,18 @@ const SavedPosts = ({ navigation, route }) => {
   const [ratings, setRatings] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const mounted = useRef(true);
+
   const place = useRef({});
 
   useEffect(() => {
-    const controller = new AbortController();
     (async () => {
       if (ratings === null && batch) {
         // Batch fetch average ratings
-        const avgRatings = await batchGetPlaceRatingsQuery(
+        const { promise, getValue, errorMsg } = batchGetPlaceRatingsQuery(
           { batch },
         );
+        const avgRatings = await fulfillPromise(promise, getValue, errorMsg);
         const updatedRatings = {};
         if (avgRatings && avgRatings.length) {
           avgRatings.forEach((rating) => {
@@ -53,14 +60,12 @@ const SavedPosts = ({ navigation, route }) => {
             updatedRatings[placeId] = { count, sum };
           });
         }
-        setRatings(updatedRatings);
+        if (mounted.current) setRatings(updatedRatings);
       }
     })();
-    return () => controller.abort();
   }, [batch]);
 
   useEffect(() => {
-    const controller = new AbortController();
     setLoading(true);
 
     const getPostPictures = (item) => new Promise((resolve, reject) => {
@@ -77,7 +82,10 @@ const SavedPosts = ({ navigation, route }) => {
 
     // Fetch all saved posts
     (async () => {
-      const savedPosts = await getUserAllSavedPostsQuery({ PK: user.PK, withUserInfo: false });
+      const { promise, getValue, errorMsg } = getUserAllSavedPostsQuery({
+        PK: user.PK, withUserInfo: false,
+      });
+      const savedPosts = await fulfillPromise(promise, getValue, errorMsg);
       const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
       if (savedPosts && savedPosts.length) {
         Promise.all(savedPosts.map(getPostPictures)).then((currPosts) => {
@@ -99,7 +107,7 @@ const SavedPosts = ({ navigation, route }) => {
             }
           }
 
-          setBatch(currBatch);
+          if (mounted.current) setBatch(currBatch);
 
           // Format posts for FlatList
           const updatedPosts = [];
@@ -113,21 +121,24 @@ const SavedPosts = ({ navigation, route }) => {
               }
             }
           }
-          setPosts(updatedPosts);
-          setLoading(false);
+          if (mounted.current) {
+            setPosts(updatedPosts);
+            setLoading(false);
+          }
         });
-      } else {
+      } else if (mounted.current) {
         setPosts([]);
         setLoading(false);
       }
     })();
-    return () => controller.abort();
+    return () => { mounted.current = false; };
   }, [user.PK, user.identityId]);
 
   const openPlacePosts = async ({ stories }) => {
     const { placeId } = stories[0];
     if (place.current.placeId !== placeId) {
-      const placeDetails = await getPlaceDetailsQuery({ placeId });
+      const { promise, getValue, errorMsg } = getPlaceDetailsQuery({ placeId });
+      const placeDetails = await fulfillPromise(promise, getValue, errorMsg);
       if (placeDetails) place.current = placeDetails;
     }
     const { uid, name: userName, picture: userPic } = user;

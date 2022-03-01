@@ -12,7 +12,7 @@ import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { manipulateAsync } from 'expo-image-manipulator';
-import { getPlaceInDBQuery } from '../../api/functions/queryFunctions';
+import { getPlaceInDBQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import NextArrow from '../components/util/icons/NextArrow';
@@ -55,6 +55,8 @@ const propTypes = {
 const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws.com/dev/scraper';
 
 const UploadImages = ({ navigation, route }) => {
+  const mounted = useRef(true);
+
   // FIND BUSINESS IN DYNAMO
   const { business } = route.params;
   const [{ review, rating }, dispatch] = useContext(Context);
@@ -65,7 +67,6 @@ const UploadImages = ({ navigation, route }) => {
 
   // Fetch place from DB if exists, if not, scrape and create new place
   useEffect(() => {
-    const controller = new AbortController();
     // Destructure place attributes
     const {
       placeId,
@@ -118,9 +119,12 @@ const UploadImages = ({ navigation, route }) => {
     // Check if place exists in DynamoDB
     async function checkPlaceInDB() {
       try {
-        const { placeInDB, categoriesDB, imgUrlDB } = await getPlaceInDBQuery(
+        const { promise, getValue, errorMsg } = getPlaceInDBQuery(
           { placePK, withCategoriesAndPicture: true },
         );
+        const {
+          placeInDB, categoriesDB, imgUrlDB,
+        } = await fulfillPromise(promise, getValue, errorMsg);
         if (!placeInDB) {
           // Scrape data on screen load if place does not exist
           createPlaceItem();
@@ -137,7 +141,6 @@ const UploadImages = ({ navigation, route }) => {
     if (!placeExists.current) {
       checkPlaceInDB();
     }
-    return () => controller.abort();
   }, [business]);
 
   // Tab
@@ -186,16 +189,25 @@ const UploadImages = ({ navigation, route }) => {
   }
 
   const cropImage = async () => {
-    const size = Math.min(picture.width, picture.height);
-    const origin = Math.max(picture.width, picture.height) / 2 - size / 2;
+    const aspectRatio = POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1];
+    let width; let height;
+    let originX; let originY;
+    if (picture.height >= picture.width) {
+      width = picture.width;
+      height = picture.width / aspectRatio;
+      originX = 0;
+      originY = (picture.height - height) / 2;
+    } else {
+      width = picture.height * aspectRatio;
+      height = picture.height;
+      originX = (picture.width - width) / 2;
+      originY = 0;
+    }
     const manipResult = await manipulateAsync(
       picture.localUri || picture.uri,
       [{
         crop: {
-          height: size,
-          width: size,
-          originX: picture.height > picture.width ? 0 : origin,
-          originY: picture.height > picture.width ? origin : 0,
+          height, width, originX, originY,
         },
       }],
     );
@@ -238,35 +250,33 @@ const UploadImages = ({ navigation, route }) => {
       for (let i = 1; i < assets.length; i += 2) {
         images.push([assets[i - 1], assets[i]]);
       }
-      setLibraryPreview(images);
+      if (mounted.current) setLibraryPreview(images);
       if (assets.length) {
         pictureFromPreview.current = true;
-        setPicture(assets[0]);
+        if (mounted.current) setPicture(assets[0]);
       }
     } else if (libraryPreview.length && libraryPreview[0].length) {
       pictureFromPreview.current = true;
-      setPicture(libraryPreview[0][0]);
+      if (mounted.current) setPicture(libraryPreview[0][0]);
     }
-    setTab(LIBRARY_TAB);
+    if (mounted.current) setTab(LIBRARY_TAB);
     slideInput(0.7);
   };
 
   // Camera roll permissions, open camera roll preview
   useEffect(() => {
-    const controller = new AbortController();
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       setHasLibraryPermission(status === 'granted');
     })();
     openLibraryPreview();
-    return () => controller.abort();
   }, []);
 
   const takePicture = async () => {
     if (camera.current) {
       const photo = await camera.current.takePictureAsync({ quality: 1 });
       pictureFromPreview.current = false;
-      setPicture(photo);
+      if (mounted.current) setPicture(photo);
     }
   };
 
@@ -362,7 +372,7 @@ const UploadImages = ({ navigation, route }) => {
       {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         aspect: POST_IMAGE_ASPECT,
-        allowsEditing: true,
+        // allowsEditing: true, // prevent cropping
         quality: 1,
       },
     );

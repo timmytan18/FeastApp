@@ -2,7 +2,7 @@ import React, {
   useEffect, useContext, useState, useRef, useCallback,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Text, ImageBackground,
+  StyleSheet, View, TouchableOpacity, Text, Image,
   Animated, PanResponder, ScrollView, StatusBar, Easing, Alert,
 } from 'react-native';
 import {
@@ -22,6 +22,7 @@ import {
   getFollowersQuery,
   getAllSavedPostItemsQuery,
   getPostYumsQuery,
+  fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts, incrementFeastItem } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
@@ -35,6 +36,7 @@ import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
 import X from './util/icons/X';
 import CenterSpinner from './util/CenterSpinner';
+import { mergeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { GET_SAVED_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
@@ -49,6 +51,7 @@ const StoryModal = ({ navigation, route }) => {
     stories,
     places,
     deviceHeight,
+    firstImg,
   } = route.params;
 
   const [
@@ -64,6 +67,10 @@ const StoryModal = ({ navigation, route }) => {
   const [indexState, setIndexState] = useState(0);
   const numStories = useRef(stories.length);
   const place = useRef(null);
+  const [image, setImage] = useState(null);
+  const nextImage = useRef(firstImg);
+
+  const seenStories = useRef({});
 
   // animation for bar
   const [progressAnim] = useState(new Animated.Value(0));
@@ -95,11 +102,24 @@ const StoryModal = ({ navigation, route }) => {
   };
 
   // restart animation when current story index changes
+  // fetch and preload next image
+  // save seen stories to local storage
+  const date = new Date();
+  const timeLocal = date.toISOString();
   useEffect(() => {
-    const controller = new AbortController();
     stopBarAnimation();
     startBarAnimation();
-    return () => controller.abort();
+    (async () => {
+      const img = nextImage.current
+        ? nextImage.current : await Storage.get(stories[index.current].picture);
+      setImage(img);
+      if (index.current + 1 < numStories.current) {
+        const nextImg = await Storage.get(stories[index.current + 1].picture);
+        nextImage.current = nextImg;
+        try { await Image.prefetch(nextImage.current); } catch (e) { console.warn(e); }
+      }
+      seenStories.current[stories[index.current].placeId] = timeLocal;
+    })();
   }, [indexState]);
 
   // restart animation when screen in focus
@@ -191,7 +211,8 @@ const StoryModal = ({ navigation, route }) => {
     translateYAnim({ value: -deviceHeight });
     stopBarAnimation();
   };
-  const closeModal = () => {
+  const closeModal = async () => {
+    await mergeLocalData(localDataKeys.SEEN_STORIES, { [stories[index.current].SK]: timeLocal });
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -305,6 +326,7 @@ const StoryModal = ({ navigation, route }) => {
       placeId, name, s3Photo, picture, dish, rating, review, timestamp,
     } = stories[index.current]);
   }
+
   place.current = places[placeId];
   const elapsedTime = getElapsedTime(timestamp);
   const savedPostId = GET_SAVED_POST_ID({ uid, timestamp });
@@ -391,7 +413,8 @@ const StoryModal = ({ navigation, route }) => {
     }
 
     // Remove user's post from followers' feeds in batches
-    const followers = await getFollowersQuery({ PK: myPK, onlyReturnUIDs: true });
+    const { promise, getValue, errorMsg } = getFollowersQuery({ PK: myPK, onlyReturnUIDs: true });
+    const followers = await fulfillPromise(promise, getValue, errorMsg);
     const postInUserFeeds = [{ PK: myPK, SK: `#FOLLOWINGPOST#${currTimestamp}#${myUID}` }]; // remove from own feed
     followers.forEach(({ follower: { PK: followerPK } }) => {
       postInUserFeeds.push({
@@ -415,9 +438,16 @@ const StoryModal = ({ navigation, route }) => {
     }
 
     // Remove post from users' saved posts
-    const savedPostsToDelete = await getAllSavedPostItemsQuery({
+    const {
+      promise: savedPostsPromise, getValue: getSavedPostsValue, errorMsg: savedPostsErrorMsg,
+    } = getAllSavedPostItemsQuery({
       uid: myUID, timestamp: currTimestamp,
     });
+    const savedPostsToDelete = await fulfillPromise(
+      savedPostsPromise,
+      getSavedPostsValue,
+      savedPostsErrorMsg,
+    );
     for (i = 0, j = savedPostsToDelete.length; i < j; i += BATCH_NUM) {
       const batch = savedPostsToDelete.slice(i, i + BATCH_NUM);
       try {
@@ -431,9 +461,10 @@ const StoryModal = ({ navigation, route }) => {
     }
 
     // Delete yum items for post
-    const yumItemsToDelete = await getPostYumsQuery({
+    const { promise: yumPromise, getValue: getYumValue, errorMsg: yumErrorMsg } = getPostYumsQuery({
       uid: myUID, timestamp: currTimestamp, noDetails: true,
     });
+    const yumItemsToDelete = await fulfillPromise(yumPromise, getYumValue, yumErrorMsg);
     for (i = 0, j = yumItemsToDelete.length; i < j; i += BATCH_NUM) {
       const batch = yumItemsToDelete.slice(i, i + BATCH_NUM);
       try {
@@ -478,10 +509,20 @@ const StoryModal = ({ navigation, route }) => {
 
   const fetchUser = async ({ fetchUID }) => {
     try {
-      const currentUser = await getUserProfileQuery({ uid: fetchUID });
+      const { promise, getValue, errorMsg } = getUserProfileQuery({ uid: fetchUID });
+      const currentUser = await fulfillPromise(promise, getValue, errorMsg);
       // Check if I am following the current user
       if (currentUser.uid !== myUID) {
-        currentUser.following = await getIsFollowingQuery({ currentUID: fetchUID, myUID });
+        const {
+          promise: isFollowingPromise,
+          getValue: getIsFollowingValue,
+          errorMsg: isFollowingErrorMsg,
+        } = getIsFollowingQuery({ currentUID: fetchUID, myUID });
+        currentUser.following = await fulfillPromise(
+          isFollowingPromise,
+          getIsFollowingValue,
+          isFollowingErrorMsg,
+        );
       }
       navigation.push(
         'ProfileStack',
@@ -700,14 +741,14 @@ const StoryModal = ({ navigation, route }) => {
           >
             {review}
           </Text>
-          <ImageBackground
-            style={[styles.imageContainer, isExpanded && { aspectRatio: 0.9 }]}
-            imageStyle={{ borderRadius: wp(2) }}
-            source={{ uri: s3Photo }}
-          >
+          <View>
+            <Image
+              style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
+              source={{ uri: image }}
+            />
             <View style={styles.emojiContainer} />
             {dish && <Text style={styles.menuItemText}>{dish}</Text>}
-          </ImageBackground>
+          </View>
         </View>
         <View style={styles.middleContainer}>
           <View style={styles.middleButtonsContainer}>
@@ -943,27 +984,19 @@ const styles = StyleSheet.create({
     marginRight: wp(0.5),
     padding: wp(2),
   },
-  imageContainer: {
+  image: {
+    borderRadius: wp(2),
     width: '100%',
     aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
-    justifyContent: 'space-between',
-    marginTop: wp(3),
-  },
-  emojiContainer: {
-    alignSelf: 'flex-end',
-    marginTop: wp(5),
-    marginRight: wp(5),
-  },
-  emojiText: {
-    fontSize: sizes.h1,
   },
   menuItemText: {
+    position: 'absolute',
+    left: wp(5),
+    bottom: wp(5),
     fontFamily: 'Medium',
     fontSize: wp(5.6),
     color: '#fff',
     width: wp(50),
-    marginBottom: wp(5),
-    marginLeft: wp(5),
   },
   reviewTitleStarsContainer: {
     flexDirection: 'row',

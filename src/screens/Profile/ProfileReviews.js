@@ -5,7 +5,7 @@ import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard, Image,
 } from 'react-native';
 import Stars from 'react-native-stars';
-import { getPlaceDetailsQuery } from '../../api/functions/queryFunctions';
+import { getPlaceDetailsQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import { StarFull, StarHalf, StarEmpty } from '../components/util/icons/Star';
 import { MONTHS } from '../../constants/constants';
 import {
@@ -75,7 +75,8 @@ const ProfileReviews = ({ navigation, route }) => {
 
   const openPlace = async ({ placeId, placeName }) => {
     if (!place.current || place.current.placeId !== placeId) {
-      place.current = await getPlaceDetailsQuery({ placeId });
+      const { promise, getValue, errorMsg } = getPlaceDetailsQuery({ placeId });
+      place.current = await fulfillPromise(promise, getValue, errorMsg);
     }
     navigation.push(
       'PlaceDetail',

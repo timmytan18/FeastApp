@@ -27,6 +27,7 @@ const BING_NEARBY_RADIUS = '1000'; // 1 km radius
 const BING_SEARCH_RADIUS = '5000'; // 5 km radius (max); is more when no results within 5 km
 
 const NewPost = ({ navigation }) => {
+  const mounted = useRef(true);
   const [state, dispatch] = useContext(Context);
   const latitude = useRef(state.location.latitude);
   const longitude = useRef(state.location.longitude);
@@ -97,8 +98,10 @@ const NewPost = ({ navigation }) => {
       return [];
     }
     const items = await filterFSItems({ results });
-    setLoading(false);
-    setPlaceList(items || []);
+    if (mounted.current) {
+      setLoading(false);
+      setPlaceList(items || []);
+    }
     return items || [];
   }
 
@@ -160,6 +163,7 @@ const NewPost = ({ navigation }) => {
     return () => {
       getNearbyAbortController.abort();
       searchAbortController.abort();
+      mounted.current = false;
     };
   }, [dispatch, navigation]);
 
@@ -167,6 +171,7 @@ const NewPost = ({ navigation }) => {
   const searchPlace = async (queryInput) => {
     const BING_KEY = await getSecureValue(keys.BING_KEY);
     const query = queryInput ? queryInput.replace(/\s+/g, '%20') : '';
+    if (!mounted.current) return;
     setLoading(true);
     setSelected(null);
     if (query === '') {

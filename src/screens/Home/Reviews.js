@@ -4,7 +4,11 @@ import React, {
 import {
   StyleSheet, View, FlatList, Keyboard,
 } from 'react-native';
-import { getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery } from '../../api/functions/queryFunctions';
+import {
+  getPlaceFollowingUserReviewsQuery,
+  getPlaceAllUserReviewsQuery,
+  fulfillPromise,
+} from '../../api/functions/queryFunctions';
 import ReviewItem from '../components/ReviewItem';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
@@ -22,30 +26,33 @@ const Reviews = ({ navigation, route }) => {
   const nextToken = useRef(fetchedNextToken);
 
   const [loading, setLoading] = useState(true);
+  // const mounted = useRef(true);
+
+  const fetchReviews = async () => {
+    const { promise, getValue, errorMsg } = fromFollowingOnly ? getPlaceFollowingUserReviewsQuery({
+      myUID, placeId, limit: NUM_REVIEWS_TO_FETCH, currNextToken: nextToken.current,
+    }) : getPlaceAllUserReviewsQuery({
+      myUID, placeId, limit: NUM_REVIEWS_TO_FETCH, currNextToken: nextToken.current,
+    });
+    return fulfillPromise(promise, getValue, errorMsg);
+  };
 
   const fetchNextReviews = async () => {
     if (nextToken.current) {
       setLoading(true);
-      const {
-        userReviews,
-        nextToken: nextNextToken,
-      } = fromFollowingOnly
-          ? await getPlaceFollowingUserReviewsQuery({
-            myUID, placeId, limit: NUM_REVIEWS_TO_FETCH, currNextToken: nextToken.current,
-          })
-          : await getPlaceAllUserReviewsQuery({
-            myUID, placeId, limit: NUM_REVIEWS_TO_FETCH, currNextToken: nextToken.current,
-          });
+      const { userReviews, nextToken: nextNextToken } = await fetchReviews();
       nextToken.current = nextNextToken;
+      // if (mounted.current) {
       setReviews([...reviews, ...userReviews]);
       setLoading(false);
+      // }
     }
   };
 
   useEffect(() => {
-    const controller = new AbortController();
+    // if (mounted.current)
     fetchNextReviews();
-    return () => controller.abort();
+    // return () => { mounted.current = false; };
   }, [myUID, placeId]);
 
   return (

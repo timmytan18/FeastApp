@@ -12,9 +12,14 @@ import MapView, { Marker } from 'react-native-maps';
 import geohash from 'ngeohash';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BallIndicator } from 'react-native-indicators';
 import MaskedView from '@react-native-community/masked-view';
 import {
-  getUserPostsQuery, getNumFollowsQuery, getPlaceDetailsQuery, getUserYumsReceivedQuery,
+  getUserPostsQuery,
+  getNumFollowsQuery,
+  getPlaceDetailsQuery,
+  getUserYumsReceivedQuery,
+  fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import EditProfile from './EditProfile';
@@ -35,7 +40,6 @@ import BackArrow from '../components/util/icons/BackArrow';
 import Save from '../components/util/icons/Save';
 import Cam from '../components/util/icons/Cam';
 import X from '../components/util/icons/X';
-import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import {
   colors, gradients, sizes, wp, shadows,
@@ -114,7 +118,14 @@ const RowItem = React.memo(({
           <View style={styles.tabIcon}><MapMarker /></View>
         </TouchableOpacity>
       </View>
-      {row === LIST_STATES.LOADING && <CenterSpinner style={{ marginTop: wp(10) }} />}
+      {row === LIST_STATES.LOADING
+        && (
+          <BallIndicator
+            style={{ marginTop: wp(10) }}
+            color={colors.tertiary}
+            size={wp(7)}
+          />
+        )}
       {row === LIST_STATES.NO_RESULTS && (
         <View style={styles.noResultsContainer}>
           <Cam size={wp(7)} />
@@ -151,7 +162,8 @@ const Profile = ({ navigation, route }) => {
   useEffect(() => {
     // Get number of followers and following
     (async () => {
-      const num = await getNumFollowsQuery({ PK: user.PK, SK: user.SK });
+      const { promise, getValue, errorMsg } = getNumFollowsQuery({ PK: user.PK, SK: user.SK });
+      const num = await fulfillPromise(promise, getValue, errorMsg);
       setNumFollows(num);
       setRefreshing(false);
     })();
@@ -177,14 +189,22 @@ const Profile = ({ navigation, route }) => {
 
     // Get reviews for current user
     (async () => {
-      const userReviews = await getUserPostsQuery({ PK: user.PK, withUserInfo: false });
+      const { promise, getValue, errorMsg } = getUserPostsQuery({
+        PK: user.PK, withUserInfo: false,
+      });
+      const userReviews = await fulfillPromise(promise, getValue, errorMsg);
       const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
       const placePostsRatingSum = {};
       if (userReviews && userReviews.length) {
         allReviews.current = userReviews;
         // Get yums received for current user
         const updatedPlaceNumYums = {};
-        const yums = await getUserYumsReceivedQuery({ uid: user.uid });
+        const {
+          promise: yumPromise,
+          getValue: getYumValue,
+          errorMsg: yumErrorMsg,
+        } = getUserYumsReceivedQuery({ uid: user.uid });
+        const yums = await fulfillPromise(yumPromise, getYumValue, yumErrorMsg);
         yums.forEach(({ placeId }) => {
           updatedPlaceNumYums[placeId] = (updatedPlaceNumYums[placeId] || 0) + 1;
         });
@@ -526,7 +546,8 @@ const Profile = ({ navigation, route }) => {
   const openPlacePosts = async ({ stories }) => {
     const { placeId } = stories[0];
     if (place.current.placeId !== placeId) {
-      const placeDetails = await getPlaceDetailsQuery({ placeId });
+      const { promise, getValue, errorMsg } = getPlaceDetailsQuery({ placeId });
+      const placeDetails = await fulfillPromise(promise, getValue, errorMsg);
       if (placeDetails) place.current = placeDetails;
     }
     navigation.push('StoryModalModal', {

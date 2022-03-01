@@ -3,7 +3,7 @@ import React, {
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, TextInput,
-  ScrollView, Keyboard, Alert, ImageBackground,
+  ScrollView, Keyboard, Alert, Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
@@ -12,7 +12,7 @@ import { manipulateAsync } from 'expo-image-manipulator';
 import Stars from 'react-native-stars';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
-import { getPlaceInDBQuery, getFollowersQuery } from '../../api/functions/queryFunctions';
+import { getPlaceInDBQuery, getFollowersQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import {
   createFeastItem, batchCreateFollowingPosts, incrementFeastItem, deleteFeastItem,
 } from '../../api/graphql/mutations';
@@ -90,8 +90,13 @@ const PostDetails = ({ navigation, route }) => {
     // Check if place exists in DynamoDB
     async function checkPlaceInDB() {
       try {
-        const { placeInDB, categoriesDB, imgUrlDB } = await getPlaceInDBQuery(
+        const { promise, getValue, errorMsg } = getPlaceInDBQuery(
           { placePK, withCategoriesAndPicture: true },
+        );
+        const { placeInDB, categoriesDB, imgUrlDB } = await fulfillPromise(
+          promise,
+          getValue,
+          errorMsg,
         );
         if (placeInDB) {
           placeExists.current = true;
@@ -108,9 +113,9 @@ const PostDetails = ({ navigation, route }) => {
       const manipResult = await manipulateAsync(
         image.localUri || image.uri,
         [
-          { resize: { width: 500 * aspectRatio, height: 500 } },
+          { resize: { width: 1000 * aspectRatio, height: 1000 } },
         ],
-        { compress: 1 },
+        { compress: 0.5 },
       );
 
       const img = manipResult.uri;
@@ -301,7 +306,10 @@ const PostDetails = ({ navigation, route }) => {
         },
       };
       // Created all post items for each follower
-      const followers = await getFollowersQuery({ PK: userPK, onlyReturnUIDs: true });
+      const { promise, getValue, errorMsg } = getFollowersQuery({
+        PK: userPK, onlyReturnUIDs: true,
+      });
+      const followers = await fulfillPromise(promise, getValue, errorMsg);
       const allUserFeedPosts = [{
         ...userFeedsInput,
         PK: userPK,
@@ -446,13 +454,13 @@ const PostDetails = ({ navigation, route }) => {
             returnKeyType="done"
           />
         </View>
-        <ImageBackground
-          style={styles.imageContainer}
-          imageStyle={{ borderRadius: wp(2) }}
-          source={{ uri: picture.uri }}
-        >
+        <View style={styles.imageContainer}>
+          <Image
+            style={styles.image}
+            source={{ uri: picture.uri }}
+          />
           {menuItem && <Text style={styles.menuItemText}>{menuItem}</Text>}
-        </ImageBackground>
+        </View>
       </ScrollView>
     </View>
   );
@@ -547,17 +555,23 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: '100%',
     aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
-    justifyContent: 'flex-end',
     marginTop: wp(1),
     marginBottom: wp(25),
+    borderRadius: wp(2),
+  },
+  image: {
+    width: '100%',
+    aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
+    borderRadius: wp(2),
   },
   menuItemText: {
     fontFamily: 'Medium',
     fontSize: wp(5.6),
     color: '#fff',
     width: wp(50),
-    paddingBottom: wp(5),
-    paddingLeft: wp(5),
+    position: 'absolute',
+    bottom: wp(5),
+    left: wp(5),
   },
   reviewTitleStarsContainer: {
     flexDirection: 'row',

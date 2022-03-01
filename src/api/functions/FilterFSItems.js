@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import geohash from 'ngeohash';
-import { getPlaceInDBQuery } from './queryFunctions';
+import { getPlaceInDBQuery, fulfillPromise } from './queryFunctions';
 
 import coordinateDistance from './CoordinateDistance';
 
@@ -283,7 +283,8 @@ export default async function filterFSItems({ results }) {
       // If any item in group is in db, remove
       let removed = false;
       for (const a of groups[i].keys()) {
-        const exists = await getPlaceInDBQuery({ placePK: `PLACE#${items[a].placeId}` });
+        const { promise, getValue, errorMsg } = getPlaceInDBQuery({ placePK: `PLACE#${items[a].placeId}` });
+        const exists = await fulfillPromise(promise, getValue, errorMsg);
         if (exists) {
           removed = true;
           groups[i].delete(a);

@@ -7,7 +7,7 @@ import Amplify, {
 import { useSafeAreaFrame } from 'react-native-safe-area-context'; // device height
 import awsconfig from './aws-exports';
 
-import { getUserProfileQuery } from './api/functions/queryFunctions';
+import { getUserProfileQuery, fulfillPromise } from './api/functions/queryFunctions';
 import { updateFeastItem } from './api/graphql/mutations';
 
 import AppNavigator from './navigation/AppNavigator';
@@ -22,19 +22,21 @@ const Main = () => {
   const frame = useSafeAreaFrame();
 
   useEffect(() => {
-    // listen to changes in sign in status
-    Hub.listen('auth', ({ payload: { event, data } }) => {
-      switch (event) {
-        case 'signIn':
-          getUser().catch((e) => noUser(e));
-          break;
-        case 'signOut':
-          noUser();
-          break;
-        default:
-          noUser();
-      }
-    });
+    (async () => {
+      // listen to changes in sign in status
+      Hub.listen('auth', ({ payload: { event, data } }) => {
+        switch (event) {
+          case 'signIn':
+            getUser().catch((e) => noUser(e));
+            break;
+          case 'signOut':
+            noUser();
+            break;
+          default:
+            noUser();
+        }
+      });
+    })();
 
     // set device height
     dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
@@ -59,7 +61,8 @@ const Main = () => {
       const id = cognitoUser.attributes.sub;
 
       // Fetch user profile from DynamoDB
-      const dynamoUser = await getUserProfileQuery({ uid: id });
+      const { promise, getValue, errorMsg } = getUserProfileQuery({ uid: id });
+      const dynamoUser = await fulfillPromise(promise, getValue, errorMsg);
 
       // identityId (S3), city, picture can be null
       const {
@@ -98,8 +101,8 @@ const Main = () => {
       dispatch({ type: 'SET_USER', payload: 'none' });
     }
 
-    getUser().catch((e) => noUser(e));
-  }, [dispatch]);
+    (async () => { getUser().catch((e) => noUser(e)); })();
+  }, []);
 
   if (!state.user) {
     return (null);

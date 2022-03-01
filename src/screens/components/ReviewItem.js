@@ -2,10 +2,10 @@ import React, {
   useState,
 } from 'react';
 import {
-  Text, View, StyleSheet, TouchableOpacity, Image,
+  Text, View, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import Stars from 'react-native-stars';
-import { getUserProfileQuery, getIsFollowingQuery } from '../../api/functions/queryFunctions';
+import { getUserProfileQuery, getIsFollowingQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import ProfilePic from './ProfilePic';
 import { StarFull, StarHalf, StarEmpty } from './util/icons/Star';
 import {
@@ -16,10 +16,20 @@ const NUM_COLLAPSED_LINES = 3;
 
 const fetchReviewUser = async ({ uid, myUID, navigation }) => {
   try {
-    const currentUser = await getUserProfileQuery({ uid });
+    const { promise, getValue, errorMsg } = getUserProfileQuery({ uid });
+    const currentUser = await fulfillPromise(promise, getValue, errorMsg);
     // Check if I am following the current user
     if (currentUser.uid !== myUID) {
-      currentUser.following = await getIsFollowingQuery({ currentUID: uid, myUID });
+      const {
+        promise: isFollowingPromise,
+        getValue: getIsFollowingValue,
+        errorMsg: isFollowingErrorMsg,
+      } = getIsFollowingQuery({ currentUID: uid, myUID });
+      currentUser.following = await fulfillPromise(
+        isFollowingPromise,
+        getIsFollowingValue,
+        isFollowingErrorMsg,
+      );
     }
     navigation.push(
       'ProfileStack',

@@ -6,6 +6,7 @@ const { aws_user_files_s3_bucket: bucket } = awsmobile;
 
 export default async function updateProfilePic(PK, SK, uid, img) {
   if (img) {
+    Storage.configure({ level: 'public' });
     const response = await fetch(img);
     const blob = await response.blob();
     const key = `profile_images/${uid}`;
@@ -18,6 +19,7 @@ export default async function updateProfilePic(PK, SK, uid, img) {
       console.warn('Error storing updated profile picture in S3:', err);
       return;
     }
+    Storage.configure({ level: 'protected' });
 
     try {
       await API.graphql(graphqlOperation(

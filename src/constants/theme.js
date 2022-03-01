@@ -41,6 +41,7 @@ const shadows = {
 const gradients = {
   orange: { colors: ['#FE724C', '#FFC529'], start: [0, 0], end: [1, 1] },
   purple: { colors: ['#7928C0', '#AF6CFF'], start: [0.2, 1], end: [0.8, 0] },
+  gray: { colors: ['#4A5B6D', '#B0BBC7'], start: [-0.7, -0.7], end: [1.7, 1.7] },
 };
 
 const sizes = {

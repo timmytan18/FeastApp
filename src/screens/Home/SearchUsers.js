@@ -12,6 +12,7 @@ import {
   searchPlacesQuery,
   getIsFollowingQuery,
   getPlaceDetailsQuery,
+  fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
@@ -39,8 +40,9 @@ const SearchUsers = ({ navigation }) => {
     if (query) {
       setLoading(true);
       const name = query.replace(/\s+/g, '').toLowerCase();
-      const itemList = searchByUser
-        ? await searchUsersQuery({ name }) : await searchPlacesQuery({ name });
+      const { promise, getValue, errorMsg } = searchByUser
+        ? searchUsersQuery({ name }) : searchPlacesQuery({ name });
+      const itemList = await fulfillPromise(promise, getValue, errorMsg);
       setSearchList(itemList);
       setLoading(false);
     } else {
@@ -50,13 +52,23 @@ const SearchUsers = ({ navigation }) => {
 
   const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
     try {
-      const currentUser = await getUserProfileQuery({ PK: currentPK, SK: currentSK });
+      const { promise, getValue, errorMsg } = getUserProfileQuery({ PK: currentPK, SK: currentSK });
+      const currentUser = await fulfillPromise(promise, getValue, errorMsg);
       currentUser.PK = currentPK;
       currentUser.SK = currentSK;
       currentUser.picture = currentProfilePic;
       // Check if I am following the current user
       if (currentPK !== PK) {
-        currentUser.following = await getIsFollowingQuery({ currentPK, myUID });
+        const {
+          promise: isFollowingPromise,
+          getValue: getIsFollowingValue,
+          errorMsg: isFollowingErrorMsg,
+        } = getIsFollowingQuery({ currentPK, myUID });
+        currentUser.following = await fulfillPromise(
+          isFollowingPromise,
+          getIsFollowingValue,
+          isFollowingErrorMsg,
+        );
       }
       navigation.push(
         'ProfileStack',
@@ -68,7 +80,8 @@ const SearchUsers = ({ navigation }) => {
   };
 
   const openPlace = async ({ placeId }) => {
-    const place = await getPlaceDetailsQuery({ placeId });
+    const { promise, getValue, errorMsg } = getPlaceDetailsQuery({ placeId });
+    const place = await fulfillPromise(promise, getValue, errorMsg);
     navigation.push('PlaceDetail', { place, placeId, placeName: place.name });
   };
 

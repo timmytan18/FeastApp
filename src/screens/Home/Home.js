@@ -1,23 +1,26 @@
 import React, {
-  useEffect, useContext, useState, useRef,
+  useEffect, useContext, useState, useRef, useCallback,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity,
+  StyleSheet, View, TouchableOpacity, Image,
 } from 'react-native';
 import { Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
+import { useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
   getFollowingPostsQuery,
   batchGetUserPostsQuery,
   batchGetPlaceDetailsQuery,
+  fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
+import { getLocalData, storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { Context } from '../../Store';
 import {
   colors, shadows, wp,
@@ -67,6 +70,21 @@ const Home = ({ navigation }) => {
   //   dLng: 0.02105,
   // };
 
+  const seenStories = useRef(new Set());
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const seen = await getLocalData(localDataKeys.SEEN_STORIES);
+        if (seen) {
+          seenStories.current = new Set(Object.keys(seen));
+        } else {
+          await storeLocalData(localDataKeys.SEEN_STORIES, {});
+        }
+      })();
+    }, []),
+  );
+
   const [markers, setMarkers] = useState([]);
   const mapRef = useRef(null);
   const isFitToMarkers = useRef(false);
@@ -92,7 +110,11 @@ const Home = ({ navigation }) => {
 
     let didAlterMarkers = false;
     Object.keys(markersCopy).forEach((placeKey) => {
+      const isNew = !seenStories.current.has(markersCopy[placeKey].SK);
+      markersCopy[placeKey].isNew = isNew;
+      markersCopy[placeKey].onlyHasOld = true;
       const hash = placeKey.slice(0, bestPrecision);
+
       if (geobox.has(hash)) { // if marker is in view
         if (hash in geoBoxTaken) { // if marker's grid already has marker
           if (markersCopy[placeKey].visible) { // if marker is visible, set invisible
@@ -100,6 +122,11 @@ const Home = ({ navigation }) => {
             markersCopy[placeKey].visible = false;
           }
           markersCopy[geoBoxTaken[hash]].numOtherMarkers += 1;
+          // if story is new, set marker its in to be new
+          if (isNew) {
+            markersCopy[geoBoxTaken[hash]].isNew = true;
+            markersCopy[geoBoxTaken[hash]].onlyHasOld = false;
+          }
           storiesGroups.current[geoBoxTaken[hash]].push(placeKey);
         } else { // if marker in grid with no other markers
           if (!markersCopy[placeKey].visible) { // if marker not already visible, set visible
@@ -146,7 +173,8 @@ const Home = ({ navigation }) => {
       const placeMarkers = {}; // place marker for user location
 
       // Fetch all posts for map feed from following users
-      const allPosts = await getFollowingPostsQuery({ PK: state.user.PK });
+      const { promise, getValue, errorMsg } = getFollowingPostsQuery({ PK: state.user.PK });
+      const allPosts = await fulfillPromise(promise, getValue, errorMsg);
       for (let i = 0; i < allPosts.length; i += 1) {
         allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
         // Desconstruct attributes needed from post
@@ -182,6 +210,7 @@ const Home = ({ navigation }) => {
         }
         if (!(placeId in placeMarkers)) {
           placeMarkers[placeId] = {
+            SK,
             name,
             placeId,
             lat,
@@ -198,23 +227,11 @@ const Home = ({ navigation }) => {
       placePosts.current = placePostsUpdated;
       await onRegionChanged({ markersCopy: placeMarkers, firstLoad: true });
     })();
-  }, [dispatch, state.user.PK, state.user.uid, state.reloadMapTrigger]);
+  }, [state.user.PK, state.user.uid, state.reloadMapTrigger]);
 
   const stories = useRef([]);
   const placeDetails = useRef({}); // obj of placeId: { details }
   const [loadingStories, setLoadingStories] = useState('none');
-
-  const getPostPictures = (item) => new Promise((resolve, reject) => {
-    Storage.get(item.picture, { level: 'protected', identityId: item.placeUserInfo.identityId })
-      .then((url) => {
-        item.s3Photo = url;
-        resolve(item);
-      })
-      .catch((err) => {
-        console.warn('Error fetching post picture from S3: ', err);
-        reject();
-      });
-  });
 
   const fetchPostDetails = async ({ placeId }) => {
     setLoadingStories(placeId);
@@ -235,29 +252,42 @@ const Home = ({ navigation }) => {
     });
 
     // Batch fetch stories for group
-    const currPlacePosts = await batchGetUserPostsQuery(
+    const { promise, getValue, errorMsg } = batchGetUserPostsQuery(
       { batch: storiesBatch },
     );
+    const currPlacePosts = await fulfillPromise(promise, getValue, errorMsg);
     if (currPlacePosts && currPlacePosts.length) {
       // Batch fetch place details for current places
       if (placeDetailsBatch.length) {
-        const places = await batchGetPlaceDetailsQuery({ batch: placeDetailsBatch });
+        const {
+          promise: placeBatchPromise,
+          getValue: getPlaceBatchValue,
+          errorMsg: placeBatchErrorMsg,
+        } = await batchGetPlaceDetailsQuery({
+          batch: placeDetailsBatch,
+        });
+        const places = await fulfillPromise(
+          placeBatchPromise,
+          getPlaceBatchValue,
+          placeBatchErrorMsg,
+        );
         places.forEach((place) => {
           if (place) placeDetails.current[place.placeId] = place;
         });
       }
       // Fetch pictures for each post
-      Promise.all(currPlacePosts.map(getPostPictures)).then((posts) => {
-        stories.current = posts.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-        setLoadingStories('none');
-        navigation.push('StoryModalModal', {
-          screen: 'StoryModal',
-          params: {
-            stories: stories.current,
-            places: placeDetails.current,
-            deviceHeight: state.deviceHeight,
-          },
-        });
+      stories.current = currPlacePosts.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+      const firstImg = await Storage.get(stories.current[0].picture);
+      try { await Image.prefetch(firstImg); } catch (e) { console.warn(e); }
+      setLoadingStories('none');
+      navigation.push('StoryModalModal', {
+        screen: 'StoryModal',
+        params: {
+          stories: stories.current,
+          places: placeDetails.current,
+          deviceHeight: state.deviceHeight,
+          firstImg,
+        },
       });
     } else {
       setLoadingStories('none');
@@ -301,7 +331,8 @@ const Home = ({ navigation }) => {
       // customMapStyle={mapLessLandmarksStyle}
       >
         {Object.entries(markers).map(([placeKey, {
-          name, placeId, lat, lng, uid, userName, userPic, category, visible, numOtherMarkers,
+          name, placeId, lat, lng, uid, userName, userPic,
+          category, visible, numOtherMarkers, isNew, onlyHasOld,
         }]) => (
           <Marker
             key={placeKey}
@@ -320,6 +351,8 @@ const Home = ({ navigation }) => {
               loadingStories={loadingStories}
               visible={visible}
               numOtherMarkers={numOtherMarkers}
+              isNew={isNew}
+              onlyHasOld={onlyHasOld}
             />
           </Marker>
         ))}
