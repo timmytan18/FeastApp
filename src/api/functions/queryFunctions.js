@@ -346,10 +346,13 @@ function getPlaceRatingQuery({ placeId }) {
     graphqlOperation(getPlaceRating, { PK: `PLACE#${placeId}`, SK: '#RATING' }),
   );
   const getValue = (res) => {
-    const { count, sum } = res.data.getFeastItem;
     let rating;
-    if (count > 0 && count != null && sum != null) {
-      rating = { count, sum };
+    const ratingRes = res.data.getFeastItem;
+    if (ratingRes) {
+      const { count, sum } = ratingRes;
+      if (count > 0 && count != null && sum != null) {
+        rating = { count, sum };
+      }
     }
     return rating;
   };

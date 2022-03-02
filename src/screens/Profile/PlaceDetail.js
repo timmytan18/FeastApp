@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   StyleSheet, ScrollView, View, TouchableOpacity,
 } from 'react-native';
 import PlaceDetailView from '../components/PlaceDetailView';
 import BackArrow from '../components/util/icons/BackArrow';
 import {
-  colors, sizes, wp, shadows,
+  colors, wp, shadows,
 } from '../../constants/theme';
 
 const PlaceDetail = ({ navigation, route }) => {

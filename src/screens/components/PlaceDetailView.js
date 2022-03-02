@@ -336,6 +336,7 @@ const BodyContent = React.memo(({
     mapRef.current.fitToSuppliedMarkers(markers.map(({ lat, lng }) => `${lat}${lng}`));
   };
 
+  console.log(rating);
   const currRating = rating || { count: 1, sum: 0 };
 
   return (
