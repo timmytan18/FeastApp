@@ -27,5 +27,33 @@
         }
       }
     }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-feastapp-prod-235603-authRole",
+      "UnauthRoleArn": "arn:aws:iam::884733755105:role/amplify-feastapp-prod-235603-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::884733755105:role/amplify-feastapp-prod-235603-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-feastapp-prod-235603-deployment",
+      "UnauthRoleName": "amplify-feastapp-prod-235603-unauthRole",
+      "StackName": "amplify-feastapp-prod-235603",
+      "StackId": "arn:aws:cloudformation:us-east-2:884733755105:stack/amplify-feastapp-prod-235603/10acbfc0-99e5-11ec-adc1-0217c3f72e40",
+      "AmplifyAppId": "d2qvzrvf15vi1t"
+    },
+    "categories": {
+      "auth": {
+        "feastappf77f5e1c": {}
+      },
+      "function": {
+        "fetchkeys": {
+          "deploymentBucketName": "amplify-feastapp-prod-235603-deployment",
+          "s3Key": "amplify-builds/fetchkeys-70436f56562f6a31536e-build.zip"
+        },
+        "reportIssue": {
+          "deploymentBucketName": "amplify-feastapp-prod-235603-deployment",
+          "s3Key": "amplify-builds/reportIssue-6c41474f517564497963-build.zip"
+        }
+      }
+    }
   }
 }
