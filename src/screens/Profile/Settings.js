@@ -43,6 +43,7 @@ const Settings = ({ route }) => {
       yesButton: 'Confirm',
       pressed: async () => {
         await signOut();
+        await clearAllLocalData();
       },
     });
   };
@@ -50,9 +51,8 @@ const Settings = ({ route }) => {
   const signOut = async () => {
     try {
       await Auth.signOut();
-      await clearAllLocalData();
     } catch (e) {
-      console.warn(e);
+      console.warn('Error signing out', e);
     }
   };
 
