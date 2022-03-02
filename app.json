@@ -12,14 +12,17 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ttan18.feast",
-      "userInterfaceStyle": "automatic"
+      "userInterfaceStyle": "automatic",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to capture and upload user profile image and post images.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to the photo library to select and upload user profile image and post image.",
+        "NSLocationWhenInUseUsageDescription": "This app uses device location to display places and posts from users nearby."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,8 +35,6 @@
       "favicon": "./assets/icon.png"
     },
     "scheme": "feast",
-    "plugins": [
-      "react-native-compressor"
-    ]
+    "plugins": ["react-native-compressor"]
   }
 }
