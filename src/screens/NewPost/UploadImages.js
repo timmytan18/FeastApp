@@ -24,6 +24,7 @@ import Cam from '../components/util/icons/Cam';
 import Library from '../components/util/icons/Library';
 import Dish from '../components/util/icons/Dish';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
+import config from '../../config';
 import { Context } from '../../Store';
 import {
   colors, sizes, header, wp,
@@ -52,7 +53,7 @@ const propTypes = {
   }).isRequired,
 };
 
-const API_GATEWAY_ENDPOINT = 'https://fyjcth1v7d.execute-api.us-east-2.amazonaws.com/dev/scraper';
+const API_GATEWAY_ENDPOINT = config.SCRAPER_ENDPOINT;
 
 const UploadImages = ({ navigation, route }) => {
   const mounted = useRef(true);

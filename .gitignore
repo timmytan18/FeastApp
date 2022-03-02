@@ -14,7 +14,7 @@ android/
 
 # misc
 .VSCodeCounter
-# .env
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -39,7 +39,7 @@ amplify/backend/.temp
 build/
 dist/
 node_modules/
-# aws-exports.js
+aws-exports.js
 awsconfiguration.json
 amplifyconfiguration.json
 amplifyconfiguration.dart
