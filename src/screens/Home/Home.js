@@ -7,7 +7,7 @@ import {
 import { Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
   getFollowingPostsQuery,
@@ -21,6 +21,7 @@ import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
 import { getLocalData, storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
+import { DEFAULT_COORDINATES } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
   colors, shadows, wp,
@@ -146,17 +147,19 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     (async () => {
+      let coords;
       // Get user location
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.warn('Permission to access location was denied');
-      }
-
-      let coords;
-      try {
-        ({ coords } = await Location.getLastKnownPositionAsync({}));
-      } catch {
-        ({ coords } = await Location.getCurrentPositionAsync({}));
+        alert('Permission to access location was denied. Please enable location services.');
+        coords = DEFAULT_COORDINATES;
+      } else {
+        try {
+          ({ coords } = await Location.getLastKnownPositionAsync({}));
+        } catch {
+          ({ coords } = await Location.getCurrentPositionAsync({}));
+        }
       }
 
       dispatch({

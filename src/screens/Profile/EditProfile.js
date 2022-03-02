@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';
+import { manipulateAsync } from 'expo-image-manipulator';
 import { API, graphqlOperation } from 'aws-amplify';
 import updateProfilePic from '../../api/functions/S3Storage';
 import { updateFeastItem } from '../../api/graphql/mutations';

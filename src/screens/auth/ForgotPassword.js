@@ -90,7 +90,7 @@ const ForgotPassword = ({ navigation, route }) => {
           <BigButton
             gradient="purple"
             text="Confirm"
-            disabled={code === '' || password === '' || confirmPassword === '' || error != null}
+            disabled={password !== confirmPassword || code === '' || password === '' || confirmPassword === '' || error != null}
             error={error}
             loading={loading}
             pressed={() => {

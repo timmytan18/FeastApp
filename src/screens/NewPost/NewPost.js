@@ -150,6 +150,7 @@ const NewPost = ({ navigation }) => {
       } catch (err) {
         if (!getNearbyAbortController.signal.aborted) {
           console.warn('Error fetching and filtering nearby Bing locations: ', err);
+          alert('Sorry, we could not find any nearby locations. Please try again later.');
         }
       }
 

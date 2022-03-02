@@ -1,4 +1,5 @@
-// Map over categories and set each value to default 4
+const DEFAULT_COORDINATES = { latitude: 40.7128, longitude: -74.0060 };
+
 const POST_IMAGE_ASPECT = [4, 5];
 
 const GEOHASH_PRECISION_AREAS = [
@@ -11,5 +12,5 @@ const MONTHS = ['Jan', 'Feb', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', '
 const GET_SAVED_POST_ID = ({ uid, timestamp }) => `${uid}_${timestamp}`;
 
 export {
-  POST_IMAGE_ASPECT, GEOHASH_PRECISION_AREAS, MONTHS, GET_SAVED_POST_ID,
+  POST_IMAGE_ASPECT, GEOHASH_PRECISION_AREAS, MONTHS, GET_SAVED_POST_ID, DEFAULT_COORDINATES,
 };
