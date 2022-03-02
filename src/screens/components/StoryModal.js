@@ -67,7 +67,7 @@ const StoryModal = ({ navigation, route }) => {
   const numStories = useRef(stories.length);
   const place = useRef(null);
   const [image, setImage] = useState(null);
-  const nextImage = useRef(firstImg);
+  const seenImages = useRef([firstImg]);
 
   const seenStories = useRef({});
 
@@ -109,15 +109,24 @@ const StoryModal = ({ navigation, route }) => {
     stopBarAnimation();
     startBarAnimation();
     (async () => {
-      const img = nextImage.current
-        ? nextImage.current : await Storage.get(stories[index.current].picture);
+      const img = seenImages.current[index.current]
+        ? seenImages.current[index.current] : await Storage.get(
+          stories[index.current].picture,
+          { identityId: stories[index.current].placeUserInfo.identityId },
+        );
       setImage(img);
-      if (index.current + 1 < numStories.current) {
-        const nextImg = await Storage.get(stories[index.current + 1].picture);
-        nextImage.current = nextImg;
-        try { await Image.prefetch(nextImage.current); } catch (e) { console.warn(e); }
+      if (index.current + 1 < numStories.current
+        && index.current + 1 >= seenImages.current.length) {
+        const nextImg = await Storage.get(
+          stories[index.current + 1].picture,
+          { identityId: stories[index.current + 1].placeUserInfo.identityId },
+        );
+        seenImages.current.push(nextImg);
+        try {
+          await Image.prefetch(nextImg);
+        } catch (e) { console.warn(e); }
       }
-      seenStories.current[stories[index.current].placeId] = timeLocal;
+      seenStories.current[stories[index.current].SK] = timeLocal;
     })();
   }, [indexState]);
 
@@ -211,7 +220,8 @@ const StoryModal = ({ navigation, route }) => {
     stopBarAnimation();
   };
   const closeModal = async () => {
-    await mergeLocalData(localDataKeys.SEEN_STORIES, { [stories[index.current].SK]: timeLocal });
+    // save seen stories to local storage
+    await mergeLocalData(localDataKeys.SEEN_STORIES, seenStories.current);
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -713,7 +723,7 @@ const StoryModal = ({ navigation, route }) => {
             </View>
           )}
           <Text
-            style={[styles.reviewText]}
+            style={[styles.reviewText, !isExpanded && { paddingBottom: wp(4) }]}
             numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
             onPress={() => setNumLines(
               isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,

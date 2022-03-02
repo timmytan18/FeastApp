@@ -169,7 +169,7 @@ const Profile = ({ navigation, route }) => {
     })();
 
     const getPostPictures = (item) => new Promise((resolve, reject) => {
-      Storage.get(item.picture, { level: 'protected', identityId: user.identityId })
+      Storage.get(item.picture, !isMe && { identityId: user.identityId })
         .then((url) => {
           item.s3Photo = url;
           // Attach placeUserInfo property for StoryModal

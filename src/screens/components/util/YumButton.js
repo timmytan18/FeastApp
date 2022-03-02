@@ -112,7 +112,10 @@ const YumButton = ({
         disabled={!yums.length}
         activeOpacity={0.6}
       >
-        <Text style={styles.bottomButtonText}>
+        <Text style={[
+          styles.bottomButtonText,
+          yums.length && { textDecorationLine: 'underline' }]}
+        >
           {yums.length}
           {' '}
           {yums.length === 1 ? 'Yum' : 'Yums'}

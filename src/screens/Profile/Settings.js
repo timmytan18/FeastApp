@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  StyleSheet, Text, View, TouchableOpacity, Platform,
+  StyleSheet, Text, View, TouchableOpacity,
 } from 'react-native';
-import Amplify, { Auth } from 'aws-amplify';
-import * as Linking from 'expo-linking';
+import { Auth } from 'aws-amplify';
 import * as WebBrowser from 'expo-web-browser';
 import { getUserEmailQuery, fulfillPromise } from '../../api/functions/queryFunctions';
-import CenterSpinner from '../components/util/CenterSpinner';
-import awsconfig from '../components/util/Link';
 import Line from '../components/util/Line';
 import NextArrow from '../components/util/icons/NextArrow';
+import TwoButtonAlert from '../components/util/TwoButtonAlert';
+import { clearAllLocalData } from '../../api/functions/LocalStorage';
 import {
   wp, colors, sizes,
 } from '../../constants/theme';
@@ -37,6 +36,25 @@ const Settings = ({ route }) => {
     })();
     // return () => { mounted.current = false; };
   }, [uid]);
+
+  const signOutConfirmation = () => {
+    TwoButtonAlert({
+      title: 'Log Out',
+      yesButton: 'Confirm',
+      pressed: async () => {
+        await signOut();
+      },
+    });
+  };
+
+  const signOut = async () => {
+    try {
+      await Auth.signOut();
+      await clearAllLocalData();
+    } catch (e) {
+      console.warn(e);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -69,7 +87,7 @@ const Settings = ({ route }) => {
       </View>
       <View style={styles.logOutContainer}>
         <Line length={wp(90)} color={colors.tertiary} stroke={3} />
-        <TouchableOpacity onPress={() => Auth.signOut()}>
+        <TouchableOpacity onPress={signOutConfirmation}>
           <Text style={styles.logOutText}>Log Out</Text>
         </TouchableOpacity>
       </View>

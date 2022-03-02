@@ -69,7 +69,7 @@ const SavedPosts = ({ navigation, route }) => {
     setLoading(true);
 
     const getPostPictures = (item) => new Promise((resolve, reject) => {
-      Storage.get(item.picture, { level: 'protected', identityId: item.placeUserInfo.identityId })
+      Storage.get(item.picture)
         .then((url) => {
           item.s3Photo = url;
           resolve(item);

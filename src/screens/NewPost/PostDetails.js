@@ -17,6 +17,7 @@ import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
 import StarsRating from '../components/util/StarsRating';
+import CenterSpinner from '../components/util/CenterSpinner';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
@@ -360,13 +361,15 @@ const PostDetails = ({ navigation, route }) => {
       />
     );
 
+    const loading = ratingRef.current != null && shareDisable;
     const headerRight = () => (
       <TouchableOpacity
         style={[styles.shareButtonContainer, { opacity: shareDisable ? 0.5 : 1 }]}
         disabled={shareDisable}
         onPress={() => share()}
       >
-        <Text style={styles.shareButtonText}>Share</Text>
+        {!loading && <Text style={styles.shareButtonText}>Share</Text>}
+        {loading && <CenterSpinner />}
       </TouchableOpacity>
     );
 

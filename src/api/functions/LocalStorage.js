@@ -32,6 +32,14 @@ const mergeLocalData = async (key, value) => {
   }
 };
 
+const clearAllLocalData = async () => {
+  try {
+    await AsyncStorage.clear();
+  } catch (e) {
+    console.warn('Error clearing all local storage', e);
+  }
+};
+
 export {
-  getLocalData, storeLocalData, mergeLocalData, localDataKeys,
+  getLocalData, storeLocalData, mergeLocalData, localDataKeys, clearAllLocalData,
 };
