@@ -38,7 +38,7 @@ const NewPost = ({ navigation }) => {
   const [selected, setSelected] = useState(null);
   const selectedData = useRef(null);
   const isSearch = useRef(false);
-  // const [smallLoading, setSmallLoading] = useState(false);
+  const [noLocation, setNoLocation] = useState(false);
 
   const [showMap, setShowMap] = useState(false);
   const showMapPlace = useRef({ name: null, latitude: null, longitude: null });
@@ -112,7 +112,12 @@ const NewPost = ({ navigation }) => {
   useEffect(() => {
     // Get current user location
     async function updateCurrentLocation() {
-      const { coords } = await Location.getLastKnownPositionAsync({});
+      let coords;
+      try {
+        ({ coords } = await Location.getLastKnownPositionAsync({}));
+      } catch {
+        ({ coords } = await Location.getCurrentPositionAsync({}));
+      }
       dispatch({
         type: 'SET_LOCATION',
         payload: {
@@ -138,6 +143,9 @@ const NewPost = ({ navigation }) => {
         await updateCurrentLocation();
       } catch (err) {
         console.warn('Error updating current location: ', err);
+        setNoLocation(true);
+        alert('Sorry, we could not find any nearby locations. Please check your location settings and try again.');
+        return;
       }
       const lat = latitude.current;
       const lng = longitude.current;
@@ -340,6 +348,7 @@ const NewPost = ({ navigation }) => {
             completeSearch={searchPlace}
             placeholder="Search for a business"
             autofocus={false}
+            disabled={noLocation}
           />
         </View>
         <View style={styles.topContainer}>

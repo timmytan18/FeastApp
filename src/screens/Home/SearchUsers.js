@@ -1,5 +1,5 @@
 import React, {
-  useState, useContext, useRef,
+  useState, useContext, useRef, useEffect,
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, Animated, FlatList, Keyboard, Image,
@@ -34,6 +34,12 @@ const SearchUsers = ({ navigation }) => {
     outputRange: [0, wp(50)],
   });
 
+  const mounted = useRef(true);
+
+  useEffect(() => () => {
+    mounted.current = false;
+  }, []);
+
   const [searchList, setSearchList] = useState([]);
 
   const fetchSearchItems = async (query) => {
@@ -43,6 +49,7 @@ const SearchUsers = ({ navigation }) => {
       const { promise, getValue, errorMsg } = searchByUser
         ? searchUsersQuery({ name }) : searchPlacesQuery({ name });
       const itemList = await fulfillPromise(promise, getValue, errorMsg);
+      if (!mounted.current) return;
       setSearchList(itemList);
       setLoading(false);
     } else {

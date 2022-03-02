@@ -6,7 +6,7 @@ import {
 } from '../../constants/theme';
 
 const SearchBox = ({
-  completeSearch, placeholder, autofocus, onChangeText,
+  completeSearch, placeholder, autofocus, onChangeText, disabled,
 }) => {
   const [query, setQuery] = useState(null);
 
@@ -27,6 +27,7 @@ const SearchBox = ({
         autoCapitalize="none"
         clearButtonMode="while-editing"
         value={query}
+        editable={!disabled}
         returnKeyType="search"
         returnKeyLabel="search"
         autoFocus={autofocus}
