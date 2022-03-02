@@ -1,4 +1,4 @@
-const DEFAULT_COORDINATES = { latitude: 40.7128, longitude: -74.0060 };
+const DEFAULT_COORDINATES = { latitude: 33.753746, longitude: -84.386330 };
 
 const POST_IMAGE_ASPECT = [4, 5];
 
