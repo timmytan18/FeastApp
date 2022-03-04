@@ -1,7 +1,9 @@
 import React, {
   useState, useRef, useContext, useEffect,
 } from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import {
+  StyleSheet, View, FlatList, Text,
+} from 'react-native';
 import { Storage } from 'aws-amplify';
 import PlaceListItem from '../components/PlaceListItem';
 import {
@@ -11,8 +13,9 @@ import {
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import CenterSpinner from '../components/util/CenterSpinner';
+import Save from '../components/util/icons/Save';
 import { Context } from '../../Store';
-import { wp } from '../../constants/theme';
+import { wp, sizes, colors } from '../../constants/theme';
 
 // Memoize row rendering, only rerender when row content changes
 const RowItem = React.memo(({ row, openPlacePosts, ratings }) => (
@@ -160,13 +163,21 @@ const SavedPosts = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       {loading && <CenterSpinner />}
-      <FlatList
-        data={posts}
-        renderItem={({ item }) => renderRow(item)}
-        keyExtractor={(item, index) => index}
-        contentContainerStyle={styles.flatlistContainer}
-        style={{ width: '100%' }}
-      />
+      {posts && posts.length !== 0 && (
+        <FlatList
+          data={posts}
+          renderItem={({ item }) => renderRow(item)}
+          keyExtractor={(item, index) => index}
+          contentContainerStyle={styles.flatlistContainer}
+          style={{ width: '100%' }}
+        />
+      )}
+      {posts && posts.length === 0 && (
+        <View style={styles.noResultsContainer}>
+          <Save size={wp(7)} color={colors.tertiary} />
+          <Text style={styles.noResultsText}>No posts saved</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -188,6 +199,18 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(4),
     marginBottom: wp(2.5),
     flexDirection: 'row',
+  },
+  noResultsContainer: {
+    width: '100%',
+    height: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noResultsText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b2,
+    color: colors.tertiary,
+    marginTop: wp(2),
   },
 });
 

@@ -139,7 +139,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   userNameText: {
-    fontFamily: 'Semi',
+    fontFamily: 'Medium',
+    letterSpacing: 0.22,
     fontSize: sizes.h4,
     color: colors.black,
   },

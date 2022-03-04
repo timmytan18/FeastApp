@@ -17,7 +17,7 @@ try:
     import os
 
     client = boto3.resource('dynamodb')
-    table = client.Table('FeastItem-dbi6udtvrnb2pbuc2bfbuh4fhe-dev')
+    table = client.Table('FeastItem-mmnuyhd54ffrjdmja2bgj2pygu-prod')
 
     print("All Modules are ok ...")
 
@@ -375,6 +375,7 @@ def lambda_handler(*args, **kwargs):
     isNormalLayout = True
 
     def get_restaurant_info():
+        print('getting restaurant info')
         try:
             isNormalLayout = getRequiredInfo(search_url)
         except Exception as e:
@@ -463,6 +464,24 @@ def lambda_handler(*args, **kwargs):
                 'a').get_attribute('href')
             order_name = link.find_element_by_class_name(
                 'b_order_online_label').find_element_by_tag_name('span').text
+            if not order_name or order_name == '':
+                curr_order_url = re.sub(r'[^a-zA-Z0-9]', '', order_url.lower())
+                if 'ubereats' in curr_order_url:
+                    order_name = 'UberEats'
+                elif 'grubhub' in curr_order_url:
+                    order_name = 'GrubHub'
+                elif 'doordash' in curr_order_url:
+                    order_name = 'DoorDash'
+                elif 'chownow' in curr_order_url:
+                    order_name = 'ChowNow'
+                elif 'postmates' in curr_order_url:
+                    order_name = 'Postmates'
+                elif 'seamless' in curr_order_url:
+                    order_name = 'Seamless'
+                elif 'trycaviar' in curr_order_url:
+                    order_name = 'Caviar'
+                else:
+                    order_name = 'Other'
             order_links[order_name] = remove_url_utm(order_url)
     except:
         print('no order links')
@@ -521,8 +540,9 @@ def lambda_handler(*args, **kwargs):
                 placeType = 'FAST'
         if priceText:
             priceLvl = priceText.count('$')
-    except Exception:
+    except Exception as e:
         print('no categories and/or price level')
+        print(e)
 
     yelp_alias = None
     yelp_url = None
@@ -639,6 +659,7 @@ SUBJECT = "PLACE SCRAPE FAILED"
 
 
 def sendScrapeFailedEmail(queryinput, url, infoFound):
+    print('sending email report')
 
     logname = os.environ['AWS_LAMBDA_LOG_STREAM_NAME']
 

@@ -221,6 +221,7 @@ const StoryModal = ({ navigation, route }) => {
   };
   const closeModal = async () => {
     // save seen stories to local storage
+    seenStories.current[stories[index.current].SK] = timeLocal;
     await mergeLocalData(localDataKeys.SEEN_STORIES, seenStories.current);
     if (navigation.canGoBack()) {
       navigation.goBack();
