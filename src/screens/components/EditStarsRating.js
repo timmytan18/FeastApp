@@ -3,7 +3,7 @@ import { View, PanResponder } from 'react-native';
 import StarsRating from './util/StarsRating';
 
 const EditStarsRating = ({
-  rating, setRating, spacing, size, starStyle, containerStyle,
+  rating, updateRating, spacing, size, starStyle, containerStyle,
 }) => {
   const containerWidth = spacing * 5 + size * 5;
 
@@ -22,11 +22,11 @@ const EditStarsRating = ({
       onPanResponderStart: (event) => {
         movementType.current = 'tap';
         startX.current = event.nativeEvent.locationX;
-        setRating(getRatingInput(event.nativeEvent.locationX, false));
+        updateRating(getRatingInput(event.nativeEvent.locationX, false));
       },
       onPanResponderMove: (_, gestureState) => {
         movementType.current = 'swipe';
-        setRating(getRatingInput(startX.current + gestureState.dx, true));
+        updateRating(getRatingInput(startX.current + gestureState.dx, true));
       },
     }),
   ).current;

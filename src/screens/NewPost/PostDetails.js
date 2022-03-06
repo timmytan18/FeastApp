@@ -382,6 +382,12 @@ const PostDetails = ({ navigation, route }) => {
     });
   }, [business, menuItem, picture, shareDisable, state.user, state.user.PK, state.user.uid]);
 
+  const updateRating = (rating) => {
+    setRating(rating);
+    ratingRef.current = rating;
+    if (shareDisable) setShareDisable(false);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -410,7 +416,7 @@ const PostDetails = ({ navigation, route }) => {
           </Text>
           <EditStarsRating
             rating={rating}
-            setRating={setRating}
+            updateRating={updateRating}
             spacing={wp(0.6)}
             size={starSize}
             starStyle={styles.myStarStyle}
@@ -447,7 +453,7 @@ const PostDetails = ({ navigation, route }) => {
 
 PostDetails.propTypes = propTypes;
 
-const starSize = wp(6);
+const starSize = wp(5.8);
 
 const styles = StyleSheet.create({
   container: {
