@@ -415,7 +415,7 @@ def lambda_handler(*args, **kwargs):
     try:
         address = locationContainer.find_element_by_xpath('a').text
     except:
-        print('no website url')
+        print('no address')
 
     placeUrl = None
     try:
@@ -560,6 +560,12 @@ def lambda_handler(*args, **kwargs):
             yelp_alias = yelp_url[yelp_url.index('biz/')+4:]
         except:
             print('no yelp url/alias')
+
+    # If name or address not found, set to input name & address
+    if not name or name == '':
+        name = _name
+    if not address or address == '':
+        address = f'{_address}, {_city}, {_state} {_zip}'
 
     # print("--------------------------")
     # print('name:', name)
