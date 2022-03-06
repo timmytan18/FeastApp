@@ -9,17 +9,16 @@ import {
 } from '../../../constants/theme';
 
 const StarsRating = ({
-  rating, spacing, size, starStyle, containerStyle, text, textStyle, enabled, update,
+  rating, spacing, size, starStyle, containerStyle, text, textStyle,
 }) => (
-  <View style={containerStyle}>
+  <View style={containerStyle} pointerEvents="none">
     <Stars
       default={rating}
       count={5}
       half
+      disabled
       starSize={100}
       spacing={spacing}
-      disabled={!enabled}
-      update={update}
       fullStar={(
         <MaskedView
           maskElement={(
@@ -35,7 +34,7 @@ const StarsRating = ({
         </MaskedView>
       )}
       halfStar={<StarHalf size={size} style={starStyle} />}
-      emptyStar={<StarEmpty size={size} style={starStyle} color={rating || enabled ? '#FFC529' : colors.gray3} />}
+      emptyStar={<StarEmpty size={size} style={starStyle} color="#FFC529" />}
     />
     {text && (
       <Text style={textStyle}>

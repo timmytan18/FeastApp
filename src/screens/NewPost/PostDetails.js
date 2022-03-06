@@ -16,7 +16,7 @@ import {
 import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
-import StarsRating from '../components/util/StarsRating';
+import EditStarsRating from '../components/EditStarsRating';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
@@ -408,18 +408,13 @@ const PostDetails = ({ navigation, route }) => {
           <Text style={styles.reviewTitleText}>
             Review:
           </Text>
-          <StarsRating
+          <EditStarsRating
             rating={rating}
+            setRating={setRating}
             spacing={wp(0.6)}
             size={starSize}
             starStyle={styles.myStarStyle}
             containerStyle={styles.starsContainer}
-            enabled
-            update={(val) => {
-              setRating(val);
-              ratingRef.current = val;
-              if (shareDisable) setShareDisable(false);
-            }}
           />
         </View>
         <View style={{ flexDirection: 'row' }}>
@@ -452,7 +447,7 @@ const PostDetails = ({ navigation, route }) => {
 
 PostDetails.propTypes = propTypes;
 
-const starSize = wp(5.5);
+const starSize = wp(6);
 
 const styles = StyleSheet.create({
   container: {
@@ -560,19 +555,20 @@ const styles = StyleSheet.create({
   reviewTitleStarsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: wp(3),
-    marginBottom: wp(1),
     paddingLeft: 1,
   },
   reviewTitleText: {
     fontFamily: 'Medium',
     fontSize: sizes.b1,
     paddingRight: wp(2),
+    marginTop: wp(3),
+    marginBottom: wp(1),
     marginLeft: 1,
     alignSelf: 'flex-end',
   },
   starsContainer: {
-    marginBottom: wp(1),
+    marginTop: wp(3),
+    marginBottom: wp(2),
     zIndex: 1,
   },
 });
