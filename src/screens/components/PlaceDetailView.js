@@ -453,7 +453,7 @@ const BodyContent = React.memo(({
           ref={mapRef}
           onMapReady={fitToMarkers}
         >
-          {PLACE_SCRAPED && (
+          {PLACE_SCRAPED && placeLat && placeLng && (
             <Marker
               key={`${placeLat}${placeLng}`}
               identifier={`${placeLat}${placeLng}`}

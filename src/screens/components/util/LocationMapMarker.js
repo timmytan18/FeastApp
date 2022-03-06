@@ -31,7 +31,7 @@ const LocationMapMarker = ({
           />
         </View>
       )}
-      {name && (
+      {name && name !== '' ? (
         <View>
           <Text
             style={[
@@ -42,7 +42,7 @@ const LocationMapMarker = ({
             {name}
           </Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 };

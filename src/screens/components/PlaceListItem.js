@@ -27,8 +27,7 @@ const PlaceListItem = ({
     placeUserInfo: { uid, picture },
   }) => ({ uid, picture }));
 
-  const currRating = rating || { count: 0, sum: 0 };
-
+  const currRating = rating || { count: 1, sum: 0 };
   return (
     <TouchableOpacity
       style={styles.postItem}

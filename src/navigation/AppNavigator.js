@@ -41,8 +41,9 @@ const renderBackArrow = ({ onPress }) => (
   <BackArrow
     color={colors.black}
     size={wp(6.2)}
-    style={{ flex: 1 }}
+    style={{ flex: 1, marginLeft: sizes.margin }}
     pressed={onPress}
+    containerStyle={styles.backArrowContainer}
   />
 );
 
@@ -61,7 +62,6 @@ function ProfileStackScreen() {
         options={{
           title: <Text style={header.title}>Settings</Text>,
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
       <ProfileStack.Screen
@@ -69,7 +69,6 @@ function ProfileStackScreen() {
         component={FollowsList}
         options={{
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
       <ProfileStack.Screen
@@ -78,7 +77,6 @@ function ProfileStackScreen() {
         options={{
           title: <Text style={header.title}>User Reviews</Text>,
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
       <ProfileStack.Screen
@@ -92,7 +90,6 @@ function ProfileStackScreen() {
         options={{
           title: <Text style={header.title}>Reviews</Text>,
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
       <ProfileStack.Screen
@@ -101,7 +98,6 @@ function ProfileStackScreen() {
         options={{
           title: <Text style={header.title}>Saved</Text>,
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
     </ProfileStack.Navigator>
@@ -138,7 +134,6 @@ function HomeStackScreen() {
         options={{
           title: <Text style={header.title}>Reviews</Text>,
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
     </HomeStack.Navigator>
@@ -169,7 +164,6 @@ function StoryModalStackScreen() {
         options={{
           title: <Text style={header.title}>Reviews</Text>,
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
     </StoryModalStack.Navigator>
@@ -193,7 +187,6 @@ function NewPostStackScreen() {
         component={UploadImages}
         options={{
           headerLeft: renderBackArrow,
-          headerLeftContainerStyle: { paddingLeft: sizes.margin },
         }}
       />
       <NewPostStack.Screen
@@ -429,12 +422,6 @@ const styles = StyleSheet.create({
     height: 32,
     marginBottom: 5,
   },
-  leftHeader: {
-    marginLeft: sizes.margin,
-    fontFamily: 'Semi',
-    fontSize: sizes.h2,
-    color: colors.primary,
-  },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -447,5 +434,11 @@ const styles = StyleSheet.create({
     paddingTop: wp(2.2),
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backArrowContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingRight: wp(8),
   },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -44,13 +44,5 @@ const StarsRating = ({
     )}
   </View>
 );
-
-const styles = StyleSheet.create({
-  container: {
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 export default StarsRating;

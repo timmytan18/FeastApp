@@ -847,7 +847,6 @@ const StoryModal = ({ navigation, route }) => {
 };
 
 const ratingIconSize = wp(12);
-const starSize = wp(5);
 
 const styles = StyleSheet.create({
   scrollView: {

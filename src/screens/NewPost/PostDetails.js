@@ -346,7 +346,7 @@ const PostDetails = ({ navigation, route }) => {
         type: 'SET_REVIEW_RATING',
         payload: { review: null, rating: null },
       });
-      navigation.navigate('Home');
+      navigation.navigate('Profile');
     }
 
     const headerLeft = () => (

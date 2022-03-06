@@ -378,29 +378,30 @@ const Profile = ({ navigation, route }) => {
       <View style={[styles.headerContainer, { height: headerHeight }]}>
         <View style={styles.headerTitleContainer}>
           {!onTab && (
-            <View style={styles.backArrowContainer}>
-              <BackArrow
-                color={colors.black}
-                size={wp(5.5)}
-                style={{ flex: 1 }}
-                pressed={() => navigation.goBack()}
-              />
-            </View>
-          )}
-          <MaskedView
-            maskElement={(
-              <Text style={styles.headerTitle}>
-                {user.name}
-              </Text>
-            )}
-          >
-            <LinearGradient
-              colors={gradients.orange.colors}
-              start={gradients.orange.start}
-              end={gradients.orange.end}
-              style={{ width: user.name.length * wp(5), height: wp(8.9) }}
+            <BackArrow
+              color={colors.black}
+              size={wp(5.5)}
+              style={{ flex: 1, marginLeft: sizes.margin }}
+              pressed={() => navigation.goBack()}
+              containerStyle={[styles.backArrowContainer, !isMe && { paddingRight: wp(5) }]}
             />
-          </MaskedView>
+          )}
+          <View style={[{ paddingTop: wp(3) }, isMe && { paddingLeft: wp(5) }]}>
+            <MaskedView
+              maskElement={(
+                <Text style={styles.headerTitle}>
+                  {user.name}
+                </Text>
+              )}
+            >
+              <LinearGradient
+                colors={gradients.orange.colors}
+                start={gradients.orange.start}
+                end={gradients.orange.end}
+                style={{ width: user.name.length * wp(5), height: wp(8.9) }}
+              />
+            </MaskedView>
+          </View>
         </View>
         <TouchableOpacity
           style={styles.moreButton}
@@ -721,19 +722,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     alignItems: 'flex-start',
-    marginTop: wp(3),
   },
   headerTitle: {
     fontFamily: 'Semi',
     fontSize: wp(6.2),
     color: colors.primary,
-    paddingLeft: wp(5),
     paddingTop: wp(1.6),
     lineHeight: wp(6.2),
   },
   backArrowContainer: {
     paddingVertical: wp(0.3),
-    marginLeft: sizes.margin,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingTop: wp(3.3),
+    height: '100%',
   },
   moreButton: {
     alignSelf: 'center',

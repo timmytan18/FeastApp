@@ -60,7 +60,7 @@ const SavedPosts = ({ navigation, route }) => {
         if (avgRatings && avgRatings.length) {
           avgRatings.forEach((rating) => {
             const { placeId, count, sum } = rating;
-            updatedRatings[placeId] = { count, sum };
+            updatedRatings[placeId] = { count: count === 0 ? 1 : count, sum };
           });
         }
         if (mounted.current) setRatings(updatedRatings);
