@@ -8,7 +8,6 @@ import { API, Storage } from 'aws-amplify';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import * as SplashScreen from 'expo-splash-screen';
 import { getUserAllSavedPostsQuery, fulfillPromise } from '../api/functions/queryFunctions';
 import Home from '../screens/Home/Home';
 import SearchUsers from '../screens/Home/SearchUsers';
@@ -359,11 +358,6 @@ const AppNavigator = () => {
     dispatch,
   ] = useContext(Context);
   const RootStack = createStackNavigator();
-
-  // Hide splash screen
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
 
   // Fetch any necessary data on main app render
   useEffect(() => {

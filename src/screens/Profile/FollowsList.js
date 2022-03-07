@@ -23,6 +23,7 @@ const FollowsList = ({ navigation, route }) => {
   const [{ user: { uid: myUID } }] = useContext(Context);
 
   const [usersList, setUsersList] = useState(null);
+  const followingPKs = useRef(new Set());
 
   const mounted = useRef(true);
 
@@ -37,11 +38,18 @@ const FollowsList = ({ navigation, route }) => {
       let dynamoUsers = null;
       let promise; let getValue; let errorMsg;
       if (type === 'Followers') {
+        // Get following users PKs
+        ({ promise, getValue, errorMsg } = getFollowingQuery({ uid, onlyReturnPKs: true }));
+        let followingUsers = await fulfillPromise(promise, getValue, errorMsg);
+        followingUsers = followingUsers.map((user) => user.uid);
+        followingPKs.current = new Set(followingUsers);
+        // Get followers
         ({ promise, getValue, errorMsg } = getFollowersQuery({ PK }));
       } else if (type === 'Following') {
         ({ promise, getValue, errorMsg } = getFollowingQuery({ uid }));
       }
       dynamoUsers = await fulfillPromise(promise, getValue, errorMsg);
+      dynamoUsers.sort((a, b) => b.createdAt.localeCompare(a.createdAt)); // sort by most recent
       if (mounted.current) setUsersList(dynamoUsers);
     })();
     return () => { mounted.current = false; };
@@ -87,15 +95,19 @@ const FollowsList = ({ navigation, route }) => {
         key={item.PK}
         id={item.PK}
       >
-        <ProfilePic
-          uid={item.uid}
-          extUrl={item.picture}
-          size={wp(10)}
-          style={{ marginHorizontal: sizes.margin }}
-        />
-        <View style={styles.infoContainer}>
-          <Text style={styles.userNameText}>{item.name}</Text>
+        <View style={styles.userInfoContainer}>
+          <ProfilePic
+            uid={item.uid}
+            extUrl={item.picture}
+            size={wp(10)}
+            style={{ marginHorizontal: sizes.margin }}
+          />
+          <View style={styles.infoContainer}>
+            <Text style={styles.userNameText}>{item.name}</Text>
+          </View>
         </View>
+        {followingPKs.current.has(item.uid)
+          && <Text style={styles.followingText}>Following</Text>}
       </TouchableOpacity>
     );
   };
@@ -136,13 +148,25 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  userInfoContainer: {
     justifyContent: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   userNameText: {
     fontFamily: 'Medium',
     letterSpacing: 0.22,
     fontSize: sizes.h4,
     color: colors.black,
+  },
+  followingText: {
+    fontFamily: 'BookItalic',
+    marginRight: wp(5),
+    alignSelf: 'center',
+    fontSize: sizes.b3,
+    color: colors.tertiary,
   },
 });
 

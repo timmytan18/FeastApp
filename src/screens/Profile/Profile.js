@@ -60,8 +60,6 @@ const propTypes = {
   }).isRequired,
 };
 
-const ADDED_ATTR = ['imgUrl', 's3Photo', 'visible', 'avgRating'];
-
 const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
 
 // Memoize row rendering, only rerender when row content changes
@@ -74,7 +72,8 @@ const RowItem = React.memo(({
   rightTabPressed,
   translateTabBar,
 }) => {
-  if (row !== LIST_STATES.LOADING && row !== LIST_STATES.NO_RESULTS && row.length) {
+  const noResults = row === LIST_STATES.NO_RESULTS;
+  if (row !== LIST_STATES.LOADING && !noResults && row.length) {
     return (
       <Animated.View
         style={[
@@ -99,7 +98,7 @@ const RowItem = React.memo(({
   }
   return (
     <View style={{ overflow: 'hidden', paddingBottom: 3 }}>
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, noResults && { opacity: 0.6 }]}>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.tab}
@@ -107,7 +106,11 @@ const RowItem = React.memo(({
         >
           <View style={styles.tabIcon}><Utensils /></View>
           <Animated.View
-            style={[styles.slider, { transform: [{ translateX: translateTabBar }] }]}
+            style={[
+              styles.slider,
+              { transform: [{ translateX: translateTabBar }] },
+              noResults && { opacity: 0 },
+            ]}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -118,20 +121,24 @@ const RowItem = React.memo(({
           <View style={styles.tabIcon}><MapMarker /></View>
         </TouchableOpacity>
       </View>
-      {row === LIST_STATES.LOADING
+      {
+        row === LIST_STATES.LOADING
         && (
           <BallIndicator
             style={{ marginTop: wp(10) }}
             color={colors.tertiary}
             size={wp(7)}
           />
-        )}
-      {row === LIST_STATES.NO_RESULTS && (
-        <View style={styles.noResultsContainer}>
-          <Cam size={wp(7)} />
-          <Text style={styles.noResultsText}>No posts yet</Text>
-        </View>
-      )}
+        )
+      }
+      {
+        row === LIST_STATES.NO_RESULTS && (
+          <View style={styles.noResultsContainer}>
+            <Cam size={wp(7)} />
+            <Text style={styles.noResultsText}>No posts yet</Text>
+          </View>
+        )
+      }
     </View>
   );
 }, (prevProps, nextProps) => prevProps.row === nextProps.row);
@@ -140,6 +147,7 @@ const Profile = ({ navigation, route }) => {
   // Set necessary data
   const [state, dispatch] = useContext(Context);
   const headerHeight = state.headerHeight - getStatusBarHeight();
+  const mounted = useRef(true);
 
   const [refreshing, setRefreshing] = useState(false);
   const numRefresh = useRef(0);
@@ -244,16 +252,23 @@ const Profile = ({ navigation, route }) => {
               posts.current.push(rowItem);
             }
           }
-          setReviews(placePosts);
-          setRefreshing(false);
+          if (mounted.current) {
+            setReviews(placePosts);
+            setRefreshing(false);
+          }
         });
       } else {
         posts.current = [LIST_STATES.NO_RESULTS];
-        setReviews({});
-        setRefreshing(false);
+        if (mounted.current) {
+          setReviews({});
+          setRefreshing(false);
+        }
       }
     })();
-  }, [numRefresh.current, dispatch, isMe, user.PK, user.SK, user.identityId]);
+    return () => {
+      mounted.current = false;
+    };
+  }, [numRefresh.current, isMe, user.PK, user.SK, user.identityId]);
 
   // Switch list view & map view animations
   const [mapOpen, setMapOpen] = useState(false);
@@ -489,11 +504,9 @@ const Profile = ({ navigation, route }) => {
                   <FollowButton
                     currentUser={user}
                     myUser={state.user}
-                    reviews={reviews}
                     dispatch={dispatch}
                     containerStyle={styles.editContainer}
                     textStyle={styles.editText}
-                    ADDED_ATTR={ADDED_ATTR}
                   />
                 )}
             </View>
@@ -504,9 +517,6 @@ const Profile = ({ navigation, route }) => {
   );
 
   const leftTabPressed = () => {
-    if (numReviews.current === 0) {
-      posts.current = [LIST_STATES.NO_RESULTS];
-    }
     setMapOpen(false);
     flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
     Animated.spring(position, {
@@ -518,22 +528,9 @@ const Profile = ({ navigation, route }) => {
   };
 
   const rightTabPressed = () => {
-    if (numReviews.current !== 0) {
-      // try/catch to prevent error when switching to map view when flatlist hasn't loaded
-      try {
-        flatListRef.current.scrollToIndex({ animated: true, index: 1 });
-        setMapOpen(true);
-        Animated.spring(position, {
-          toValue: 1,
-          speed: 40,
-          bounciness: 2,
-          useNativeDriver: true,
-        }).start();
-      } catch (e) {
-        leftTabPressed();
-      }
-    } else {
-      posts.current = [[]];
+    // try/catch to prevent error when switching to map view when flatlist hasn't loaded
+    try {
+      flatListRef.current.scrollToIndex({ animated: true, index: 1 });
       setMapOpen(true);
       Animated.spring(position, {
         toValue: 1,
@@ -541,6 +538,8 @@ const Profile = ({ navigation, route }) => {
         bounciness: 2,
         useNativeDriver: true,
       }).start();
+    } catch (e) {
+      leftTabPressed();
     }
   };
 
@@ -595,7 +594,7 @@ const Profile = ({ navigation, route }) => {
             style={[
               styles.mapViewTabButtonOverlay,
               {
-                top: numReviews.current === 0 ? insets.top + wp(48.8) : insets.top,
+                top: insets.top,
                 left: wp(2.5),
               },
             ]}
@@ -605,7 +604,7 @@ const Profile = ({ navigation, route }) => {
             style={[
               styles.mapViewTabButtonOverlay,
               {
-                top: numReviews.current === 0 ? insets.top + wp(48.8) : insets.top,
+                top: insets.top,
                 right: wp(2.5),
               },
             ]}
@@ -682,7 +681,7 @@ const Profile = ({ navigation, route }) => {
             identifier={`${latitude}${longitude}`}
             coordinate={{ latitude, longitude }}
           >
-            <LocationMapMarker />
+            <LocationMapMarker name="Me" />
           </Marker>
         </MapView>
         <TouchableOpacity

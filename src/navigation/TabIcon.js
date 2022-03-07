@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, StyleSheet } from 'react-native';
+import ProfilePic from '../screens/components/ProfilePic';
 import { colors, wp } from '../constants/theme';
 
 const TabIcon = ({
@@ -8,15 +9,16 @@ const TabIcon = ({
   const width = size || wp(7.2);
   const imageStyle = focused
     ? styles.imageFocused
-    : [styles.image, { width, height: width }];
+    : { ...styles.image, width, height: width };
 
   return (
     <View style={styles.container}>
       {image
         ? (
-          <Image
-            source={{ uri: `${image}?${new Date()}` }}
-            resizeMode="cover"
+          <ProfilePic
+            extUrl={image}
+            isMe
+            size={imageStyle.width}
             style={imageStyle}
           />
         )
@@ -39,13 +41,13 @@ const styles = StyleSheet.create({
     borderRadius: wp(3.6),
   },
   imageFocused: {
-    width: wp(5.7),
-    height: wp(5.7),
-    borderRadius: wp(2.85),
+    width: wp(5.8),
+    height: wp(5.8),
+    borderRadius: wp(2.9),
   },
   circleBorder: {
     position: 'absolute',
-    borderWidth: 1.15,
+    borderWidth: 1.3,
     borderColor: colors.black,
   },
   noImageFocused: {

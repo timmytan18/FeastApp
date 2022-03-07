@@ -1,5 +1,8 @@
 # Selenium Lambda setup: https://www.youtube.com/watch?v=jWqbYiHudt8
 
+TABLE_NAME = 'FeastItem-mmnuyhd54ffrjdmja2bgj2pygu-prod'
+TABLE_NAME = 'FeastItem-dbi6udtvrnb2pbuc2bfbuh4fhe-dev'
+
 try:
     import re
     from selenium.webdriver import Chrome
@@ -17,7 +20,7 @@ try:
     import os
 
     client = boto3.resource('dynamodb')
-    table = client.Table('FeastItem-mmnuyhd54ffrjdmja2bgj2pygu-prod')
+    table = client.Table(TABLE_NAME)
 
     print("All Modules are ok ...")
 
@@ -252,6 +255,14 @@ def normalize(query):
     return query_formatted
 
 
+delivery_types = [
+    ['ubereats', 'UberEats'], ['grubhub', 'GrubHub'],
+    ['doordash', 'DoorDash'], ['chownow', 'ChowNow'],
+    ['postmates', 'Postmates'], ['seamless', 'Seamless'],
+    ['trycaviar', 'Caviar']
+]
+
+
 def lambda_handler(*args, **kwargs):
     instance_ = WebDriver()
     driver = instance_.get()
@@ -426,18 +437,38 @@ def lambda_handler(*args, **kwargs):
             placeUrlContainer = sideResultMain.find_element_by_css_selector(
                 "a[aria-label='Website']").get_attribute('href')
             placeUrl = remove_url_utm(placeUrlContainer)
-    except:
-        print('no website url')
+    except Exception as e:
+        try:
+            if isNormalLayout:
+                placeUrlContainer = sideResultMain.find_element_by_css_selector(
+                    "a[aria-label='Website']").get_attribute('href')
+                placeUrl = remove_url_utm(placeUrlContainer)
+            else:
+                placeUrlContainer = centerInfo.find_element_by_link_text(
+                    'Website')
+                placeUrl = remove_url_utm(
+                    placeUrlContainer.get_attribute('href'))
+        except Exception as e:
+            print('no website url', e)
 
     menu = None
     try:
         container = centerInfo if isNormalLayout else sideResultMain
         menu_container = container.find_element_by_link_text('Menu')
+        print('menu container found')
         menu = remove_url_utm(menu_container.get_attribute('href'))
         if menu == 'https://www.godaddy.com/online-marketing/locu':
             menu = None
     except:
-        print('no menu')
+        try:
+            container = sideResultMain if isNormalLayout else centerInfo
+            menu_container = container.find_element_by_link_text('Menu')
+            print('menu container found')
+            menu = remove_url_utm(menu_container.get_attribute('href'))
+            if menu == 'https://www.godaddy.com/online-marketing/locu':
+                menu = None
+        except:
+            print('no menu')
 
     phone = None
     display_phone = None
@@ -452,7 +483,18 @@ def lambda_handler(*args, **kwargs):
                 display_phone = candidate.text
                 break
     except:
-        print('no phone number')
+        try:
+            container = sideResultMain if isNormalLayout else centerInfoMain
+            display_phone_candidates = container.find_elements_by_css_selector(
+                "a[h]")
+            for candidate in display_phone_candidates:
+                cand_phone = candidate.get_attribute('href')
+                if cand_phone.startswith('tel:'):
+                    phone = '+1' + cand_phone[4:]
+                    display_phone = candidate.text
+                    break
+        except:
+            print('no phone number')
 
     order_links = {}
     try:
@@ -466,25 +508,33 @@ def lambda_handler(*args, **kwargs):
                 'b_order_online_label').find_element_by_tag_name('span').text
             if not order_name or order_name == '':
                 curr_order_url = re.sub(r'[^a-zA-Z0-9]', '', order_url.lower())
-                if 'ubereats' in curr_order_url:
-                    order_name = 'UberEats'
-                elif 'grubhub' in curr_order_url:
-                    order_name = 'GrubHub'
-                elif 'doordash' in curr_order_url:
-                    order_name = 'DoorDash'
-                elif 'chownow' in curr_order_url:
-                    order_name = 'ChowNow'
-                elif 'postmates' in curr_order_url:
-                    order_name = 'Postmates'
-                elif 'seamless' in curr_order_url:
-                    order_name = 'Seamless'
-                elif 'trycaviar' in curr_order_url:
-                    order_name = 'Caviar'
-                else:
-                    order_name = 'Other'
+                order_name = 'Other'
+                for lower_name, formatted_name in delivery_types:
+                    if lower_name in curr_order_url:
+                        order_name = formatted_name
+                        break
             order_links[order_name] = remove_url_utm(order_url)
     except:
-        print('no order links')
+        try:
+            container = sideResult if isNormalLayout else centerResult
+            order_links_containers = container.find_element_by_class_name(
+                'b_order_online').find_element_by_class_name('b_slidebar').find_elements_by_class_name('slide')
+            for link in order_links_containers:
+                order_url = link.find_element_by_tag_name(
+                    'a').get_attribute('href')
+                order_name = link.find_element_by_class_name(
+                    'b_order_online_label').find_element_by_tag_name('span').text
+                if not order_name or order_name == '':
+                    curr_order_url = re.sub(
+                        r'[^a-zA-Z0-9]', '', order_url.lower())
+                    order_name = 'Other'
+                    for lower_name, formatted_name in delivery_types:
+                        if lower_name in curr_order_url:
+                            order_name = formatted_name
+                            break
+                order_links[order_name] = remove_url_utm(order_url)
+        except:
+            print('no order links')
 
     imgUrl = None
     try:
@@ -499,6 +549,11 @@ def lambda_handler(*args, **kwargs):
     try:
         categoriesPriceContainer = sideResult.find_element_by_class_name(
             'b_factrow')
+        categoriesPriceContainerParent = categoriesPriceContainer.find_element_by_xpath(
+            "./..")
+        if 'infoModule' not in categoriesPriceContainerParent.get_attribute('class'):
+            print('Invalid categories price container')
+            raise Exception
         categoriesText = categoriesPriceContainer.text
         print(categoriesText)
         # remove tripadvisor/facebook/other social from string if present

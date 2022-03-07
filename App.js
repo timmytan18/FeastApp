@@ -1,44 +1,42 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Platform, StatusBar, View, Image,
+  Platform, StatusBar, View,
 } from 'react-native';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
 import { Asset } from 'expo-asset';
+import * as SplashScreen from 'expo-splash-screen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Store from './src/Store';
 import Main from './src/Main';
 
+import splash from './assets/splash.png';
+import Book from './assets/Jost/Book.otf';
+import BookItalic from './assets/Jost/BookItalic.otf';
+import Medium from './assets/Jost/Medium.otf';
+import MediumItalic from './assets/Jost/MediumItalic.otf';
+import Semi from './assets/Jost/Semi.otf';
+import SemiItalic from './assets/Jost/SemiItalic.otf';
+import Bold from './assets/Jost/Bold.otf';
+import BoldItalic from './assets/Jost/BoldItalic.otf';
+
 const App = () => {
   const [fontsLoaded] = useFonts({
-    Book: require('./assets/Jost/Book.otf'),
-    BookItalic: require('./assets/Jost/BookItalic.otf'),
-    Medium: require('./assets/Jost/Medium.otf'),
-    MediumItalic: require('./assets/Jost/MediumItalic.otf'),
-    Semi: require('./assets/Jost/Semi.otf'),
-    SemiItalic: require('./assets/Jost/SemiItalic.otf'),
-    Bold: require('./assets/Jost/Bold.otf'),
-    BoldItalic: require('./assets/Jost/BoldItalic.otf'),
+    Book,
+    BookItalic,
+    Medium,
+    MediumItalic,
+    Semi,
+    SemiItalic,
+    Bold,
+    BoldItalic,
   });
 
   const [isSplashReady, setSplashReady] = useState(false);
-  const [isAppReady, setAppReady] = useState(false);
 
   async function cacheSplashResourcesAsync() {
-    const image = require('./assets/splash.png');
-    return Asset.fromModule(image).downloadAsync();
-  }
-
-  async function cacheResourcesAsync() {
-    const images = [
-      require('./assets/authbackground.jpg'),
-    ];
-
-    const cacheImages = images.map((image) => Asset.fromModule(image).downloadAsync());
-
-    await Promise.all(cacheImages);
-    setAppReady(true);
+    return Asset.fromModule(splash).downloadAsync();
   }
 
   if (!isSplashReady || !fontsLoaded) {
@@ -47,19 +45,7 @@ const App = () => {
         startAsync={() => cacheSplashResourcesAsync()}
         onFinish={() => setSplashReady(true)}
         onError={console.warn}
-        autoHideSplash
       />
-    );
-  }
-
-  if (!isAppReady) {
-    return (
-      <View style={{ flex: 1 }}>
-        <Image
-          source={require('./assets/splash.png')}
-          onLoad={() => cacheResourcesAsync()}
-        />
-      </View>
     );
   }
 

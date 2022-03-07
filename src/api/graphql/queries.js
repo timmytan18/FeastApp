@@ -148,6 +148,7 @@ export const getFollowers = /* GraphQL */ `
           picture
           uid
         }
+        createdAt
       }
       nextToken
     }
@@ -208,6 +209,31 @@ export const getFollowing = /* GraphQL */ `
         follower {
           followedSK
         }
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getFollowingPK = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        uid
       }
       nextToken
     }

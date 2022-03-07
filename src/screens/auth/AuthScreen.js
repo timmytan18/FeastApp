@@ -5,7 +5,6 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-community/masked-view';
-import * as SplashScreen from 'expo-splash-screen';
 import {
   colors, sizes, wp, gradients,
 } from '../../constants/theme';
@@ -13,8 +12,6 @@ import Logo from '../components/util/icons/Logo';
 import authbackground from '../../../assets/authbackground.jpg';
 
 const AuthScreen = ({ navigation }) => {
-  SplashScreen.hideAsync();
-
   const openPrivacyPolicy = () => {
     WebBrowser.openBrowserAsync('https://www.feastapp.io/privacy/');
   };

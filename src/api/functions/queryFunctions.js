@@ -2,9 +2,9 @@
 
 import { API, graphqlOperation } from 'aws-amplify';
 import {
-  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, searchUsers, searchPlaces,
-  getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getNumFollows,
-  getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
+  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, getFollowingPK, searchUsers,
+  searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers,
+  getNumFollows, getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
   getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
   getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
   getUserYumsReceived, getPostYumsNoDetails, getUserEmail, getPlaceRating, batchGetPlaceRatings,
@@ -53,9 +53,9 @@ function getUserPostsQuery({ PK, hash, withUserInfo }) {
 }
 
 // Fetch users that current user is following
-function getFollowingQuery({ uid }) {
+function getFollowingQuery({ uid, onlyReturnPKs }) {
   const promise = API.graphql(graphqlOperation(
-    getFollowing,
+    onlyReturnPKs ? getFollowingPK : getFollowing,
     { GSI1: 'USER#', SK: { beginsWith: `#FOLLOWER#${uid}` }, limit: 200 },
   ));
   const getValue = (res) => res.data.itemsByGSI1.items;

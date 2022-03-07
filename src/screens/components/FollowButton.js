@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Text, Alert,
+  View, TouchableOpacity, Text, Alert,
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import PropTypes from 'prop-types';
-import { getFollowingPostsByUserQuery, fulfillPromise } from '../../api/functions/queryFunctions';
+import { getFollowingPostsByUserQuery, getUserPostsQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import {
   createFeastItem, deleteFeastItem, incrementFeastItem,
   batchCreateFollowingPosts, batchDeleteFollowingPosts,
@@ -35,19 +35,12 @@ const propTypes = {
     picture: PropTypes.string,
     s3Picture: PropTypes.string,
   }).isRequired,
-  reviews:
-    PropTypes.objectOf(
-      PropTypes.arrayOf(PropTypes.shape({
-        placeId: PropTypes.string,
-        name: PropTypes.string,
-        geo: PropTypes.string,
-        timestamp: PropTypes.string,
-      })),
-    ).isRequired,
 };
 
+const ADDED_ATTR = ['imgUrl'];
+
 const FollowButton = ({
-  currentUser, myUser, reviews, dispatch, containerStyle, textStyle, ADDED_ATTR,
+  currentUser, myUser, dispatch, containerStyle, textStyle,
 }) => {
   // Destructure current user (profile user is viewing) object
   const {
@@ -79,32 +72,33 @@ const FollowButton = ({
   const reviewsForFeed = useRef([]);
   const reviewsToDelete = useRef([]);
 
-  useEffect(() => {
+  const getUserPosts = async () => {
+    const { promise, getValue, errorMsg } = getUserPostsQuery({
+      PK, withUserInfo: false,
+    });
+    const userReviews = await fulfillPromise(promise, getValue, errorMsg);
     const updatedReviews = [];
-    Object.values(reviews).forEach((places) => {
-      places.forEach((review) => {
-        updatedReviews.push({
-          ...review,
-          PK: myPK,
-          SK: `#FOLLOWINGPOST#${review.timestamp}#${uid}`,
-          LSI1: `#FOLLOWINGPOST#${review.geo}`,
-          LSI2: `#FOLLOWINGPOST#${review.placeId}#${review.timestamp}`,
-          LSI3: `#FOLLOWINGPOST#${uid}`,
-          placeUserInfo: {
-            name,
-            uid,
-            picture,
-            identityId,
-          },
-        });
-        // Remove s3Photo, imgUrl, visible, & avgRating from FollowingPost item
-        ADDED_ATTR.forEach((attr) => {
-          delete updatedReviews[updatedReviews.length - 1][attr];
-        });
+    userReviews.forEach((review) => {
+      updatedReviews.push({
+        ...review,
+        PK: myPK,
+        SK: `#FOLLOWINGPOST#${review.timestamp}#${uid}`,
+        LSI1: `#FOLLOWINGPOST#${review.geo}`,
+        LSI2: `#FOLLOWINGPOST#${review.placeId}#${review.timestamp}`,
+        LSI3: `#FOLLOWINGPOST#${uid}`,
+        placeUserInfo: {
+          name,
+          uid,
+          picture,
+          identityId,
+        },
+      });
+      ADDED_ATTR.forEach((attr) => {
+        delete updatedReviews[updatedReviews.length - 1][attr];
       });
     });
     reviewsForFeed.current = updatedReviews;
-  }, [reviews, myPK, name, uid, picture]);
+  };
 
   const changeFollowingConfirmation = async () => {
     if (following) {
@@ -116,19 +110,19 @@ const FollowButton = ({
         title: `Unfollow ${currentUser.name}?`,
         yesButton: 'Confirm',
         pressed: () => {
-          changeFollowing();
+          changeFollowing(true);
           removePostsFromFeed();
         },
       });
     } else {
+      await getUserPosts();
+      changeFollowing(false);
       addPostsToFeed();
-      changeFollowing();
     }
   };
 
-  const changeFollowing = async () => {
+  const changeFollowing = async (currFollow) => {
     // Add following/unfollowing to DB
-    const currFollow = following;
     setFollowing(!currFollow);
     const mutation = currFollow ? deleteFeastItem : createFeastItem;
     const input = currFollow
@@ -146,7 +140,7 @@ const FollowButton = ({
       console.warn('Error changing following status: ', err);
       Alert.alert(
         'Error',
-        `Could not ${currFollow ? 'unfollow' : 'follow'}`,
+        `Could not ${currFollow ? 'unfollow' : 'follow'} user`,
         [{ text: 'OK' }],
         { cancelable: false },
       );
@@ -186,6 +180,14 @@ const FollowButton = ({
           ));
         } catch (err) {
           console.warn("Error adding followed user's posts to feed: ", err);
+          changeFollowing(true);
+          removePostsFromFeed();
+          Alert.alert(
+            'Error',
+            'Could not follow user',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
         }
       }
     }
