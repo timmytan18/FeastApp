@@ -450,6 +450,7 @@ const styles = StyleSheet.create({
   topTextContainer: {
     alignSelf: 'flex-start',
     marginTop: wp(5),
+    marginBottom: wp(2),
     marginLeft: sizes.margin,
   },
   topText: {
@@ -464,7 +465,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: colors.tertiary,
     paddingTop: 1,
-    paddingBottom: 2,
   },
   searchBoxContainer: {
     flex: 0.06,
