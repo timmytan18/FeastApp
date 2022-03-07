@@ -58,7 +58,7 @@
     "react-native-screens": "~3.10.1",
     "react-native-stars": "^1.2.2",
     "react-native-status-bar-height": "^2.6.0",
-    "react-native-svg": "12.1.1",
+    "react-native-svg": "^12.3.0",
     "react-native-unimodules": "~0.15.0"
   },
   "devDependencies": {

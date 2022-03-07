@@ -6,9 +6,11 @@ const config = getDefaultConfig(__dirname);
 const exclusionList = require('metro-config/src/defaults/exclusionList');
 
 config.resolver = {
+  ...config.resolver,
   blacklistRE: exclusionList([/amplify\/#current-cloud-backend\/.*/]),
 };
 config.transformer = {
+  ...config.transformer,
   getTransformOptions: async () => ({
     transform: {
       experimentalImportSupport: false,
