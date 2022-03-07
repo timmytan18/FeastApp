@@ -50,6 +50,7 @@ const Register = ({ navigation, route }) => {
       navigation.navigate('Verification', { email: user.user.username, back: false });
     } catch (err) {
       setLoading(false);
+      console.log(err);
       if (err.code === 'UsernameExistsException') {
         setError('It seems like this email already has an account - try logging in or use another email!');
       } else if (err.code === 'InvalidParameterException') {
@@ -68,7 +69,8 @@ const Register = ({ navigation, route }) => {
   };
 
   function checkInvalidInput() {
-    return (!validateEmail(email) || password === '' || confirmPassword === '' || password !== confirmPassword || error != null);
+    return (!validateEmail(email) || password === '' || confirmPassword === ''
+      || password !== confirmPassword || password.length < 8 || error != null);
   }
 
   return (

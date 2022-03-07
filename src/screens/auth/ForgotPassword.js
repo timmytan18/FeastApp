@@ -49,6 +49,12 @@ const ForgotPassword = ({ navigation, route }) => {
         }
       });
   }
+
+  function checkInvalidInput() {
+    return (code === '' || password === '' || confirmPassword === ''
+      || password !== confirmPassword || password.length < 8 || error != null);
+  }
+
   return (
     <DismissKeyboardView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -90,7 +96,7 @@ const ForgotPassword = ({ navigation, route }) => {
           <BigButton
             gradient="purple"
             text="Confirm"
-            disabled={password !== confirmPassword || code === '' || password === '' || confirmPassword === '' || error != null}
+            disabled={checkInvalidInput()}
             error={error}
             loading={loading}
             pressed={() => {
