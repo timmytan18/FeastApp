@@ -713,32 +713,37 @@ const StoryModal = ({ navigation, route }) => {
               />
             )}
           </View>
-          {numLinesExpanded == null && (
-            <View pointerEvents="box-none">
-              <Text
-                style={[styles.reviewText, styles.reviewTextHidden]}
-                onTextLayout={onTextLayout}
-              >
-                {review}
-              </Text>
-            </View>
-          )}
-          <Text
-            style={[styles.reviewText, !isExpanded && { paddingBottom: wp(4) }]}
-            numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
-            onPress={() => setNumLines(
-              isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
-            )}
+          <View style={[isExpanded && {
+            justifyContent: 'space-between', flex: 1, paddingBottom: wp(5),
+          }]}
           >
-            {review}
-          </Text>
-          <View>
-            <Image
-              style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
-              source={{ uri: image }}
-            />
-            <View style={styles.emojiContainer} />
-            {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+            {numLinesExpanded == null && (
+              <View pointerEvents="box-none">
+                <Text
+                  style={[styles.reviewText, styles.reviewTextHidden]}
+                  onTextLayout={onTextLayout}
+                >
+                  {review}
+                </Text>
+              </View>
+            )}
+            <Text
+              style={[styles.reviewText, !isExpanded && { paddingBottom: wp(4) }]}
+              numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
+              onPress={() => setNumLines(
+                isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
+              )}
+            >
+              {review}
+            </Text>
+            <View>
+              <Image
+                style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
+                source={{ uri: image }}
+              />
+              <View style={styles.emojiContainer} />
+              {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+            </View>
           </View>
         </View>
         <View style={styles.middleContainer}>
