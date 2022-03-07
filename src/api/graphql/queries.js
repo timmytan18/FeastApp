@@ -209,6 +209,7 @@ export const getFollowing = /* GraphQL */ `
         follower {
           followedSK
         }
+        createdAt
       }
       nextToken
     }
