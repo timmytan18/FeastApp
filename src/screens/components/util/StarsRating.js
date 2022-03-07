@@ -4,9 +4,7 @@ import Stars from 'react-native-stars';
 import MaskedView from '@react-native-community/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StarFull, StarHalf, StarEmpty } from './icons/Star';
-import {
-  colors, gradients,
-} from '../../../constants/theme';
+import { gradients } from '../../../constants/theme';
 
 const StarsRating = ({
   rating, spacing, size, starStyle, containerStyle, text, textStyle,

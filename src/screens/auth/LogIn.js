@@ -8,7 +8,7 @@ import DismissKeyboardView from '../components/util/DismissKeyboard';
 import BigButton from '../components/util/BigButton';
 import { EmailInput, PasswordInput } from './Input';
 import {
-  colors, sizes, wp, hp,
+  colors, sizes, wp,
 } from '../../constants/theme';
 
 const LogIn = ({ navigation, route }) => {

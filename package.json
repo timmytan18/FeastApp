@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
+    "@expo/metro-config": "^0.3.11",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
     "eslint": "^8.6.0",
