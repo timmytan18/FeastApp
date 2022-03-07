@@ -249,11 +249,12 @@ const UploadImages = ({ navigation, route }) => {
     if (!libraryPreview) {
       const { assets } = await MediaLibrary.getAssetsAsync();
       const images = [];
-      for (let i = 1; i < assets.length; i += 2) {
+      const numPreview = assets.length > 8 ? 8 : assets.length;
+      for (let i = 1; i < numPreview; i += 2) {
         images.push([assets[i - 1], assets[i]]);
       }
       if (mounted.current) setLibraryPreview(images);
-      if (assets.length) {
+      if (numPreview) {
         pictureFromPreview.current = true;
         if (mounted.current) setPicture(assets[0]);
       }
@@ -651,12 +652,12 @@ const styles = StyleSheet.create({
   },
   allLibraryContainer: {
     height: wp(45),
-    aspectRatio: 1,
+    aspectRatio: 0.7,
     alignItems: 'center',
     justifyContent: 'center',
   },
   allLibrary: {
-    width: '50%',
+    height: '50%',
     aspectRatio: 1,
     borderRadius: wp(30),
     backgroundColor: colors.gray3,

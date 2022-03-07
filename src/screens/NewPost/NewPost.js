@@ -24,7 +24,7 @@ import {
 
 const BING_CAT_TYPE = 'EatDrink';
 const BING_NEARBY_RADIUS = '1000'; // 1 km radius
-const BING_SEARCH_RADIUS = '5000'; // 5 km radius (max); is more when no results within 5 km
+const BING_SEARCH_RADIUS = '1000'; // 5 km radius (max); is more when no results within 5 km
 
 const NewPost = ({ navigation }) => {
   const mounted = useRef(true);
@@ -197,7 +197,9 @@ const NewPost = ({ navigation }) => {
         const data = await res.json();
         isSearch.current = true;
         const items = data.resourceSets[0].resources;
-        await filterSetResults(items);
+        const searchResults = await filterSetResults(items);
+        setPlaceList(searchResults);
+        setLoading(false);
         // Run scraper test
         // scrapeTest({ places: searchResults });
       } catch (err) {
@@ -342,6 +344,9 @@ const NewPost = ({ navigation }) => {
           <Text style={styles.topText}>
             Where did you Feast?
           </Text>
+          <Text style={styles.topSubtitleText}>
+            (Use exact name with city/street for more accurate results)
+          </Text>
         </View>
         <View style={styles.searchBoxContainer}>
           <SearchBox
@@ -402,7 +407,7 @@ const NewPost = ({ navigation }) => {
                   Sorry, we couldn't find the restaurant you're looking for.
                 </Text>
                 <Text style={styles.noResultsText}>
-                  Try searching for the exact restaurant name!
+                  Try searching for the exact restaurant name with the city/street name!
                 </Text>
               </View>
             )}
@@ -451,6 +456,14 @@ const styles = StyleSheet.create({
     fontSize: sizes.h4,
     textAlign: 'left',
     color: colors.black,
+  },
+  topSubtitleText: {
+    fontFamily: 'Book',
+    fontSize: sizes.b3,
+    textAlign: 'left',
+    color: colors.tertiary,
+    paddingTop: 1,
+    paddingBottom: 2,
   },
   searchBoxContainer: {
     flex: 0.06,
@@ -543,6 +556,7 @@ const styles = StyleSheet.create({
     fontSize: sizes.caption,
     color: colors.tertiary,
     paddingTop: wp(0.5),
+    textDecorationLine: 'underline',
   },
   smallLoader: {
     height: wp(15),
