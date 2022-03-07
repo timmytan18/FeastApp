@@ -34,6 +34,7 @@ const FollowsList = ({ navigation, route }) => {
   }, [navigation, type]);
 
   useEffect(() => {
+    mounted.current = true;
     (async () => {
       let dynamoUsers = null;
       let promise; let getValue; let errorMsg;

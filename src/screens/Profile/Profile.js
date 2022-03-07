@@ -141,7 +141,7 @@ const RowItem = React.memo(({
       }
     </View>
   );
-}, (prevProps, nextProps) => prevProps.row === nextProps.row);
+}, (prevProps, nextProps) => prevProps.numReviews === nextProps.numReviews);
 
 const Profile = ({ navigation, route }) => {
   // Set necessary data
@@ -168,6 +168,7 @@ const Profile = ({ navigation, route }) => {
   const posts = useRef([LIST_STATES.LOADING]);
 
   useEffect(() => {
+    mounted.current = true;
     // Get number of followers and following
     (async () => {
       const { promise, getValue, errorMsg } = getNumFollowsQuery({ PK: user.PK, SK: user.SK });
@@ -268,7 +269,7 @@ const Profile = ({ navigation, route }) => {
     return () => {
       mounted.current = false;
     };
-  }, [numRefresh.current, isMe, user.PK, user.SK, user.identityId]);
+  }, [numRefresh.current, isMe, user.PK, user.SK, user.identityId, state.reloadProfileTrigger]);
 
   // Switch list view & map view animations
   const [mapOpen, setMapOpen] = useState(false);
@@ -569,6 +570,7 @@ const Profile = ({ navigation, route }) => {
       leftTabPressed={leftTabPressed}
       rightTabPressed={rightTabPressed}
       translateTabBar={translateTabBar}
+      numReviews={numReviews.current}
     />
   );
 

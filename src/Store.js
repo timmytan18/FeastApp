@@ -3,7 +3,6 @@ import Reducer from './Reducer';
 
 const initialState = {
   user: null,
-  reloadMapTrigger: false,
   review: null,
   rating: null,
   location: { longitude: null, latitude: null },
@@ -12,6 +11,8 @@ const initialState = {
   headerHeight: null,
   error: null,
   deviceHeight: null,
+  reloadMapTrigger: false,
+  reloadProfileTrigger: false,
 };
 
 const Store = ({ children }) => {

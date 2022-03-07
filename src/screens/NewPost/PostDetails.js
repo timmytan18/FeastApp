@@ -338,15 +338,18 @@ const PostDetails = ({ navigation, route }) => {
         }
       }
 
-      // Update app state to trigger map re-render
+      // Update app state to trigger map & profile re-render
       dispatch({ type: 'SET_RELOAD_MAP' });
+      dispatch({ type: 'SET_RELOAD_PROFILE' });
 
       // Clear and reset review and rating
       dispatch({
         type: 'SET_REVIEW_RATING',
         payload: { review: null, rating: null },
       });
-      navigation.navigate('Profile');
+      navigation.navigate('ProfileTab', {
+        screen: 'Profile',
+      });
     }
 
     const headerLeft = () => (

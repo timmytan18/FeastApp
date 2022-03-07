@@ -21,6 +21,7 @@ import SavedPosts from '../screens/Profile/SavedPosts';
 import PlaceDetail from '../screens/Profile/PlaceDetail';
 import Settings from '../screens/Profile/Settings';
 import UploadImages from '../screens/NewPost/UploadImages';
+import CropModal from '../screens/NewPost/CropModal';
 import PostDetails from '../screens/NewPost/PostDetails';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
@@ -187,6 +188,11 @@ function NewPostStackScreen() {
         options={{
           headerLeft: renderBackArrow,
         }}
+      />
+      <NewPostStack.Screen
+        name="CropModal"
+        component={CropModal}
+        options={{ headerShown: false }}
       />
       <NewPostStack.Screen
         name="PostDetails"

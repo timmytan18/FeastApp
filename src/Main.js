@@ -91,7 +91,6 @@ const Main = () => {
 
   // listen to changes in sign in status
   Hub.listen('auth', ({ payload: { event, data } }) => {
-    console.log(event, data);
     switch (event) {
       case 'signIn':
         getUser().catch((e) => noUser(e));

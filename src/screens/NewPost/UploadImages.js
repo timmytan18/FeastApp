@@ -223,7 +223,9 @@ const UploadImages = ({ navigation, route }) => {
         style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}
         disabled={!picture}
         onPress={async () => {
-          const croppedImg = pictureFromPreview ? await cropImage() : ({ ...picture });
+          const croppedImg = pictureFromPreview
+            && picture === currUncroppedImage.current
+            ? await cropImage() : ({ ...picture });
           navigation.navigate('PostDetails', {
             business,
             picture: croppedImg,
@@ -245,6 +247,34 @@ const UploadImages = ({ navigation, route }) => {
     });
   }, [business, picture, menuItem, navigation]);
 
+  const currUncroppedImage = useRef(null);
+  const tentativeCurrUncroppedImage = useRef(null);
+  // Returned cropped image
+  useEffect(() => {
+    if (route.params?.croppedImg) {
+      pictureFromPreview.current = false;
+      setPicture(route.params.croppedImg);
+      if (tentativeCurrUncroppedImage.current) {
+        currUncroppedImage.current = tentativeCurrUncroppedImage.current;
+        tentativeCurrUncroppedImage.current = null;
+      }
+    }
+  }, [route.params?.croppedImg]);
+
+  const goToCropModal = () => {
+    navigation.navigate('CropModal', {
+      uri: tentativeCurrUncroppedImage.current
+        ? tentativeCurrUncroppedImage.current.uri : currUncroppedImage.current.uri,
+      aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
+    });
+  };
+
+  const setUncroppedPicture = (pic) => {
+    currUncroppedImage.current = pic;
+    tentativeCurrUncroppedImage.current = null;
+    setPicture(pic);
+  };
+
   const openLibraryPreview = async () => {
     if (!libraryPreview) {
       const { assets } = await MediaLibrary.getAssetsAsync();
@@ -256,11 +286,11 @@ const UploadImages = ({ navigation, route }) => {
       if (mounted.current) setLibraryPreview(images);
       if (numPreview) {
         pictureFromPreview.current = true;
-        if (mounted.current) setPicture(assets[0]);
+        if (mounted.current) setUncroppedPicture(assets[0]);
       }
     } else if (libraryPreview.length && libraryPreview[0].length) {
       pictureFromPreview.current = true;
-      if (mounted.current) setPicture(libraryPreview[0][0]);
+      if (mounted.current) setUncroppedPicture(libraryPreview[0][0]);
     }
     if (mounted.current) setTab(LIBRARY_TAB);
     slideInput(0.7);
@@ -351,7 +381,7 @@ const UploadImages = ({ navigation, route }) => {
           style={styles.gridItem}
           onPress={() => {
             pictureFromPreview.current = true;
-            setPicture(item[0]);
+            setUncroppedPicture(item[0]);
           }}
         >
           <Image style={gridStyleTop} source={{ uri: item[0].uri }} />
@@ -361,7 +391,7 @@ const UploadImages = ({ navigation, route }) => {
           style={styles.gridItem}
           onPress={() => {
             pictureFromPreview.current = true;
-            setPicture(item[1]);
+            setUncroppedPicture(item[1]);
           }}
         >
           <Image style={gridStyleBottom} source={{ uri: item[1].uri }} />
@@ -375,14 +405,13 @@ const UploadImages = ({ navigation, route }) => {
       {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         aspect: POST_IMAGE_ASPECT,
-        // allowsEditing: true, // prevent cropping
         quality: 1,
       },
     );
     if (!image.cancelled) {
       delete image.cancelled;
-      pictureFromPreview.current = false;
-      setPicture(image);
+      tentativeCurrUncroppedImage.current = image;
+      goToCropModal();
     }
   };
 
@@ -432,7 +461,7 @@ const UploadImages = ({ navigation, route }) => {
             && (
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={pickImage}
+                onPress={goToCropModal}
                 disabled={inputActive}
               >
                 <Image style={styles.camContainer} source={{ uri: picture.uri }} />
@@ -544,6 +573,7 @@ const styles = StyleSheet.create({
   camContainer: {
     width: wp(99),
     aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
+    borderRadius: wp(2),
   },
   camera: {
     flex: 1,

@@ -23,16 +23,21 @@ const Reducer = (state, action) => {
         ...state,
         savedPosts: action.payload.savedPosts,
       };
-    case 'SET_RELOAD_MAP':
-      return {
-        ...state,
-        reloadMapTrigger: !state.reloadMapTrigger,
-      };
     case 'SET_REVIEW_RATING':
       return {
         ...state,
         review: action.payload.review,
         rating: action.payload.rating,
+      };
+    case 'SET_RELOAD_MAP':
+      return {
+        ...state,
+        reloadMapTrigger: !state.reloadMapTrigger,
+      };
+    case 'SET_RELOAD_PROFILE':
+      return {
+        ...state,
+        reloadProfileTrigger: !state.reloadProfileTrigger,
       };
     default:
       return state;

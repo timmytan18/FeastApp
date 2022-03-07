@@ -20,6 +20,7 @@ const ReportModal = ({
   const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     (async () => {
       if (sender && sender.senderUID) {
         const { promise, getValue, errorMsg } = getUserEmailQuery({ uid: sender.senderUID });

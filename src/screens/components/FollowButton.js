@@ -158,8 +158,9 @@ const FollowButton = ({
         incrementFeastItem,
         { input: { PK: myPK, SK: mySK, numFollowing: one } },
       ));
-      // Update app state to trigger map re-render
+      // Update app state to trigger map & profile re-render
       dispatch({ type: 'SET_RELOAD_MAP' });
+      dispatch({ type: 'SET_RELOAD_PROFILE' });
     } catch (err) {
       console.warn('Error update follower/following counts: ', err);
     }

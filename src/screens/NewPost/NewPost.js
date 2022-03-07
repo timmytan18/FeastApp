@@ -110,6 +110,7 @@ const NewPost = ({ navigation }) => {
 
   // Set up location and loading nearby POIs
   useEffect(() => {
+    mounted.current = true;
     // Get current user location
     async function updateCurrentLocation() {
       let coords;
