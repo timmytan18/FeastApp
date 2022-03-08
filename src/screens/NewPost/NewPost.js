@@ -23,7 +23,7 @@ import {
 } from '../../constants/theme';
 
 const BING_CAT_TYPE = 'EatDrink';
-const BING_NEARBY_RADIUS = '1000'; // 1 km radius
+const BING_NEARBY_RADIUS = '150'; // 150 m radius
 const BING_SEARCH_RADIUS = '1000'; // 5 km radius (max); is more when no results within 5 km
 
 const NewPost = ({ navigation }) => {
