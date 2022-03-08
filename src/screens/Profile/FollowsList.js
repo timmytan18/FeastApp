@@ -40,7 +40,7 @@ const FollowsList = ({ navigation, route }) => {
       let promise; let getValue; let errorMsg;
       if (type === 'Followers') {
         // Get following users PKs
-        ({ promise, getValue, errorMsg } = getFollowingQuery({ uid, onlyReturnPKs: true }));
+        ({ promise, getValue, errorMsg } = getFollowingQuery({ uid: myUID, onlyReturnPKs: true }));
         let followingUsers = await fulfillPromise(promise, getValue, errorMsg);
         followingUsers = followingUsers.map((user) => user.uid);
         followingPKs.current = new Set(followingUsers);
