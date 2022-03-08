@@ -10,9 +10,8 @@ const EditStarsRating = ({
   const startX = useRef(0);
   const movementType = useRef('');
 
-  const getRatingInput = (x, roundToHalf) => {
-    let ratingInput = Math.round((x / containerWidth) * 5);
-    if (roundToHalf) ratingInput = Math.round((x / containerWidth) * 5 * 2) / 2;
+  const getRatingInput = (x) => {
+    const ratingInput = Math.round((x / containerWidth) * 5 * 2) / 2;
     return Math.max(0, Math.min(5, ratingInput));
   };
 
@@ -22,11 +21,11 @@ const EditStarsRating = ({
       onPanResponderStart: (event) => {
         movementType.current = 'tap';
         startX.current = event.nativeEvent.locationX;
-        updateRating(getRatingInput(event.nativeEvent.locationX, false));
+        updateRating(getRatingInput(event.nativeEvent.locationX));
       },
       onPanResponderMove: (_, gestureState) => {
         movementType.current = 'swipe';
-        updateRating(getRatingInput(startX.current + gestureState.dx, true));
+        updateRating(getRatingInput(startX.current + gestureState.dx));
       },
     }),
   ).current;
