@@ -15,7 +15,7 @@
     "assetBundlePatterns": ["**/*"],
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "2",
+      "buildNumber": "2.1.1",
       "supportsTablet": true,
       "bundleIdentifier": "com.ttan18.feast",
       "userInterfaceStyle": "automatic",
