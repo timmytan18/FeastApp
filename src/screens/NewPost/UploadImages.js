@@ -378,6 +378,7 @@ const UploadImages = ({ navigation, route }) => {
             pictureFromPreview.current = true;
             setUncroppedPicture(pic);
           }}
+          key={pic.uri}
         >
           <Image
             style={[styles.gridImage, pic === picture && styles.gridImageSelected]}
@@ -526,6 +527,7 @@ const UploadImages = ({ navigation, route }) => {
                     <TouchableOpacity
                       style={styles.allLibraryContainer}
                       onPress={pickImage}
+                      activeOpacity={0.6}
                     >
                       <Text style={styles.allLibraryText}>
                         See All
@@ -722,11 +724,12 @@ const styles = StyleSheet.create({
     borderWidth: wp(0.7),
     borderColor: colors.tertiary,
     borderRadius: wp(3),
+    backgroundColor: colors.tertiary,
   },
   allLibraryText: {
     fontFamily: 'Medium',
     fontSize: sizes.b3,
-    color: colors.tertiary,
+    color: '#fff',
     marginHorizontal: wp(2),
   },
   downArrow: {
