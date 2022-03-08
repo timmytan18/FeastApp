@@ -20,6 +20,7 @@ import SearchButton from '../components/util/SearchButton';
 import MapMarker from '../components/MapMarker';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
+import Expand from '../components/util/icons/Expand';
 import { getLocalData, storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { DEFAULT_COORDINATES } from '../../constants/constants';
 import { Context } from '../../Store';
@@ -385,7 +386,8 @@ const Home = ({ navigation }) => {
         activeOpacity={0.9}
         style={[styles.locationBackBtnContainer, shadows.base]}
       >
-        <LocationArrow size={wp(5)} />
+        {isFitToMarkers.current ? <LocationArrow size={wp(5)} />
+          : <Expand />}
       </TouchableOpacity>
     </View>
   );

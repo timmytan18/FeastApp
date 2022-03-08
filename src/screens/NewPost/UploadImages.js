@@ -15,6 +15,7 @@ import { manipulateAsync } from 'expo-image-manipulator';
 import { getPlaceInDBQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import TwoButtonAlert from '../components/util/TwoButtonAlert';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
+import Edit from '../components/util/icons/Edit';
 import NextArrow from '../components/util/icons/NextArrow';
 import FlipCam from '../components/util/icons/FlipCam';
 import Flash from '../components/util/icons/Flash';
@@ -279,9 +280,9 @@ const UploadImages = ({ navigation, route }) => {
     if (!libraryPreview) {
       const { assets } = await MediaLibrary.getAssetsAsync();
       const images = [];
-      const numPreview = assets.length > 8 ? 8 : assets.length;
-      for (let i = 1; i < numPreview; i += 2) {
-        images.push([assets[i - 1], assets[i]]);
+      const numPreview = assets.length;
+      for (let i = 3; i < numPreview; i += 4) {
+        images.push([assets[i - 3], assets[i - 2], assets[i - 1], assets[i]]);
       }
       if (mounted.current) setLibraryPreview(images);
       if (numPreview) {
@@ -367,38 +368,25 @@ const UploadImages = ({ navigation, route }) => {
     return <Text>No access to camera</Text>;
   }
 
-  const renderGridItem = ({ item }) => {
-    const gridStyleTop = item[0] === picture
-      ? [styles.gridImage, { borderWidth: wp(0.7), borderColor: colors.accent }]
-      : styles.gridImage;
-    const gridStyleBottom = item[1] === picture
-      ? [styles.gridImage, { borderWidth: wp(0.7), borderColor: colors.accent }]
-      : styles.gridImage;
-    return (
-      <View style={styles.gridContainer}>
+  const renderGridItem = ({ item }) => (
+    <View style={styles.gridContainer}>
+      {item.map((pic) => (
         <TouchableOpacity
           activeOpacity={0.6}
           style={styles.gridItem}
           onPress={() => {
             pictureFromPreview.current = true;
-            setUncroppedPicture(item[0]);
+            setUncroppedPicture(pic);
           }}
         >
-          <Image style={gridStyleTop} source={{ uri: item[0].uri }} />
+          <Image
+            style={[styles.gridImage, pic === picture && styles.gridImageSelected]}
+            source={{ uri: pic.uri }}
+          />
         </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.6}
-          style={styles.gridItem}
-          onPress={() => {
-            pictureFromPreview.current = true;
-            setUncroppedPicture(item[1]);
-          }}
-        >
-          <Image style={gridStyleBottom} source={{ uri: item[1].uri }} />
-        </TouchableOpacity>
-      </View>
-    );
-  };
+      ))}
+    </View>
+  );
 
   const pickImage = async () => {
     const image = await ImagePicker.launchImageLibraryAsync(
@@ -459,13 +447,16 @@ const UploadImages = ({ navigation, route }) => {
             )}
           {picture && tab !== CAMERA_TAB
             && (
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={goToCropModal}
-                disabled={inputActive}
-              >
+              <View>
                 <Image style={styles.camContainer} source={{ uri: picture.uri }} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.editContainer}
+                  onPress={goToCropModal}
+                  activeOpacity={0.6}
+                >
+                  <Edit />
+                </TouchableOpacity>
+              </View>
             )}
           {picture && tab === CAMERA_TAB
             && <Image style={styles.camContainer} source={{ uri: picture.uri }} />}
@@ -517,23 +508,31 @@ const UploadImages = ({ navigation, route }) => {
                   data={libraryPreview}
                   renderItem={renderGridItem}
                   keyExtractor={(item) => item[0].id}
-                  horizontal
                   showsHorizontalScrollIndicator={false}
+                  ListHeaderComponent={(
+                    <TouchableOpacity
+                      style={styles.recentsContainer}
+                      onPress={pickImage}
+                    >
+                      <Text style={styles.recentsText}>
+                        Recents
+                      </Text>
+                      <View style={styles.downArrow}>
+                        <NextArrow color={colors.black} size={wp(2.6)} />
+                      </View>
+                    </TouchableOpacity>
+                  )}
                   ListFooterComponent={(
                     <TouchableOpacity
                       style={styles.allLibraryContainer}
                       onPress={pickImage}
                     >
-                      <View style={styles.allLibrary}>
-                        <Text style={styles.allLibraryText}>
-                          See All
-                          {'\n'}
-                          Photos
-                        </Text>
-                      </View>
+                      <Text style={styles.allLibraryText}>
+                        See All
+                      </Text>
                     </TouchableOpacity>
                   )}
-                  ListFooterComponentStyle={{ alignItems: 'center', justifyContent: 'center' }}
+                  ListFooterComponentStyle={{ alignItems: 'center', justifyContent: 'center', height: wp(18) }}
                 />
               </View>
             )}
@@ -587,6 +586,18 @@ const styles = StyleSheet.create({
   camTool: {
     alignItems: 'center',
     paddingVertical: wp(1),
+  },
+  editContainer: {
+    position: 'absolute',
+    top: sizes.margin,
+    right: sizes.margin,
+    opacity: 0.9,
+    backgroundColor: colors.gray4,
+    height: wp(13),
+    width: wp(13),
+    borderRadius: wp(6.5),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   xContainer: {
     position: 'absolute',
@@ -666,39 +677,61 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     flex: 1,
+    paddingTop: 1.2,
   },
   gridContainer: {
-    height: '100%',
-    aspectRatio: 0.5,
+    paddingVertical: 1.2,
+    width: '100%',
     justifyContent: 'space-evenly',
+    flexDirection: 'row',
   },
   gridItem: {
-    height: '48%',
-    width: '97%',
+    width: '24.2%',
+    aspectRatio: 1,
   },
   gridImage: {
     flex: 1,
     borderRadius: wp(1),
   },
-  allLibraryContainer: {
-    height: wp(45),
-    aspectRatio: 0.7,
-    alignItems: 'center',
-    justifyContent: 'center',
+  gridImageSelected: {
+    flex: 1,
+    borderRadius: wp(1),
+    borderWidth: wp(0.7),
+    borderColor: colors.accent,
   },
-  allLibrary: {
-    height: '50%',
-    aspectRatio: 1,
-    borderRadius: wp(30),
-    backgroundColor: colors.gray3,
+  recentsContainer: {
+    height: wp(12),
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    marginTop: wp(1),
+  },
+  recentsText: {
+    fontFamily: 'Semi',
+    fontSize: sizes.b1,
+    color: colors.black,
+    marginLeft: wp(2),
+    marginRight: wp(1.5),
+  },
+  allLibraryContainer: {
+    height: wp(9),
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    paddingHorizontal: wp(1),
+    borderWidth: wp(0.7),
+    borderColor: colors.tertiary,
+    borderRadius: wp(3),
   },
   allLibraryText: {
     fontFamily: 'Medium',
     fontSize: sizes.b3,
     color: colors.tertiary,
-    textAlign: 'center',
+    marginHorizontal: wp(2),
+  },
+  downArrow: {
+    transform: [{ rotate: '90deg' }],
+    paddingLeft: 1.7,
   },
 });
 

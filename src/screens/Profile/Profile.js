@@ -36,6 +36,7 @@ import Utensils from '../components/util/icons/Utensils';
 import MapMarker from '../components/util/icons/MapMarker';
 import RatingMapMarker from '../components/RatingMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
+import Expand from '../components/util/icons/Expand';
 import BackArrow from '../components/util/icons/BackArrow';
 import Save from '../components/util/icons/Save';
 import Cam from '../components/util/icons/Cam';
@@ -695,7 +696,8 @@ const Profile = ({ navigation, route }) => {
           activeOpacity={0.9}
           style={[styles.locationBackBtnContainer, shadows.base]}
         >
-          <LocationArrow size={wp(5)} />
+          {isFitToMarkers.current ? <LocationArrow size={wp(5)} />
+            : <Expand />}
         </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>
