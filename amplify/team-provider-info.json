@@ -19,11 +19,11 @@
       "function": {
         "fetchkeys": {
           "deploymentBucketName": "amplify-feastapp-dev-171846-deployment",
-          "s3Key": "amplify-builds/fetchkeys-654d477069423946367a-build.zip"
+          "s3Key": "amplify-builds/fetchkeys-70436f56562f6a31536e-build.zip"
         },
         "reportIssue": {
           "deploymentBucketName": "amplify-feastapp-dev-171846-deployment",
-          "s3Key": "amplify-builds/reportIssue-767463452b4a302f416e-build.zip"
+          "s3Key": "amplify-builds/reportIssue-6c41474f517564497963-build.zip"
         }
       }
     }

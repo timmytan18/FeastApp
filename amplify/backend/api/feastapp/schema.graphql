@@ -125,6 +125,7 @@ input FollowingPostInput {
   picture: String
   dish: String
   categories: [String]
+  imgUrl: String
   review: String
   createdAt: String
   rating: Float!
