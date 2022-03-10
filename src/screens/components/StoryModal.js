@@ -681,12 +681,24 @@ const StoryModal = ({ navigation, route }) => {
                   <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.locationContainer}
-                  activeOpacity={0.8}
+                  activeOpacity={0.5}
                   onPress={() => panToBottom()}
                 >
-                  <MapMarker size={wp(4.8)} color={colors.accent} />
-                  <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
+                  <MaskedView
+                    maskElement={(
+                      <View style={styles.locationContainer}>
+                        <MapMarker size={wp(4.8)} color={colors.accent} />
+                        <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
+                      </View>
+                    )}
+                  >
+                    <LinearGradient
+                      colors={gradients.purple.colors}
+                      start={[-0.2, 1]}
+                      end={[1.2, 0]}
+                      style={{ width: name.length * wp(5), height: sizes.h4 + wp(1.5) }}
+                    />
+                  </MaskedView>
                 </TouchableOpacity>
               </View>
             </View>

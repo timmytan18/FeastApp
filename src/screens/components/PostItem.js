@@ -1,10 +1,12 @@
 import React, {
-  useState, useEffect, useContext, useRef, useCallback,
+  useState, useEffect, useRef, useCallback,
 } from 'react';
 import {
   StyleSheet, Text, View, Image, TouchableOpacity,
 } from 'react-native';
 import { Storage } from 'aws-amplify';
+import MaskedView from '@react-native-community/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import ProfilePic from './ProfilePic';
 import SaveButton from './util/SaveButton';
 import YumButton from './util/YumButton';
@@ -14,7 +16,7 @@ import MapMarker from './util/icons/MapMarker';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { POST_IMAGE_ASPECT, GET_SAVED_POST_ID } from '../../constants/constants';
 import {
-  colors, wp, sizes,
+  colors, wp, sizes, gradients,
 } from '../../constants/theme';
 
 const NUM_COLLAPSED_LINES = 2;
@@ -90,12 +92,24 @@ const PostItem = ({
                 <Text style={styles.elapsedTimeText}>{elapsedTime}</Text>
               </View>
               <TouchableOpacity
-                style={styles.locationContainer}
                 activeOpacity={0.5}
                 onPress={() => openPlace({ placeId })}
               >
-                <MapMarker size={wp(4.8)} color={colors.accent} />
-                <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
+                <MaskedView
+                  maskElement={(
+                    <View style={styles.locationContainer}>
+                      <MapMarker size={wp(4.8)} color={colors.accent} />
+                      <Text style={styles.locationText} numberOfLines={1}>{name}</Text>
+                    </View>
+                  )}
+                >
+                  <LinearGradient
+                    colors={gradients.purple.colors}
+                    start={[-0.2, 1]}
+                    end={[1.2, 0]}
+                    style={{ width: name.length * wp(5), height: sizes.h4 + wp(1.5) }}
+                  />
+                </MaskedView>
               </TouchableOpacity>
             </View>
           </View>

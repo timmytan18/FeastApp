@@ -6,8 +6,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-import { BlurView } from 'expo-blur';
+// import { BlurView } from 'expo-blur';
 import { useScrollToTop } from '@react-navigation/native';
+import { BallIndicator } from 'react-native-indicators';
 import {
   getFollowingPostsDetailsQuery,
   getPlaceDetailsQuery,
@@ -34,7 +35,7 @@ const Home = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
   const { user: { uid: myUID, PK: myPK, name: myName }, savedPosts } = state;
 
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const numRefresh = useRef(0);
   const [loading, setLoading] = useState(false);
@@ -63,9 +64,9 @@ const Home = ({ navigation }) => {
         <Logo />
       </TouchableOpacity>
     );
-    const blurredHeader = () => (
-      <BlurView tint="light" intensity="100" style={StyleSheet.absoluteFill} />
-    );
+    // const blurredHeader = () => (
+    //   <BlurView tint="light" intensity="100" style={StyleSheet.absoluteFill} />
+    // );
     const headerSearch = () => (
       <SearchButton
         color={colors.black}
@@ -77,9 +78,9 @@ const Home = ({ navigation }) => {
     navigation.setOptions({
       headerTitle: headerLogo,
       headerRight: headerSearch,
-      headerTransparent: true,
-      headerBackground: blurredHeader,
-      animationEnabled: false,
+      // headerTransparent: true,
+      // headerBackground: blurredHeader,
+      // animationEnabled: false,
     });
   }, []);
 
@@ -123,15 +124,19 @@ const Home = ({ navigation }) => {
       );
       const { currPosts, nextToken } = await fulfillPromise(promise, getValue, errorMsg);
       if (mounted.current) {
-        currNextToken.current = nextToken;
-        setPosts(currPosts);
+        if (currPosts) {
+          currNextToken.current = nextToken;
+          setPosts(currPosts);
+        } else {
+          setPosts([]);
+        }
         setRefreshing(false);
       }
     })();
     return () => {
       mounted.current = false;
     };
-  }, [state.user.PK, state.user.uid, numRefresh.current]);
+  }, [state.user.PK, state.user.uid, numRefresh.current, state.reloadMapTrigger]);
 
   const [moreLoading, setMoreLoading] = useState(false);
   // Get more posts
@@ -260,7 +265,7 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.rootContainer, loading && { opacity: 0.6, backgroundColor: colors.gray }]}
       pointerEvents={loading ? 'none' : 'auto'}
       edges={['top']}
@@ -278,6 +283,13 @@ const Home = ({ navigation }) => {
           >
             <CenterSpinner color={colors.black} />
           </View>
+        )}
+      {posts === null
+        && (
+          <BallIndicator
+            style={styles.ballIndicator}
+            color={colors.tertiary}
+          />
         )}
       <View style={styles.container}>
         <MoreView
@@ -332,7 +344,7 @@ const Home = ({ navigation }) => {
           onEndReached={getMorePosts}
           ListFooterComponent={listFooterComponent}
         />
-        {(!posts || !posts.length)
+        {posts !== null && posts.length === 0
           && (
             <View style={styles.noPostsContainer}>
               <Text style={styles.noPostsText}>
@@ -343,11 +355,17 @@ const Home = ({ navigation }) => {
             </View>
           )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  ballIndicator: {
+    alignSelf: 'center',
+    position: 'absolute',
+    top: '50%',
+    zIndex: 1,
+  },
   noPostsContainer: {
     flex: 1,
     alignItems: 'center',
@@ -369,7 +387,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: wp(12),
+    // paddingTop: wp(12),
   },
   header: {
     width: '100%',
