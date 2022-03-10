@@ -291,7 +291,7 @@ const PostDetails = ({ navigation, route }) => {
         geo: hash,
         timestamp,
         categories: placeCategoriesImgUrl.current.categories,
-        // imgUrl: placeCategoriesImgUrl.current.imgUrl,
+        imgUrl: placeCategoriesImgUrl.current.imgUrl,
         picture: postImgS3Url,
         dish,
         review: userReview,

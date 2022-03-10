@@ -11,13 +11,14 @@ import { sizes, wp } from '../../../constants/theme';
 
 const YumButton = ({
   size, uid, timestamp, placeId, myUID, myPK, myName,
-  myPicture, showYummedUsersModal, stopBarAnimation,
+  myPicture, showYummedUsersModal, stopBarAnimation, light,
 }) => {
   const [pressed, setPressed] = useState(false);
   const [yums, setYums] = useState([]);
-  // const mounted = useRef(true);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     // Fetch yums
     (async () => {
       const { promise, getValue, errorMsg } = await getPostYumsQuery({ uid, timestamp });
@@ -35,13 +36,13 @@ const YumButton = ({
             break;
           }
         }
-        // if (mounted.current) {
-        setYums(yumsItems);
-        setPressed(yummed);
-        // }
+        if (mounted.current) {
+          setYums(yumsItems);
+          setPressed(yummed);
+        }
       }
     })();
-    // return () => { mounted.current = false; };
+    return () => { mounted.current = false; };
   }, [myUID, placeId, timestamp, uid]);
 
   const yumPressed = async () => {
@@ -91,7 +92,7 @@ const YumButton = ({
   };
 
   const showYummedUsersModalPressed = () => {
-    stopBarAnimation();
+    if (stopBarAnimation) stopBarAnimation();
     showYummedUsersModal({ users: yums });
   };
 
@@ -104,7 +105,7 @@ const YumButton = ({
           onPress={yumPressed}
         >
           {pressed && <Yum size={size} />}
-          {!pressed && <YumNoFill size={size} />}
+          {!pressed && <YumNoFill size={size} color={light ? 'rgba(176, 187, 199, 0.6)' : null} />}
         </TouchableOpacity>
       </View>
       <TouchableOpacity

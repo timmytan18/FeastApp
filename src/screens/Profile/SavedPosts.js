@@ -2,7 +2,7 @@ import React, {
   useState, useRef, useContext, useEffect,
 } from 'react';
 import {
-  StyleSheet, View, FlatList, Text,
+  StyleSheet, View, FlatList, Text, Alert,
 } from 'react-native';
 import { Storage } from 'aws-amplify';
 import PlaceListItem from '../components/PlaceListItem';
@@ -72,7 +72,12 @@ const SavedPosts = ({ navigation, route }) => {
     setLoading(true);
 
     const getPostPictures = (item) => new Promise((resolve, reject) => {
-      Storage.get(item.picture)
+      if (!item.placeUserInfo) {
+        reject(item);
+        return;
+      }
+      const isMe = item.placeUserInfo.uid === user.uid;
+      Storage.get(item.picture, !isMe && { identityId: item.placeUserInfo.identityId })
         .then((url) => {
           item.s3Photo = url;
           resolve(item);
@@ -85,50 +90,64 @@ const SavedPosts = ({ navigation, route }) => {
 
     // Fetch all saved posts
     (async () => {
-      const { promise, getValue, errorMsg } = getUserAllSavedPostsQuery({
-        PK: user.PK, withUserInfo: false,
-      });
+      const { promise, getValue, errorMsg } = getUserAllSavedPostsQuery({ PK: user.PK });
       const savedPosts = await fulfillPromise(promise, getValue, errorMsg);
       const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
       if (savedPosts && savedPosts.length) {
-        Promise.all(savedPosts.map(getPostPictures)).then((currPosts) => {
-          // Sort placePosts by most recently saved
-          currPosts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        Promise.all(savedPosts.map(getPostPictures))
+          .then((currPosts) => {
+            // Sort placePosts by most recently saved
+            currPosts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-          // Batch average rating items
-          const currBatch = [];
+            // Batch average rating items
+            const currBatch = [];
 
-          for (let i = 0; i < currPosts.length; i += 1) {
-            // Add to placePosts map
-            const { placeId } = currPosts[i];
-            if (!placePosts[placeId]) {
-              placePosts[placeId] = [currPosts[i]];
-              placePosts[placeId][0].visible = true;
-              currBatch.push({ PK: `PLACE#${placeId}`, SK: '#RATING' });
-            } else {
-              placePosts[placeId].push(currPosts[i]);
-            }
-          }
-
-          if (mounted.current) setBatch(currBatch);
-
-          // Format posts for FlatList
-          const updatedPosts = [];
-          const placeIdKeys = Object.keys(placePosts);
-          if (placeIdKeys && placeIdKeys.length) {
-            for (let i = 0; i < placeIdKeys.length; i += 2) {
-              if (i + 1 < placeIdKeys.length) {
-                updatedPosts.push([placePosts[placeIdKeys[i]], placePosts[placeIdKeys[i + 1]]]);
+            for (let i = 0; i < currPosts.length; i += 1) {
+              // Add to placePosts map
+              const { placeId } = currPosts[i];
+              if (!placePosts[placeId]) {
+                placePosts[placeId] = [currPosts[i]];
+                placePosts[placeId][0].visible = true;
+                currBatch.push({ PK: `PLACE#${placeId}`, SK: '#RATING' });
               } else {
-                updatedPosts.push([placePosts[placeIdKeys[i]]]);
+                placePosts[placeId].push(currPosts[i]);
               }
             }
-          }
-          if (mounted.current) {
-            setPosts(updatedPosts);
+
+            if (mounted.current) setBatch(currBatch);
+
+            // Format posts for FlatList
+            const updatedPosts = [];
+            const placeIdKeys = Object.keys(placePosts);
+            if (placeIdKeys && placeIdKeys.length) {
+              for (let i = 0; i < placeIdKeys.length; i += 2) {
+                if (i + 1 < placeIdKeys.length) {
+                  updatedPosts.push([placePosts[placeIdKeys[i]], placePosts[placeIdKeys[i + 1]]]);
+                } else {
+                  updatedPosts.push([placePosts[placeIdKeys[i]]]);
+                }
+              }
+            }
+            if (mounted.current) {
+              setPosts(updatedPosts);
+              setLoading(false);
+            }
+          })
+          .catch((err) => {
+            console.warn('Error fetching saved posts: ', err);
             setLoading(false);
-          }
-        });
+            Alert.alert(
+              'Error',
+              'Could not fetch saved posts',
+              [{
+                text: 'OK',
+                onPress: () => {
+                  navigation.goBack();
+                },
+              }],
+              { cancelable: false },
+            );
+          });
       } else if (mounted.current) {
         setPosts([]);
         setLoading(false);

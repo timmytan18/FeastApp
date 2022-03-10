@@ -263,7 +263,6 @@ const Profile = ({ navigation, route }) => {
       } else {
         posts.current = [LIST_STATES.NO_RESULTS];
         if (mounted.current) {
-          console.log('No reviews');
           setReviews({});
           setRefreshing(false);
         }

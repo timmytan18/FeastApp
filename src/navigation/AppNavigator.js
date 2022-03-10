@@ -2,7 +2,7 @@ import React, {
   useContext, useEffect,
 } from 'react';
 import {
-  Text, StyleSheet, TouchableOpacity, SafeAreaView,
+  Text, StyleSheet, TouchableOpacity, SafeAreaView, View,
 } from 'react-native';
 import { API, Storage } from 'aws-amplify';
 import { NavigationContainer } from '@react-navigation/native';
@@ -10,11 +10,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getUserAllSavedPostsQuery, fulfillPromise } from '../api/functions/queryFunctions';
 import Home from '../screens/Home/Home';
-import SearchUsers from '../screens/Home/SearchUsers';
-import StoryModal from '../screens/components/StoryModal';
-import Reviews from '../screens/Home/Reviews';
+import Explore from '../screens/Explore/Explore';
 import NewPost from '../screens/NewPost/NewPost';
+import Inbox from '../screens/Inbox/Inbox';
 import Profile from '../screens/Profile/Profile';
+import SearchUsers from '../screens/Explore/SearchUsers';
+import StoryModal from '../screens/components/StoryModal';
+import Reviews from '../screens/Explore/Reviews';
 import FollowsList from '../screens/Profile/FollowsList';
 import ProfileReviews from '../screens/Profile/ProfileReviews';
 import SavedPosts from '../screens/Profile/SavedPosts';
@@ -25,7 +27,9 @@ import CropModal from '../screens/NewPost/CropModal';
 import PostDetails from '../screens/NewPost/PostDetails';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
+import { ExploreIcon, ExploreFilledIcon } from './icons/Explore';
 import NewPostIcon from './icons/NewPost';
+import { InboxIcon, InboxFilledIcon } from './icons/Inbox';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import BackArrow from '../screens/components/util/icons/BackArrow';
 import { GET_SAVED_POST_ID } from '../constants/constants';
@@ -111,7 +115,6 @@ function HomeStackScreen() {
       <HomeStack.Screen
         name="Home"
         component={Home}
-        options={{ headerShown: false }}
       />
       <HomeStack.Screen
         name="SearchUsers"
@@ -137,6 +140,42 @@ function HomeStackScreen() {
         }}
       />
     </HomeStack.Navigator>
+  );
+}
+
+const ExploreStack = createStackNavigator();
+function ExploreStackScreen() {
+  return (
+    <ExploreStack.Navigator>
+      <ExploreStack.Screen
+        name="Explore"
+        component={Explore}
+        options={{ headerShown: false }}
+      />
+      <ExploreStack.Screen
+        name="SearchUsers"
+        component={SearchUsers}
+        options={{ headerShown: false }}
+      />
+      <ExploreStack.Screen
+        name="ProfileStack"
+        component={ProfileStackScreen}
+        options={{ headerShown: false }}
+      />
+      <ExploreStack.Screen
+        name="PlaceDetail"
+        component={PlaceDetail}
+        options={{ headerShown: false }}
+      />
+      <ExploreStack.Screen
+        name="Reviews"
+        component={Reviews}
+        options={{
+          title: <Text style={header.title}>Reviews</Text>,
+          headerLeft: renderBackArrow,
+        }}
+      />
+    </ExploreStack.Navigator>
   );
 }
 
@@ -199,6 +238,21 @@ function NewPostStackScreen() {
         component={PostDetails}
       />
     </NewPostStack.Navigator>
+  );
+}
+
+const InboxStack = createStackNavigator();
+function InboxStackScreen() {
+  return (
+    <InboxStack.Navigator>
+      <InboxStack.Screen
+        name="Inbox"
+        component={Inbox}
+        options={{
+          title: <Text style={header.title}>Inbox</Text>,
+        }}
+      />
+    </InboxStack.Navigator>
   );
 }
 
@@ -288,56 +342,66 @@ const MyTabBar = ({
     return null;
   }
 
-  const NEW_POST_INDEX = 1;
+  const NEW_POST_INDEX = 2;
 
   return (
     <SafeAreaView style={styles.tabBar}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label = options.tabBarLabel !== undefined
-          ? options.tabBarLabel
-          : options.title !== undefined
-            ? options.title
-            : route.name;
+      <View style={styles.tabsContainer}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const label = options.tabBarLabel !== undefined
+            ? options.tabBarLabel
+            : options.title !== undefined
+              ? options.title
+              : route.name;
 
-        const isFocused = state.index === index;
+          const isFocused = state.index === index;
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-
-          if (!isFocused && !event.defaultPrevented && index !== NEW_POST_INDEX) {
-            navigation.navigate(route.name);
-          } else if (index === NEW_POST_INDEX) {
-            navigation.navigate('NewPostModal', {
-              screen: 'NewPost',
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
             });
+
+            if (!isFocused && !event.defaultPrevented && index !== NEW_POST_INDEX) {
+              navigation.navigate(route.name);
+            } else if (index === NEW_POST_INDEX) {
+              navigation.navigate('NewPostModal', {
+                screen: 'NewPost',
+              });
+            }
+          };
+
+          let icon;
+
+          if (index === 0) {
+            icon = isFocused
+              ? <TabIcon icon={<HomeFilledIcon />} />
+              : <TabIcon icon={<HomeIcon />} />;
+          } else if (index === 1) {
+            icon = isFocused
+              ? <TabIcon icon={<ExploreFilledIcon />} focused={isFocused} />
+              : <TabIcon icon={<ExploreIcon />} focused={isFocused} />;
+          } else if (index === 2) {
+            icon = <TabIcon icon={<NewPostIcon />} />;
+          } else if (index === 3) {
+            icon = isFocused
+              ? <TabIcon icon={<InboxFilledIcon />} focused={isFocused} />
+              : <TabIcon icon={<InboxIcon />} focused={isFocused} />;
+          } else if (index === 4) {
+            icon = isFocused
+              ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
+              : <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />;
           }
-        };
 
-        let icon;
-
-        if (index === 0) {
-          icon = isFocused
-            ? <TabIcon icon={<HomeFilledIcon />} />
-            : <TabIcon icon={<HomeIcon />} />;
-        } else if (index === 1) {
-          icon = <TabIcon icon={<NewPostIcon />} />;
-        } else if (index === 2) {
-          icon = isFocused
-            ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
-            : <TabIcon icon={<ProfileIcon />} image={picture} focused={isFocused} />;
-        }
-
-        return (
-          <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8} key={index}>
-            {icon}
-          </TouchableOpacity>
-        );
-      })}
+          return (
+            <TouchableOpacity style={styles.tab} onPress={onPress} activeOpacity={0.8} key={index}>
+              {icon}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </SafeAreaView>
   );
 };
@@ -352,7 +416,9 @@ const TabNavigator = ({ picture }) => {
       }}
     >
       <Tab.Screen name="HomeTab" component={HomeStackScreen} />
+      <Tab.Screen name="ExploreTab" component={ExploreStackScreen} />
       <Tab.Screen name="NewPostTab" component={NewPostStackScreen} />
+      <Tab.Screen name="InboxTab" component={InboxStackScreen} />
       <Tab.Screen name="ProfileTab" component={ProfileStackScreen} />
     </Tab.Navigator>
   );
@@ -391,7 +457,7 @@ const AppNavigator = () => {
     <NavigationContainer>
       <RootStack.Navigator>
         <RootStack.Screen
-          name="Home"
+          name="Explore"
           options={{ headerShown: false }}
         >
           {() => <TabNavigator picture={picture} />}
@@ -423,11 +489,15 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
     backgroundColor: '#F9F9F9',
     height: '10%',
     width: '100%',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: wp(3),
+    height: '100%',
   },
   tab: {
     flex: 0.20,

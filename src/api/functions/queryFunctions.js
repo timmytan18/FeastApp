@@ -4,10 +4,11 @@ import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, getFollowingPK, searchUsers,
   searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers,
-  getNumFollows, getFollowingPosts, getFollowingPostsByUser, getFollowersPK, batchGetUserPosts,
-  getPlaceDetails, batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews,
-  getUserAllSavedPosts, getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums,
-  getUserYumsReceived, getPostYumsNoDetails, getUserEmail, getPlaceRating, batchGetPlaceRatings,
+  getNumFollows, getFollowingPosts, getFollowingPostsDetails, getFollowingPostsByUser,
+  getFollowersPK, batchGetUserPosts, getPlaceDetails, batchGetPlaceDetails,
+  getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
+  getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
+  getPostYumsNoDetails, getUserEmail, getPlaceRating, batchGetPlaceRatings,
 } from '../graphql/queries';
 
 async function fulfillPromise(promise, getValue, errorMsg) {
@@ -172,6 +173,31 @@ function getFollowingPostsQuery({ PK }) {
     },
   ));
   const getValue = (res) => res.data.listFeastItems.items;
+  const errorMsg = 'Error getting followers/following list: ';
+  return { promise, getValue, errorMsg };
+}
+
+// Get all posts with details in feed from following
+function getFollowingPostsDetailsQuery({
+  PK, timestamp, limit, nextToken,
+}) {
+  const date = new Date();
+  const timeLocal = date.toISOString();
+  const promise = API.graphql(graphqlOperation(
+    getFollowingPostsDetails,
+    {
+      PK,
+      SK: { between: [`#FOLLOWINGPOST#${timestamp}`, `#FOLLOWINGPOST#${timeLocal}`] },
+      sortDirection: 'DESC',
+      limit,
+      nextToken,
+    },
+  ));
+  const getValue = (res) => {
+    const currPosts = res.data.listFeastItems.items;
+    const { nextToken } = res.data.listFeastItems;
+    return { currPosts, nextToken };
+  };
   const errorMsg = 'Error getting followers/following list: ';
   return { promise, getValue, errorMsg };
 }
@@ -374,9 +400,9 @@ function batchGetPlaceRatingsQuery({ batch }) {
 export {
   fulfillPromise, getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery,
   searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
-  getFollowingPostsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
-  getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
-  getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
-  getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery, getPlaceRatingQuery,
-  batchGetPlaceRatingsQuery,
+  getFollowingPostsQuery, getFollowingPostsDetailsQuery, getFollowingPostsByUserQuery,
+  batchGetUserPostsQuery, getPlaceDetailsQuery, batchGetPlaceDetailsQuery,
+  getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery,
+  getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery,
+  getPlaceRatingQuery, batchGetPlaceRatingsQuery,
 };

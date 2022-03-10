@@ -4,13 +4,13 @@ import {
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
 import { getUserAllSavedPostsQuery, fulfillPromise } from '../../../api/functions/queryFunctions';
-import { createFeastItem, deleteFeastItem } from '../../../graphql/mutations';
+import { createFeastItem, updateFeastItem, deleteFeastItem } from '../../../graphql/mutations';
 import { GET_SAVED_POST_ID } from '../../../constants/constants';
 import Save from './icons/Save';
 import { colors, sizes, wp } from '../../../constants/theme';
 
 const SaveButton = ({
-  isSaved, dispatch, size, post, place, myUID, stopBarAnimation, startBarAnimation,
+  isSaved, dispatch, size, post, place, myUID, stopBarAnimation, startBarAnimation, light,
 }) => {
   const [pressed, setPressed] = useState(isSaved);
   useEffect(() => {
@@ -66,15 +66,22 @@ const SaveButton = ({
           { input: savedPostInput },
         ));
       } catch (e) {
-        console.warn('Error saving post to saved posts: ', e);
-        stopBarAnimation();
-        setPressed(!currSaved);
-        Alert.alert(
-          'Error',
-          'Could not save post. Please try again.',
-          [{ text: 'OK', onPress: () => startBarAnimation() }],
-          { cancelable: false },
-        );
+        try {
+          await API.graphql(graphqlOperation(
+            updateFeastItem,
+            { input: savedPostInput },
+          ));
+        } catch (e2) {
+          console.warn('Error saving post to saved posts: ', e2);
+          if (stopBarAnimation) stopBarAnimation();
+          setPressed(!currSaved);
+          Alert.alert(
+            'Error',
+            'Could not save post. Please try again.',
+            [{ text: 'OK', onPress: () => { if (startBarAnimation) startBarAnimation(); } }],
+            { cancelable: false },
+          );
+        }
       }
     } else {
       // Unsave post
@@ -86,12 +93,12 @@ const SaveButton = ({
         ));
       } catch (err) {
         console.warn('Error deleting post from saved post:', err);
-        stopBarAnimation();
+        if (stopBarAnimation) stopBarAnimation();
         setPressed(!currSaved);
         Alert.alert(
           'Error',
           'Could not unsave post. Please try again.',
-          [{ text: 'OK', onPress: startBarAnimation() }],
+          [{ text: 'OK', onPress: () => { if (startBarAnimation) startBarAnimation(); } }],
           { cancelable: false },
         );
       }
@@ -121,7 +128,7 @@ const SaveButton = ({
     <View style={styles.buttonContainer}>
       <View style={styles.container}>
         <TouchableOpacity style={{ width: '100%' }} activeOpacity={0.9} onPress={savePressed} disabled={geo === null}>
-          <Save size={size} color={pressed ? colors.accent : '#464A4F'} />
+          <Save size={size} color={pressed ? colors.accent : light ? 'rgba(176, 187, 199, 0.6)' : '#464A4F'} />
         </TouchableOpacity>
       </View>
       <Text style={styles.bottomButtonText}>{pressed ? 'Unsave' : 'Save'}</Text>

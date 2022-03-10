@@ -37,7 +37,7 @@ const propTypes = {
   }).isRequired,
 };
 
-const ADDED_ATTR = ['imgUrl'];
+const ADDED_ATTR = [];
 
 const FollowButton = ({
   currentUser, myUser, dispatch, containerStyle, textStyle,

@@ -417,6 +417,48 @@ export const getFollowingPosts = /* GraphQL */ `
   }
 `;
 
+export const getFollowingPostsDetails = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+        placeId
+        name
+        timestamp
+        dish
+        rating
+        review
+        picture
+        geo
+        categories
+        imgUrl
+        placeUserInfo {
+          uid
+          name
+          picture
+          identityId
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 export const getFollowingPostsByUser = /* GraphQL */ `
   query ItemsByLSI3(
     $PK: String
