@@ -30,6 +30,7 @@ import { DEFAULT_COORDINATES } from '../../constants/constants';
 import { colors, sizes, wp } from '../../constants/theme';
 
 const NUM_POSTS_TO_FETCH = 8;
+const NUM_DAYS_TO_FETCH = 7;
 
 const Home = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
@@ -116,7 +117,7 @@ const Home = ({ navigation }) => {
     mounted.current = true;
     (async () => {
       setRefreshing(true);
-      const dateOneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7));
+      const dateOneWeekAgo = new Date(new Date().setDate(new Date().getDate() - NUM_DAYS_TO_FETCH));
       const oneWeekAgo = dateOneWeekAgo.toISOString();
 
       const { promise, getValue, errorMsg } = getFollowingPostsDetailsQuery(
@@ -144,7 +145,7 @@ const Home = ({ navigation }) => {
     if (!currNextToken.current) return;
     mounted.current = true;
     setMoreLoading(true);
-    const dateOneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 3));
+    const dateOneWeekAgo = new Date(new Date().setDate(new Date().getDate() - NUM_DAYS_TO_FETCH));
     const oneWeekAgo = dateOneWeekAgo.toISOString();
 
     const { promise, getValue, errorMsg } = getFollowingPostsDetailsQuery(
