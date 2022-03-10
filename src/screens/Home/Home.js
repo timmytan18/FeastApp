@@ -4,7 +4,7 @@ import React, {
 import {
   StyleSheet, View, FlatList, TouchableOpacity, Text,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 // import { BlurView } from 'expo-blur';
 import { useScrollToTop } from '@react-navigation/native';
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   ballIndicator: {
     alignSelf: 'center',
     position: 'absolute',
-    top: '50%',
+    top: '40%',
     zIndex: 1,
   },
   noPostsContainer: {

@@ -14,7 +14,7 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BallIndicator } from 'react-native-indicators';
 import MaskedView from '@react-native-community/masked-view';
-import { useScrollToTop } from '@react-navigation/native';
+// import { useScrollToTop } from '@react-navigation/native';
 import {
   getUserPostsQuery,
   getNumFollowsQuery,
@@ -300,7 +300,7 @@ const Profile = ({ navigation, route }) => {
 
   // Flatlist
   const flatListRef = useRef(null);
-  useScrollToTop(flatListRef);
+  // useScrollToTop(flatListRef);
   const insets = useSafeAreaInsets();
 
   // Map
