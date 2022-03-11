@@ -11,6 +11,7 @@ import {
 } from '../../api/functions/queryFunctions';
 import { fetchCurrentUser } from '../../api/functions/FetchUserProfile';
 import ProfilePic from '../components/ProfilePic';
+import FollowButton from '../components/FollowButton';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import {
@@ -19,7 +20,8 @@ import {
 
 const FollowsList = ({ navigation, route }) => {
   const { PK, uid, type } = route.params;
-  const [{ user: { uid: myUID, PK: myPK } }] = useContext(Context);
+  const [{ user, reloadProfileTrigger }, dispatch] = useContext(Context);
+  const { uid: myUID, PK: myPK } = user;
 
   const [usersList, setUsersList] = useState(null);
   const followingPKs = useRef(new Set());
@@ -37,12 +39,14 @@ const FollowsList = ({ navigation, route }) => {
     (async () => {
       let dynamoUsers = null;
       let promise; let getValue; let errorMsg;
-      if (type === 'Followers') {
-        // Get following users PKs
+      // Get following users PKs
+      if (uid !== myUID || type === 'Followers') {
         ({ promise, getValue, errorMsg } = getFollowingQuery({ uid: myUID, onlyReturnPKs: true }));
         let followingUsers = await fulfillPromise(promise, getValue, errorMsg);
-        followingUsers = followingUsers.map((user) => user.uid);
+        followingUsers = followingUsers.map((fUser) => fUser.uid);
         followingPKs.current = new Set(followingUsers);
+      }
+      if (type === 'Followers') {
         // Get followers
         ({ promise, getValue, errorMsg } = getFollowersQuery({ PK }));
       } else if (type === 'Following') {
@@ -53,7 +57,7 @@ const FollowsList = ({ navigation, route }) => {
       if (mounted.current) setUsersList(dynamoUsers);
     })();
     return () => { mounted.current = false; };
-  }, [PK, type, uid]);
+  }, [PK, type, uid, reloadProfileTrigger, myUID]);
 
   const openUser = async ({ user }) => {
     const currUser = await fetchCurrentUser({
@@ -76,9 +80,8 @@ const FollowsList = ({ navigation, route }) => {
     return (
       <TouchableOpacity
         style={styles.userItemContainer}
-        activeOpacity={0.5}
+        activeOpacity={1}
         onPress={() => openUser({ user: item })}
-        // onPress={() => fetchCurrentUser(item.PK, item.SK, item.picture)}
         key={item.PK}
         id={item.PK}
       >
@@ -87,14 +90,24 @@ const FollowsList = ({ navigation, route }) => {
             uid={item.uid}
             extUrl={item.picture}
             size={wp(10)}
-            style={{ marginHorizontal: sizes.margin }}
+            style={{ marginRight: sizes.margin }}
           />
           <View style={styles.infoContainer}>
             <Text style={styles.userNameText}>{item.name}</Text>
           </View>
         </View>
-        {followingPKs.current.has(item.uid)
+        {(followingPKs.current.has(item.uid) || (uid === myUID && type === 'Following'))
           && <Text style={styles.followingText}>Following</Text>}
+        {myUID !== item.uid && (!followingPKs.current.has(item.uid) && (uid !== myUID || type !== 'Following'))
+          && (
+            <FollowButton
+              currentUser={item}
+              myUser={user}
+              dispatch={dispatch}
+              containerStyle={styles.followContainer}
+              textStyle={styles.followText}
+            />
+          )}
       </TouchableOpacity>
     );
   };
@@ -110,7 +123,7 @@ const FollowsList = ({ navigation, route }) => {
             extraData={usersList}
             renderItem={renderUserItem}
             keyExtractor={(item) => (type === 'Following' ? item.PK : item.follower.PK)}
-            showsVerticalScrollIndicator
+            showsVerticalScrollIndicator={false}
             onScrollBeginDrag={Keyboard.dismiss}
             keyboardShouldPersistTaps="handled"
             ListHeaderComponent={<View style={{ height: wp(3) }} />}
@@ -126,7 +139,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingHorizontal: wp(3.5),
+    paddingLeft: wp(5),
+    paddingRight: sizes.margin,
     backgroundColor: '#fff',
   },
   userItemContainer: {
@@ -154,6 +168,18 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     fontSize: sizes.b3,
     color: colors.tertiary,
+  },
+  followContainer: {
+    width: '26%',
+    height: wp(8.25),
+    borderRadius: wp(2),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  followText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b3,
+    paddingTop: wp(0.3),
   },
 });
 
