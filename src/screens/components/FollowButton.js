@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, TouchableOpacity, Text, Alert,
 } from 'react-native';
@@ -124,11 +124,22 @@ const FollowButton = ({
   const changeFollowing = async (currFollow) => {
     // Add following/unfollowing to DB
     setFollowing(!currFollow);
+    const date = new Date();
+    const timestamp = date.toISOString();
     const mutation = currFollow ? deleteFeastItem : createFeastItem;
     const input = currFollow
       ? { PK, SK: `#FOLLOWER#${myID}` }
       : {
-        PK, SK: `#FOLLOWER#${myID}`, GSI1: 'USER#', name, username, ...(picture && { picture }), identityId, uid, follower,
+        PK,
+        SK: `#FOLLOWER#${myID}`,
+        LSI1: `#FOLLOWTIME#${timestamp}`,
+        GSI1: 'USER#',
+        name,
+        username,
+        ...(picture && { picture }),
+        identityId,
+        uid,
+        follower,
       };
     try {
       await API.graphql(graphqlOperation(

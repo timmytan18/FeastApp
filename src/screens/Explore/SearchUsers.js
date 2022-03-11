@@ -7,13 +7,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Context } from '../../Store';
 import {
-  getUserProfileQuery,
   searchUsersQuery,
   searchPlacesQuery,
-  getIsFollowingQuery,
   getPlaceDetailsQuery,
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
+import { fetchCurrentUser } from '../../api/functions/FetchUserProfile';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import ProfilePic from '../components/ProfilePic';
@@ -23,7 +22,7 @@ import {
 } from '../../constants/theme';
 
 const SearchUsers = ({ navigation }) => {
-  const [{ user: { PK, uid: myUID } }] = useContext(Context);
+  const [{ user: { PK: myPK, uid: myUID } }] = useContext(Context);
   const [loading, setLoading] = useState(false);
 
   const position = useRef(new Animated.Value(0)).current;
@@ -57,48 +56,34 @@ const SearchUsers = ({ navigation }) => {
     }
   };
 
-  const fetchCurrentUser = async (currentPK, currentSK, currentProfilePic) => {
-    try {
-      const { promise, getValue, errorMsg } = getUserProfileQuery({ PK: currentPK, SK: currentSK });
-      const currentUser = await fulfillPromise(promise, getValue, errorMsg);
-      currentUser.PK = currentPK;
-      currentUser.SK = currentSK;
-      currentUser.picture = currentProfilePic;
-      // Check if I am following the current user
-      if (currentPK !== PK) {
-        const {
-          promise: isFollowingPromise,
-          getValue: getIsFollowingValue,
-          errorMsg: isFollowingErrorMsg,
-        } = getIsFollowingQuery({ currentPK, myUID });
-        currentUser.following = await fulfillPromise(
-          isFollowingPromise,
-          getIsFollowingValue,
-          isFollowingErrorMsg,
-        );
-      }
-      navigation.push(
-        'ProfileStack',
-        { screen: 'Profile', params: { user: currentUser } },
-      );
-    } catch (err) {
-      console.warn('Error fetching current user: ', err);
-    }
-  };
-
   const openPlace = async ({ placeId }) => {
     const { promise, getValue, errorMsg } = getPlaceDetailsQuery({ placeId });
     const place = await fulfillPromise(promise, getValue, errorMsg);
     navigation.push('PlaceDetail', { place, placeId, placeName: place.name });
   };
 
+  const openUser = async ({ user }) => {
+    const currUser = await fetchCurrentUser({
+      currentPK: user.PK,
+      currentSK: user.SK,
+      currentProfilePic: user.picture,
+      myUID,
+      myPK,
+    });
+    navigation.push(
+      'ProfileStack',
+      { screen: 'Profile', params: { user: currUser } },
+    );
+  };
+
   const renderSearchItem = ({ item }) => (
     <TouchableOpacity
       style={styles.userItemContainer}
       activeOpacity={0.5}
-      onPress={() => (searchByUser
-        ? fetchCurrentUser(item.PK, item.SK, item.picture)
-        : openPlace({ placeId: item.placeId }))}
+      onPress={() => (
+        searchByUser
+          ? openUser({ user: item })
+          : openPlace({ placeId: item.placeId }))}
     >
       <View style={[
         styles.userIconContainer,

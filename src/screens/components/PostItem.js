@@ -186,6 +186,7 @@ const PostItem = ({
                     myPK={myPK}
                     myName={myName}
                     myPicture={myPicture}
+                    picture={picture}
                     showYummedUsersModal={showYummedUsersModal}
                     light
                   />
@@ -201,14 +202,13 @@ const PostItem = ({
 
 function areEqual(prevProps, nextProps) {
   // // Rerender if isSaved changes
-  // const prevIsSaved = prevProps.savedPosts.has(GET_SAVED_POST_ID({
-  //   uid: prevProps.item.placeUserInfo.uid, timestamp: prevProps.item.timestamp,
-  // }));
-  // const nextIsSaved = nextProps.savedPosts.has(GET_SAVED_POST_ID({
-  //   uid: nextProps.item.placeUserInfo.uid, timestamp: nextProps.item.timestamp,
-  // }));
-  // return prevIsSaved === nextIsSaved;
-  return false;
+  const prevIsSaved = prevProps.savedPosts.has(GET_SAVED_POST_ID({
+    uid: prevProps.item.placeUserInfo.uid, timestamp: prevProps.item.timestamp,
+  }));
+  const nextIsSaved = nextProps.savedPosts.has(GET_SAVED_POST_ID({
+    uid: nextProps.item.placeUserInfo.uid, timestamp: nextProps.item.timestamp,
+  }));
+  return prevIsSaved === nextIsSaved;
 }
 
 const ratingIconSize = wp(12);

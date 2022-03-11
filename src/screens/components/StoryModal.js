@@ -16,8 +16,6 @@ import PlaceDetailView from './PlaceDetailView';
 import MoreView from './MoreView';
 import ReportModal from './ReportModal';
 import {
-  getUserProfileQuery,
-  getIsFollowingQuery,
   getFollowersQuery,
   getAllSavedPostItemsQuery,
   getPostYumsQuery,
@@ -25,6 +23,7 @@ import {
 } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts, incrementFeastItem } from '../../api/graphql/mutations';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
+import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import ProfilePic from './ProfilePic';
 import MapMarker from './util/icons/MapMarker';
 import YumButton from './util/YumButton';
@@ -51,6 +50,7 @@ const StoryModal = ({ navigation, route }) => {
     places,
     deviceHeight,
     firstImg,
+    openYums,
   } = route.params;
 
   const [
@@ -518,29 +518,11 @@ const StoryModal = ({ navigation, route }) => {
     ];
 
   const fetchUser = async ({ fetchUID }) => {
-    try {
-      const { promise, getValue, errorMsg } = getUserProfileQuery({ uid: fetchUID });
-      const currentUser = await fulfillPromise(promise, getValue, errorMsg);
-      // Check if I am following the current user
-      if (currentUser.uid !== myUID) {
-        const {
-          promise: isFollowingPromise,
-          getValue: getIsFollowingValue,
-          errorMsg: isFollowingErrorMsg,
-        } = getIsFollowingQuery({ currentUID: fetchUID, myUID });
-        currentUser.following = await fulfillPromise(
-          isFollowingPromise,
-          getIsFollowingValue,
-          isFollowingErrorMsg,
-        );
-      }
-      navigation.push(
-        'ProfileStack',
-        { screen: 'Profile', params: { user: currentUser } },
-      );
-    } catch (err) {
-      console.warn('Error fetching current user: ', err);
-    }
+    const currUser = await fetchCurrentUserUID({ fetchUID, myUID });
+    navigation.push(
+      'ProfileStack',
+      { screen: 'Profile', params: { user: currUser } },
+    );
   };
 
   const [showYummedUsers, setShowYummedUsers] = useState(false);
@@ -557,6 +539,12 @@ const StoryModal = ({ navigation, route }) => {
     }));
     setShowYummedUsers(true);
   };
+
+  // useEffect(() => {
+  //   if (openYums) {
+  //     showYummedUsersModal({ users: openYums });
+  //   }
+  // }, []);
 
   const [numLines, setNumLines] = useState(null);
   const [numLinesExpanded, setNumLinesExpanded] = useState(null);
@@ -812,8 +800,10 @@ const StoryModal = ({ navigation, route }) => {
                 myPK={myPK}
                 myName={myName}
                 myPicture={myPicture}
+                picture={picture}
                 showYummedUsersModal={showYummedUsersModal}
                 stopBarAnimation={stopBarAnimation}
+                openYums={openYums}
               />
             </View>
           </View>

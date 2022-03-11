@@ -12,11 +12,10 @@ import { BallIndicator } from 'react-native-indicators';
 import {
   getFollowingPostsDetailsQuery,
   getPlaceDetailsQuery,
-  getUserProfileQuery,
-  getIsFollowingQuery,
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import deletePostConfirmation from '../../api/functions/DeletePost';
+import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import PostItem from '../components/PostItem';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
@@ -31,6 +30,7 @@ import { colors, sizes, wp } from '../../constants/theme';
 
 const NUM_POSTS_TO_FETCH = 8;
 const NUM_DAYS_TO_FETCH = 7;
+const ALL_POSTS_FETCHED = 'allPostsFetched';
 
 const Home = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
@@ -142,7 +142,7 @@ const Home = ({ navigation }) => {
   const [moreLoading, setMoreLoading] = useState(false);
   // Get more posts
   const getMorePosts = async () => {
-    if (!currNextToken.current) return;
+    if (!currNextToken.current || currNextToken.current === ALL_POSTS_FETCHED) return;
     mounted.current = true;
     setMoreLoading(true);
     const dateOneWeekAgo = new Date(new Date().setDate(new Date().getDate() - NUM_DAYS_TO_FETCH));
@@ -158,7 +158,7 @@ const Home = ({ navigation }) => {
     );
     const { currPosts, nextToken } = await fulfillPromise(promise, getValue, errorMsg);
     if (mounted.current) {
-      currNextToken.current = nextToken;
+      currNextToken.current = nextToken || ALL_POSTS_FETCHED;
       setPosts([...posts, ...currPosts]);
       setMoreLoading(false);
     }
@@ -180,29 +180,11 @@ const Home = ({ navigation }) => {
   };
 
   const fetchUser = async ({ fetchUID }) => {
-    try {
-      const { promise, getValue, errorMsg } = getUserProfileQuery({ uid: fetchUID });
-      const currentUser = await fulfillPromise(promise, getValue, errorMsg);
-      // Check if I am following the current user
-      if (currentUser.uid !== myUID) {
-        const {
-          promise: isFollowingPromise,
-          getValue: getIsFollowingValue,
-          errorMsg: isFollowingErrorMsg,
-        } = getIsFollowingQuery({ currentUID: fetchUID, myUID });
-        currentUser.following = await fulfillPromise(
-          isFollowingPromise,
-          getIsFollowingValue,
-          isFollowingErrorMsg,
-        );
-      }
-      navigation.push(
-        'ProfileStack',
-        { screen: 'Profile', params: { user: currentUser } },
-      );
-    } catch (err) {
-      console.warn('Error fetching current user: ', err);
-    }
+    const currUser = await fetchCurrentUserUID({ fetchUID, myUID });
+    navigation.push(
+      'ProfileStack',
+      { screen: 'Profile', params: { user: currUser } },
+    );
   };
 
   const openPlace = async ({ placeId }) => {
@@ -261,7 +243,12 @@ const Home = ({ navigation }) => {
   };
 
   const listFooterComponent = () => {
-    if (moreLoading) return (<CenterSpinner />);
+    if (moreLoading) return (<CenterSpinner style={{ marginBottom: wp(4) }} />);
+    if (currNextToken.current === ALL_POSTS_FETCHED) {
+      return (
+        <Text style={styles.noMorePostsText}>You're all caught up for the week! :)</Text>
+      );
+    }
     return null;
   };
 
@@ -345,22 +332,30 @@ const Home = ({ navigation }) => {
           onEndReached={getMorePosts}
           ListFooterComponent={listFooterComponent}
         />
-        {posts !== null && posts.length === 0
-          && (
-            <View style={styles.noPostsContainer}>
-              <Text style={styles.noPostsText}>
-                Follow people to see
-                {'\n'}
-                their posts!
-              </Text>
-            </View>
-          )}
       </View>
+      {posts !== null && posts.length === 0
+        && (
+          <View style={styles.noPostsContainer}>
+            <Text style={styles.noPostsText}>
+              Follow people to see
+              {'\n'}
+              more posts!
+            </Text>
+          </View>
+        )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  noMorePostsText: {
+    fontFamily: 'Book',
+    fontSize: sizes.b1,
+    color: colors.tertiary,
+    textAlign: 'center',
+    marginTop: wp(5),
+    marginBottom: wp(12),
+  },
   ballIndicator: {
     alignSelf: 'center',
     position: 'absolute',
@@ -368,10 +363,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   noPostsContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    marginBottom: wp(15),
+    position: 'absolute',
   },
   noPostsText: {
     fontFamily: 'Book',
@@ -383,12 +375,13 @@ const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
     backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    // paddingTop: wp(12),
   },
   header: {
     width: '100%',

@@ -148,7 +148,39 @@ export const getFollowers = /* GraphQL */ `
           picture
           uid
         }
-        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getFollowersByTime = /* GraphQL */ `
+  query ItemsByLSI1(
+    $PK: String
+    $LSI1: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByLSI1(
+      PK: $PK
+      LSI1: $LSI1
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        follower {
+          PK
+          SK
+          name
+          picture
+          uid
+        }
+        updatedAt
       }
       nextToken
     }
@@ -209,7 +241,7 @@ export const getFollowing = /* GraphQL */ `
         follower {
           followedSK
         }
-        createdAt
+        updatedAt
       }
       nextToken
     }
@@ -280,7 +312,6 @@ export const getUserPosts = /* GraphQL */ `
         dish
         review
         rating
-        createdAt
       }
       nextToken
     }
@@ -683,7 +714,7 @@ export const getUserAllSavedPosts = /* GraphQL */ `
           picture
           identityId
         }
-        createdAt
+        updatedAt
       }
       nextToken
     }
@@ -712,7 +743,6 @@ export const getUserAllSavedPostsNoDetails = /* GraphQL */ `
         placeUserInfo {
           uid
         }
-        createdAt
       }
       nextToken
     }
@@ -820,6 +850,37 @@ export const getUserYumsReceived = /* GraphQL */ `
     ) {
       items {
         placeId
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getUserYumsReceivedByTime = /* GraphQL */ `
+  query ItemsByGSI2(
+    $GSI2: String
+    $LSI1: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI2(
+      GSI2: $GSI2
+      LSI1: $LSI1
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        placeId
+        timestamp
+        uid
+        name
+        picture
+        imgUrl
+        updatedAt
       }
       nextToken
     }

@@ -4,7 +4,7 @@ import React, {
 import {
   Text, View, StyleSheet, TouchableOpacity,
 } from 'react-native';
-import { getUserProfileQuery, getIsFollowingQuery, fulfillPromise } from '../../api/functions/queryFunctions';
+import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import ProfilePic from './ProfilePic';
 import StarsRating from './util/StarsRating';
 import {
@@ -14,29 +14,11 @@ import {
 const NUM_COLLAPSED_LINES = 3;
 
 const fetchReviewUser = async ({ uid, myUID, navigation }) => {
-  try {
-    const { promise, getValue, errorMsg } = getUserProfileQuery({ uid });
-    const currentUser = await fulfillPromise(promise, getValue, errorMsg);
-    // Check if I am following the current user
-    if (currentUser.uid !== myUID) {
-      const {
-        promise: isFollowingPromise,
-        getValue: getIsFollowingValue,
-        errorMsg: isFollowingErrorMsg,
-      } = getIsFollowingQuery({ currentUID: uid, myUID });
-      currentUser.following = await fulfillPromise(
-        isFollowingPromise,
-        getIsFollowingValue,
-        isFollowingErrorMsg,
-      );
-    }
-    navigation.push(
-      'ProfileStack',
-      { screen: 'Profile', params: { user: currentUser } },
-    );
-  } catch (err) {
-    console.warn('Error fetching current user: ', err);
-  }
+  const currUser = await fetchCurrentUserUID({ fetchUID: uid, myUID });
+  navigation.push(
+    'ProfileStack',
+    { screen: 'Profile', params: { user: currUser } },
+  );
 };
 
 const ReviewItem = ({

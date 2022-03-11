@@ -10,8 +10,8 @@ import YumNoFill from './icons/YumNoFill';
 import { sizes, wp } from '../../../constants/theme';
 
 const YumButton = ({
-  size, uid, timestamp, placeId, myUID, myPK, myName,
-  myPicture, showYummedUsersModal, stopBarAnimation, light,
+  size, uid, timestamp, placeId, myUID, myPK, myName, myPicture,
+  picture, showYummedUsersModal, stopBarAnimation, light, openYums,
 }) => {
   const [pressed, setPressed] = useState(false);
   const [yums, setYums] = useState([]);
@@ -39,6 +39,9 @@ const YumButton = ({
         if (mounted.current) {
           setYums(yumsItems);
           setPressed(yummed);
+          if (openYums) {
+            showYummedUsersModalPressed({ yumsItems });
+          }
         }
       }
     })();
@@ -46,17 +49,22 @@ const YumButton = ({
   }, [myUID, placeId, timestamp, uid]);
 
   const yumPressed = async () => {
+    const date = new Date();
+    const timeLocal = date.toISOString();
     const currPressed = pressed;
     setPressed(!currPressed);
     const input = {
       PK: myPK,
       SK: `#YUMPOST#${timestamp}#${uid}`,
       GSI1: `YUMPOST#${uid}`,
+      GSI2: `YUMPOST#${uid}`,
+      LSI1: `#YUMTIME#${timeLocal}`,
       placeId,
       timestamp,
       uid: myUID,
       name: myName,
       picture: myPicture,
+      imgUrl: picture,
       placeUserInfo: {
         uid,
       },
@@ -91,9 +99,9 @@ const YumButton = ({
     }
   };
 
-  const showYummedUsersModalPressed = () => {
+  const showYummedUsersModalPressed = ({ yumsItems }) => {
     if (stopBarAnimation) stopBarAnimation();
-    showYummedUsersModal({ users: yums });
+    showYummedUsersModal({ users: yumsItems || yums });
   };
 
   return (

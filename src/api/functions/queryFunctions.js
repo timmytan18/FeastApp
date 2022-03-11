@@ -4,11 +4,12 @@ import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, getFollowingPK, searchUsers,
   searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers,
-  getNumFollows, getFollowingPosts, getFollowingPostsDetails, getFollowingPostsByUser,
-  getFollowersPK, batchGetUserPosts, getPlaceDetails, batchGetPlaceDetails,
+  getFollowersByTime, getNumFollows, getFollowingPosts, getFollowingPostsDetails,
+  getFollowingPostsByUser, getFollowersPK, batchGetUserPosts, getPlaceDetails, batchGetPlaceDetails,
   getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
-  getPostYumsNoDetails, getUserEmail, getPlaceRating, batchGetPlaceRatings,
+  getUserYumsReceivedByTime, getPostYumsNoDetails, getUserEmail, getPlaceRating,
+  batchGetPlaceRatings,
 } from '../graphql/queries';
 
 async function fulfillPromise(promise, getValue, errorMsg) {
@@ -38,7 +39,7 @@ function getUserProfileQuery({ PK, SK, uid }) {
   return { promise, getValue, errorMsg };
 }
 
-// Fetch reviews for a user (all or with geohash)
+// Fetch reviews for a user (all or with hash)
 // withUserInfo: true will fetch reviews with user info
 function getUserPostsQuery({ PK, hash, withUserInfo }) {
   const SK = hash ? `#PLACE#${hash}` : '#PLACE#';
@@ -106,6 +107,23 @@ function getFollowersQuery({ PK, onlyReturnPKs }) {
   ));
   const getValue = (res) => res.data.listFeastItems.items;
   const errorMsg = 'Error getting followers/following list: ';
+  return { promise, getValue, errorMsg };
+}
+
+// Get followers by time
+function getFollowersByTimeQuery({ PK, timestamp }) {
+  const date = new Date();
+  const timeLocal = date.toISOString();
+  const promise = API.graphql(graphqlOperation(
+    getFollowersByTime,
+    {
+      PK,
+      LSI1: { between: [`#FOLLOWTIME#${timestamp}`, `#FOLLOWTIME#${timeLocal}`] },
+      limit: 200,
+    },
+  ));
+  const getValue = (res) => res.data.itemsByLSI1.items;
+  const errorMsg = 'Error getting followers by time list: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -195,8 +213,8 @@ function getFollowingPostsDetailsQuery({
   ));
   const getValue = (res) => {
     const currPosts = res.data.listFeastItems.items;
-    const { nextToken } = res.data.listFeastItems;
-    return { currPosts, nextToken };
+    const { nextToken: currNextToken } = res.data.listFeastItems;
+    return { currPosts, nextToken: currNextToken };
   };
   const errorMsg = 'Error getting followers/following list: ';
   return { promise, getValue, errorMsg };
@@ -354,6 +372,24 @@ function getUserYumsReceivedQuery({ uid }) {
   return { promise, getValue, errorMsg };
 }
 
+// Fetch yums received for a user by time
+function getUserYumsReceivedByTimeQuery({ uid, timestamp }) {
+  const GSI2 = `YUMPOST#${uid}`;
+  const date = new Date();
+  const timeLocal = date.toISOString();
+  const promise = API.graphql(graphqlOperation(
+    getUserYumsReceivedByTime,
+    {
+      GSI2,
+      LSI1: { between: [`#YUMTIME#${timestamp}`, `#YUMTIME#${timeLocal}`] },
+      limit: 200,
+    },
+  ));
+  const getValue = (res) => res.data.itemsByGSI2.items;
+  const errorMsg = 'Error fetching received yum items by time for user: ';
+  return { promise, getValue, errorMsg };
+}
+
 // Fetch user email
 function getUserEmailQuery({ uid }) {
   const userPK = `USER#${uid}`;
@@ -399,10 +435,11 @@ function batchGetPlaceRatingsQuery({ batch }) {
 
 export {
   fulfillPromise, getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery,
-  searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getNumFollowsQuery,
-  getFollowingPostsQuery, getFollowingPostsDetailsQuery, getFollowingPostsByUserQuery,
-  batchGetUserPostsQuery, getPlaceDetailsQuery, batchGetPlaceDetailsQuery,
-  getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery,
-  getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery, getUserEmailQuery,
+  searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery,
+  getFollowersByTimeQuery, getNumFollowsQuery, getFollowingPostsQuery,
+  getFollowingPostsDetailsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
+  getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
+  getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
+  getPostYumsQuery, getUserYumsReceivedQuery, getUserYumsReceivedByTimeQuery, getUserEmailQuery,
   getPlaceRatingQuery, batchGetPlaceRatingsQuery,
 };

@@ -97,7 +97,7 @@ const SavedPosts = ({ navigation, route }) => {
         Promise.all(savedPosts.map(getPostPictures))
           .then((currPosts) => {
             // Sort placePosts by most recently saved
-            currPosts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+            currPosts.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
             // Batch average rating items
             const currBatch = [];

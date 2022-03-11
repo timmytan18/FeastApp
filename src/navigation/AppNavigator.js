@@ -252,6 +252,11 @@ function InboxStackScreen() {
           title: <Text style={header.title}>Inbox</Text>,
         }}
       />
+      <InboxStack.Screen
+        name="ProfileStack"
+        component={ProfileStackScreen}
+        options={{ headerShown: false }}
+      />
     </InboxStack.Navigator>
   );
 }
