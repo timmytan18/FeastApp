@@ -65,6 +65,7 @@ const ReportModal = ({
     Keyboard.dismiss();
     setDescription('');
     setReportPressed(false);
+    setError(null);
     if (onDismiss) {
       onDismiss();
     }
@@ -92,6 +93,7 @@ const ReportModal = ({
               returnKeyType="done"
               blurOnSubmit
               onSubmitEditing={Keyboard.dismiss}
+              onFocus={() => setError(null)}
               textAlignVertical="top"
               placeholder="What's wrong?"
               maxLength={500}

@@ -13,7 +13,9 @@ const { Parameters } = await (new aws.SSM())
 Parameters will be of the form { Name: 'secretName', Value: 'secretValue', ... }[]
 */
 const aws = require('aws-sdk');
-const sgMail = require('@sendgrid/mail');
+
+const REGION = 'us-east-2';
+aws.config.update({ region: REGION });
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -35,26 +37,30 @@ const SUPPORT_EMAIL = 'support@feastapp.io';
 const TITLE = 'FEAST IN-APP ISSUE REPORTED';
 
 app.post('/report', async (req, res) => {
-  const { Parameters } = await (new aws.SSM())
-    .getParameters({
-      Names: ['twiliokey'].map((secretName) => process.env[secretName]),
-      WithDecryption: true,
-    })
-    .promise();
-  const [{ Value: TWILIO_KEY }] = Parameters;
-  sgMail.setApiKey(TWILIO_KEY);
-
-  const msg = {
-    to: SUPPORT_EMAIL,
-    from: SUPPORT_EMAIL,
-    subject: TITLE,
-    text: `${JSON.stringify(req.body, null, '\t')}`,
+  const params = {
+    Destination: { ToAddresses: [SUPPORT_EMAIL] },
+    Message: {
+      Body: {
+        Text: {
+          Charset: 'UTF-8',
+          Data: JSON.stringify(req.body, null, '\t'),
+        },
+      },
+      Subject: {
+        Charset: 'UTF-8',
+        Data: TITLE,
+      },
+    },
+    Source: SUPPORT_EMAIL,
   };
 
+  const SESService = new aws.SES({ apiVersion: '2010-12-01' });
+
   try {
-    await sgMail.send(msg);
+    await SESService.sendEmail(params).promise();
     res.json({ status: 'Report succeed', isSuccessful: true });
   } catch (e) {
+    console.log(e);
     res.json({ status: 'Report failed', isSuccessful: false });
   }
 });
