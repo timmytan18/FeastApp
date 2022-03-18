@@ -78,7 +78,10 @@ const Verification = ({ navigation, route }) => {
           <VerificationInput onChange={changeCode} />
         </View>
         <TouchableOpacity onPress={() => TwoButtonAlert({
-          title: 'Resend Code', message: `To: ${email}`, yesButton: 'Confirm', pressed: resendConfirmationCode,
+          title: 'Resend Code',
+          message: `If you have not received the email, please check your spam folder. \n\nTo: ${email}`,
+          yesButton: 'Confirm',
+          pressed: resendConfirmationCode,
         })}
         >
           <Text style={styles.resendText}>

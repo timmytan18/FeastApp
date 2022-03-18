@@ -89,21 +89,21 @@ const Main = () => {
     dispatch({ type: 'SET_USER', payload: 'none' });
   }
 
-  // listen to changes in sign in status
-  Hub.listen('auth', ({ payload: { event, data } }) => {
-    switch (event) {
-      case 'signIn':
-        getUser().catch((e) => noUser(e));
-        break;
-      case 'signOut':
-        noUser();
-        break;
-      default:
-        getUser().catch((e) => noUser(e));
-    }
-  });
-
   useEffect(() => {
+    // listen to changes in sign in status
+    Hub.listen('auth', ({ payload: { event, data } }) => {
+      switch (event) {
+        case 'signIn':
+          getUser().catch((e) => noUser(e));
+          break;
+        case 'signOut':
+          noUser();
+          break;
+        default:
+          getUser().catch((e) => noUser(e));
+      }
+    });
+
     // set device height
     dispatch({ type: 'SET_DEVICE_HEIGHT', payload: frame.height });
 

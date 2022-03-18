@@ -57,6 +57,7 @@ const Register = ({ navigation, route }) => {
           setError('Invalid email');
         }
       } else {
+        console.warn('Error signing up: ', err);
         setError('Registration Error');
       }
     }
