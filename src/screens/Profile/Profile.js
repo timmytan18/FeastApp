@@ -28,6 +28,7 @@ import LocationMapMarker from '../components/util/LocationMapMarker';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
 import ReportModal from '../components/ReportModal';
+import FeedbackModal from '../components/FeedbackModal';
 import FollowButton from '../components/FollowButton';
 import More from '../components/util/icons/More';
 import PostListItem from '../components/PostListItem';
@@ -42,6 +43,7 @@ import BackArrow from '../components/util/icons/BackArrow';
 import Save from '../components/util/icons/Save';
 import Cam from '../components/util/icons/Cam';
 import X from '../components/util/icons/X';
+import Feedback from '../components/util/icons/Feedback';
 import { Context } from '../../Store';
 import {
   colors, gradients, sizes, wp, shadows,
@@ -157,6 +159,8 @@ const Profile = ({ navigation, route }) => {
   const [morePressed, setMorePressed] = useState(false);
   const [reportPressed, setReportPressed] = useState(false);
   const reportPressedRef = useRef(false);
+  const [feedbackPressed, setFeedbackPressed] = useState(false);
+  const feedbackPressedRef = useRef(false);
   const [editPressed, setEditPressed] = useState(false);
 
   const onTab = !(route && route.params && route.params.user);
@@ -180,87 +184,15 @@ const Profile = ({ navigation, route }) => {
       setRefreshing(false);
     })();
 
-    const getPostPictures = (item) => new Promise((resolve, reject) => {
-      Storage.get(item.picture, !isMe && { identityId: user.identityId })
-        .then((url) => {
-          item.s3Photo = url;
-          // Attach placeUserInfo property for StoryModal
-          item.placeUserInfo = {
-            uid: user.uid,
-            name: user.name,
-            picture: user.picture,
-            identityId: user.identityId,
-          };
-          resolve(item);
-        })
-        .catch((err) => {
-          console.warn('Error fetching post picture from S3: ', err);
-          reject();
-        });
-    });
-
-    // Get reviews for current user
+    // Get reviews for user
     (async () => {
       const { promise, getValue, errorMsg } = getUserPostsQuery({
         PK: user.PK, withUserInfo: false,
       });
       const userReviews = await fulfillPromise(promise, getValue, errorMsg);
-      const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
-      const placePostsRatingSum = {};
       if (userReviews && userReviews.length) {
         allReviews.current = userReviews;
-        // Get yums received for current user
-        const updatedPlaceNumYums = {};
-        const {
-          promise: yumPromise,
-          getValue: getYumValue,
-          errorMsg: yumErrorMsg,
-        } = getUserYumsReceivedQuery({ uid: user.uid });
-        const yums = await fulfillPromise(yumPromise, getYumValue, yumErrorMsg);
-        yums.forEach(({ placeId }) => {
-          updatedPlaceNumYums[placeId] = (updatedPlaceNumYums[placeId] || 0) + 1;
-        });
-        Promise.all(userReviews.map(getPostPictures)).then((currPosts) => {
-          numReviews.current = currPosts.length;
-          for (let i = 0; i < currPosts.length; i += 1) {
-            // add to placePosts map
-            const { placeId } = currPosts[i];
-            if (!placePosts[placeId]) {
-              placePosts[placeId] = [currPosts[i]];
-              placePostsRatingSum[placeId] = currPosts[i].rating;
-              placePosts[placeId][0].visible = true;
-            } else {
-              placePosts[placeId].push(currPosts[i]);
-              placePostsRatingSum[placeId] += currPosts[i].rating;
-            }
-          }
-          Object.entries(placePostsRatingSum).forEach(([placeId, sum]) => {
-            placePosts[placeId][0].avgRating = sum / placePosts[placeId].length;
-          });
-
-          // Format posts for FlatList, include numYums
-          const placeIdKeys = Object.keys(placePosts);
-          if (placeIdKeys && placeIdKeys.length) {
-            posts.current = [[]];
-            for (let i = 0; i < placeIdKeys.length; i += 2) {
-              const rowItem = [{
-                placePosts: placePosts[placeIdKeys[i]],
-                numYums: updatedPlaceNumYums[placeIdKeys[i]],
-              }];
-              if (i + 1 < placeIdKeys.length) {
-                rowItem.push({
-                  placePosts: placePosts[placeIdKeys[i + 1]],
-                  numYums: updatedPlaceNumYums[placeIdKeys[i + 1]],
-                });
-              }
-              posts.current.push(rowItem);
-            }
-          }
-          if (mounted.current) {
-            setReviews(placePosts);
-            setRefreshing(false);
-          }
-        });
+        fetchPostsDetails(userReviews);
       } else {
         posts.current = [LIST_STATES.NO_RESULTS];
         if (mounted.current) {
@@ -269,10 +201,104 @@ const Profile = ({ navigation, route }) => {
         }
       }
     })();
+
     return () => {
       mounted.current = false;
     };
   }, [numRefresh.current, isMe, user.PK, user.SK, user.identityId, state.reloadProfileTrigger]);
+
+  const getPostPictures = (item) => new Promise((resolve, reject) => {
+    Storage.get(item.picture, !isMe && { identityId: user.identityId })
+      .then((url) => {
+        item.s3Photo = url;
+        // Attach placeUserInfo property for StoryModal
+        item.placeUserInfo = {
+          uid: user.uid,
+          name: user.name,
+          picture: user.picture,
+          identityId: user.identityId,
+        };
+        resolve(item);
+      })
+      .catch((err) => {
+        console.warn('Error fetching post picture from S3: ', err);
+        reject();
+      });
+  });
+
+  const fetchPostsDetails = async (userReviews) => {
+    const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
+    const placePostsRatingSum = {};
+    // Get yums received for user
+    const updatedPlaceNumYums = {};
+    const {
+      promise: yumPromise,
+      getValue: getYumValue,
+      errorMsg: yumErrorMsg,
+    } = getUserYumsReceivedQuery({ uid: user.uid });
+    const yums = await fulfillPromise(yumPromise, getYumValue, yumErrorMsg);
+    yums.forEach(({ placeId }) => {
+      updatedPlaceNumYums[placeId] = (updatedPlaceNumYums[placeId] || 0) + 1;
+    });
+    Promise.all(userReviews.map(getPostPictures)).then((currPosts) => {
+      numReviews.current = currPosts.length;
+      for (let i = 0; i < currPosts.length; i += 1) {
+        // add to placePosts map
+        const { placeId } = currPosts[i];
+        if (!placePosts[placeId]) {
+          placePosts[placeId] = [currPosts[i]];
+          placePostsRatingSum[placeId] = currPosts[i].rating;
+          placePosts[placeId][0].visible = true;
+        } else {
+          placePosts[placeId].push(currPosts[i]);
+          placePostsRatingSum[placeId] += currPosts[i].rating;
+        }
+      }
+      Object.entries(placePostsRatingSum).forEach(([placeId, sum]) => {
+        placePosts[placeId][0].avgRating = sum / placePosts[placeId].length;
+      });
+
+      // Format posts for FlatList, include numYums
+      const placeIdKeys = Object.keys(placePosts);
+      if (placeIdKeys && placeIdKeys.length) {
+        // if (reviews == null) posts.current = [[]];
+        posts.current = [[]];
+        for (let i = 0; i < placeIdKeys.length; i += 2) {
+          const rowItem = [{
+            placePosts: placePosts[placeIdKeys[i]],
+            numYums: updatedPlaceNumYums[placeIdKeys[i]],
+          }];
+          if (i + 1 < placeIdKeys.length) {
+            rowItem.push({
+              placePosts: placePosts[placeIdKeys[i + 1]],
+              numYums: updatedPlaceNumYums[placeIdKeys[i + 1]],
+            });
+          }
+          posts.current.push(rowItem);
+        }
+      }
+      if (mounted.current) {
+        setReviews(placePosts);
+        setRefreshing(false);
+      }
+    });
+  };
+
+  // // Load more posts
+  // const fetchNextPosts = async () => {
+  //   if (!nextToken.current) return;
+  //   const { promise, getValue, errorMsg } = getUserPostsQuery({
+  //     PK: user.PK, withUserInfo: false, nextToken: nextToken.current,
+  //   });
+  //   const {
+  //     userReviews, nextToken: currNextToken,
+  //   } = await fulfillPromise(promise, getValue, errorMsg);
+  //   nextToken.current = currNextToken;
+  //   if (userReviews && userReviews.length) {
+  //     allReviews.current = allReviews.current.concat(userReviews);
+  //     fetchPostsDetails(userReviews);
+  //   }
+  // };
 
   // Switch list view & map view animations
   const [mapOpen, setMapOpen] = useState(false);
@@ -376,12 +402,29 @@ const Profile = ({ navigation, route }) => {
     }
   };
 
+  // Feedback modal
+  const sendFeedback = async () => {
+    feedbackPressedRef.current = true;
+  };
+
+  const shouldOpenFeedbackModal = () => {
+    if (feedbackPressedRef.current) {
+      setFeedbackPressed(true);
+      feedbackPressedRef.current = false;
+    }
+  };
+
   // More modal
   const moreItems = isMe ? [
     {
       onPress: () => navigation.push('Settings', { uid: user.uid }),
       icon: <Gear />,
       label: 'Settings',
+    },
+    {
+      onPress: sendFeedback,
+      icon: <Feedback />,
+      label: 'Send Feedback',
       end: true,
     },
   ] : [
@@ -584,7 +627,13 @@ const Profile = ({ navigation, route }) => {
         items={moreItems}
         morePressed={morePressed}
         setMorePressed={setMorePressed}
-        onModalHide={shouldOpenReportModal}
+        onModalHide={() => {
+          if (isMe) {
+            shouldOpenFeedbackModal();
+          } else {
+            shouldOpenReportModal();
+          }
+        }}
       />
       <ReportModal
         reportPressed={reportPressed}
@@ -592,6 +641,12 @@ const Profile = ({ navigation, route }) => {
         sender={{ senderUID: state.user.uid, senderName: state.user.name }}
         post={{ userName: user.name, userUID: user.uid }}
         type="user account"
+      />
+      <FeedbackModal
+        feedbackPressed={feedbackPressed}
+        setFeedbackPressed={setFeedbackPressed}
+        sender={{ senderUID: state.user.uid, senderName: state.user.name }}
+        type="feedback"
       />
       {mapOpen && (
         <>

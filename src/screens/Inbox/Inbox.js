@@ -11,7 +11,7 @@ import {
   getUserYumsReceivedByTimeQuery,
   getFollowersByTimeQuery,
   getFollowingQuery,
-  getUserPostsQuery,
+  getUserPostQuery,
   getPlaceDetailsQuery,
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
@@ -169,16 +169,16 @@ const Inbox = ({ navigation }) => {
   const openPost = async ({ placeId, timestamp }) => {
     let promise; let getValue; let errorMsg;
     // Get post details
-    ({ promise, getValue, errorMsg } = getUserPostsQuery({ PK: user.PK, hash: timestamp }));
-    const posts = await fulfillPromise(promise, getValue, errorMsg);
-    posts[0].placeUserInfo = { uid: user.uid, name: user.name, picture: user.picture };
+    ({ promise, getValue, errorMsg } = getUserPostQuery({ uid: user.uid, timestamp }));
+    const post = await fulfillPromise(promise, getValue, errorMsg);
+    // posts[0].placeUserInfo = { uid: user.uid, name: user.name, picture: user.picture };
     // Get place details
     ({ promise, getValue, errorMsg } = getPlaceDetailsQuery({ placeId }));
     const place = await fulfillPromise(promise, getValue, errorMsg);
     navigation.push('StoryModalModal', {
       screen: 'StoryModal',
       params: {
-        stories: posts,
+        stories: [post],
         places: { [place.placeId]: place },
         openYums: true,
       },

@@ -24,6 +24,7 @@ const NUM_COLLAPSED_LINES = 2;
 const PostItem = ({
   item, fetchUser, onMorePressed, showYummedUsersModal, me, dispatch, savedPosts, openPlace,
 }) => {
+  console.log('rerender post item');
   let uid; let identityId; let placeId; let name; let geo; let categories;
   let imgUrl; let picture; let dish; let rating; let review; let timestamp;
   let userName; let userPic;
@@ -201,14 +202,14 @@ const PostItem = ({
 };
 
 function areEqual(prevProps, nextProps) {
-  // // Rerender if isSaved changes
+  // // Rerender if isSaved or refresh changes
   const prevIsSaved = prevProps.savedPosts.has(GET_SAVED_POST_ID({
     uid: prevProps.item.placeUserInfo.uid, timestamp: prevProps.item.timestamp,
   }));
   const nextIsSaved = nextProps.savedPosts.has(GET_SAVED_POST_ID({
     uid: nextProps.item.placeUserInfo.uid, timestamp: nextProps.item.timestamp,
   }));
-  return prevIsSaved === nextIsSaved;
+  return prevIsSaved === nextIsSaved && prevProps.refresh === nextProps.refresh;
 }
 
 const ratingIconSize = wp(12);

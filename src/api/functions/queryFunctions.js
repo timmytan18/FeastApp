@@ -41,12 +41,14 @@ function getUserProfileQuery({ PK, SK, uid }) {
 
 // Fetch reviews for a user (all or with hash)
 // withUserInfo: true will fetch reviews with user info
-function getUserPostsQuery({ PK, hash, withUserInfo }) {
+function getUserPostsQuery({
+  PK, hash, withUserInfo,
+}) {
   const SK = hash ? `#PLACE#${hash}` : '#PLACE#';
   const promise = API.graphql(graphqlOperation(
     withUserInfo ? getUserPostsWithUserInfo : getUserPosts,
     {
-      PK, SK: { beginsWith: SK }, limit: 50, sortDirection: 'DESC',
+      PK, SK: { beginsWith: SK }, limit: 500, sortDirection: 'DESC',
     },
   ));
   const getValue = (res) => res.data.listFeastItems.items;
@@ -71,7 +73,7 @@ function getUserPostQuery({ uid, timestamp }) {
 function getFollowingQuery({ uid, onlyReturnPKs }) {
   const promise = API.graphql(graphqlOperation(
     onlyReturnPKs ? getFollowingPK : getFollowing,
-    { GSI1: 'USER#', SK: { beginsWith: `#FOLLOWER#${uid}` }, limit: 200 },
+    { GSI1: 'USER#', SK: { beginsWith: `#FOLLOWER#${uid}` }, limit: 500 },
   ));
   const getValue = (res) => res.data.itemsByGSI1.items;
   const errorMsg = 'Error fetching following users: ';
@@ -116,7 +118,7 @@ function getNumFollowsQuery({ PK, SK }) {
 function getFollowersQuery({ PK, onlyReturnPKs }) {
   const promise = API.graphql(graphqlOperation(
     onlyReturnPKs ? getFollowersPK : getFollowers,
-    { PK, SK: { beginsWith: '#FOLLOWER#' }, limit: 200 },
+    { PK, SK: { beginsWith: '#FOLLOWER#' }, limit: 500 },
   ));
   const getValue = (res) => res.data.listFeastItems.items;
   const errorMsg = 'Error getting followers/following list: ';
@@ -146,7 +148,7 @@ function searchUsersQuery({ name }) {
   const SK = `#PROFILE#${name}`;
   const promise = API.graphql(graphqlOperation(
     searchUsers,
-    { GSI1, SK: { beginsWith: SK }, limit: 50 },
+    { GSI1, SK: { beginsWith: SK }, limit: 100 },
   ));
   const getValue = (res) => res.data.itemsByGSI1.items;
   const errorMsg = 'Error searching for users: ';
@@ -159,7 +161,7 @@ function searchPlacesQuery({ name }) {
   const LSI1 = `#NAME#${name}`;
   const promise = API.graphql(graphqlOperation(
     searchPlaces,
-    { GSI2, LSI1: { beginsWith: LSI1 }, limit: 50 },
+    { GSI2, LSI1: { beginsWith: LSI1 }, limit: 100 },
   ));
   const getValue = (res) => res.data.itemsByGSI2.items;
   const errorMsg = 'Error searching for places: ';
@@ -238,7 +240,7 @@ function getFollowingPostsDetailsQuery({
 function getFollowingPostsByUserQuery({ PK, followingUID }) {
   const promise = API.graphql(graphqlOperation(
     getFollowingPostsByUser,
-    { PK, LSI3: { eq: `#FOLLOWINGPOST#${followingUID}` }, limit: 500 },
+    { PK, LSI3: { eq: `#FOLLOWINGPOST#${followingUID}` }, limit: 1000 },
   ));
   const getValue = (res) => res.data.itemsByLSI3.items;
   const errorMsg = 'Error getting followers/following list: ';
@@ -332,7 +334,7 @@ function getUserAllSavedPostsQuery({ PK, noDetails }) {
       PK,
       SK: { beginsWith: '#SAVEDPOST#' },
       sortDirection: 'DESC',
-      limit: 200,
+      limit: 500,
     },
   ));
   const getValue = (res) => res.data.listFeastItems.items;
@@ -344,7 +346,7 @@ function getUserAllSavedPostsQuery({ PK, noDetails }) {
 function getAllSavedPostItemsQuery({ uid, timestamp }) {
   const promise = API.graphql(graphqlOperation(
     getAllSavedPostItems,
-    { GSI1: 'SAVEDPOST#', SK: { eq: `#SAVEDPOST#${timestamp}#${uid}` }, limit: 200 },
+    { GSI1: 'SAVEDPOST#', SK: { eq: `#SAVEDPOST#${timestamp}#${uid}` }, limit: 1000 },
   ));
   const getValue = (res) => res.data.itemsByGSI1.items;
   const errorMsg = 'Error fetching all saved post items for post: ';

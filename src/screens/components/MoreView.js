@@ -40,6 +40,7 @@ const MoreView = ({
   morePressed, setMorePressed, items, onDismiss, labelSize, onModalHide,
 }) => {
   const [state] = useContext(Context);
+  const height = Math.min(6, items.length) * styles.moreItem.height + wp(7);
   return (
     <Modal
       isVisible={morePressed}
@@ -55,11 +56,7 @@ const MoreView = ({
       deviceHeight={state.deviceHeight}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={[
-        styles.moreContainer,
-        { height: items.length * styles.moreItem.height + wp(7) },
-      ]}
-      >
+      <View style={[styles.moreContainer, { height }]}>
         <FlatList
           data={items}
           renderItem={({ item }) => (
@@ -71,6 +68,7 @@ const MoreView = ({
           )}
           keyExtractor={(item) => item.label}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: wp(2), paddingBottom: wp(5) }}
         />
         <View style={styles.bottomMargin} />
       </View>

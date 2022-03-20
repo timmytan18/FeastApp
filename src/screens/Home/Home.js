@@ -319,6 +319,7 @@ const Home = ({ navigation }) => {
               dispatch={dispatch}
               savedPosts={savedPosts}
               openPlace={openPlace}
+              refresh={numRefresh.current}
             />
           )}
           keyExtractor={(item) => item.SK}
