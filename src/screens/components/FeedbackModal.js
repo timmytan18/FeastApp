@@ -91,7 +91,7 @@ const FeedbackModal = ({
               onSubmitEditing={Keyboard.dismiss}
               onFocus={() => setError(null)}
               textAlignVertical="top"
-              placeholder="Let us know what you think!"
+              placeholder="Let us know what you think of Feast!"
               maxLength={500}
               onChangeText={(text) => setDescription(text)}
               value={description}
