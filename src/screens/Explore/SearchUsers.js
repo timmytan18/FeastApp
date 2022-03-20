@@ -10,6 +10,7 @@ import {
   searchUsersQuery,
   searchPlacesQuery,
   getPlaceDetailsQuery,
+  getUserProfileQuery,
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import { fetchCurrentUser } from '../../api/functions/FetchUserProfile';
@@ -17,6 +18,7 @@ import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
+import { ADMIN_UIDS } from '../../constants/constants';
 import {
   colors, sizes, wp, shadows,
 } from '../../constants/theme';
@@ -33,13 +35,28 @@ const SearchUsers = ({ navigation }) => {
     outputRange: [0, wp(50)],
   });
 
-  const mounted = useRef(true);
-
-  useEffect(() => () => {
-    mounted.current = false;
-  }, []);
-
   const [searchList, setSearchList] = useState([]);
+  const suggestedUsers = useRef([]);
+
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    (async () => {
+      const suggested = [];
+      let promise; let getValue; let errorMsg;
+      ADMIN_UIDS.forEach((uid) => {
+        ({ promise, getValue, errorMsg } = getUserProfileQuery({ uid }));
+        suggested.push(fulfillPromise(promise, getValue, errorMsg));
+      });
+      Promise.all(suggested).then((users) => {
+        suggestedUsers.current = users;
+        if (mounted.current) setSearchList(users);
+      });
+    })();
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const fetchSearchItems = async (query) => {
     if (query) {
@@ -52,7 +69,7 @@ const SearchUsers = ({ navigation }) => {
       setSearchList(itemList);
       setLoading(false);
     } else {
-      setSearchList([]);
+      setSearchList(searchByUser ? suggestedUsers.current : []);
     }
   };
 
@@ -113,7 +130,7 @@ const SearchUsers = ({ navigation }) => {
   );
 
   const changeTab = ({ toLeft }) => {
-    setSearchList([]);
+    setSearchList(toLeft ? suggestedUsers.current : []);
     setSearchByUser(toLeft);
     Animated.spring(position, {
       toValue: toLeft ? 0 : 1,

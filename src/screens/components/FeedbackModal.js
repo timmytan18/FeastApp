@@ -79,7 +79,7 @@ const FeedbackModal = ({
       <View style={styles.container}>
         <View style={styles.subContainer}>
           <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>Send Feedback</Text>
+            <Text style={styles.titleText}>Share Feedback</Text>
           </View>
           <View style={styles.reviewContainer}>
             <TextInput

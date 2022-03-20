@@ -45,6 +45,7 @@ import Cam from '../components/util/icons/Cam';
 import X from '../components/util/icons/X';
 import Feedback from '../components/util/icons/Feedback';
 import { Context } from '../../Store';
+import { ADMIN_UIDS } from '../../constants/constants';
 import {
   colors, gradients, sizes, wp, shadows,
 } from '../../constants/theme';
@@ -165,6 +166,7 @@ const Profile = ({ navigation, route }) => {
 
   const onTab = !(route && route.params && route.params.user);
   const isMe = !(!onTab && route.params.user.PK !== state.user.PK);
+  const isAdmin = (!onTab && ADMIN_UIDS.has(route.params.user.uid));
   const user = isMe ? state.user : route.params.user;
 
   const [numFollows, setNumFollows] = useState([0, 0]);
@@ -415,7 +417,7 @@ const Profile = ({ navigation, route }) => {
   };
 
   // More modal
-  const moreItems = isMe ? [
+  const moreItemsMe = [
     {
       onPress: () => navigation.push('Settings', { uid: user.uid }),
       icon: <Gear />,
@@ -424,10 +426,21 @@ const Profile = ({ navigation, route }) => {
     {
       onPress: sendFeedback,
       icon: <Feedback />,
-      label: 'Send Feedback',
+      label: 'Share Feedback',
       end: true,
     },
-  ] : [
+  ];
+
+  const moreItemsAdmin = [
+    {
+      onPress: sendFeedback,
+      icon: <Feedback />,
+      label: 'Share Feedback',
+      end: true,
+    },
+  ];
+
+  const moreItemsOther = [
     {
       onPress: reportPost,
       icon: <X size={wp(7.2)} color={colors.black} />,
@@ -435,6 +448,15 @@ const Profile = ({ navigation, route }) => {
       end: true,
     },
   ];
+
+  const getMoreItems = () => {
+    if (isMe) {
+      return moreItemsMe;
+    } if (!isAdmin) {
+      return moreItemsOther;
+    }
+    return moreItemsAdmin;
+  };
 
   const renderTopContainer = () => (
     <View style={styles.topContainer}>
@@ -471,7 +493,7 @@ const Profile = ({ navigation, route }) => {
           onPress={() => setMorePressed(true)}
         >
           <View style={{ paddingTop: 2 }}>
-            {isMe ? <More /> : <ThreeDots rotated size={wp(4.6)} />}
+            {isMe ? <More /> : (isAdmin ? <Feedback /> : <ThreeDots rotated size={wp(4.6)} />)}
           </View>
         </TouchableOpacity>
       </View>
@@ -624,11 +646,11 @@ const Profile = ({ navigation, route }) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
       <StatusBar animated barStyle="dark-content" />
       <MoreView
-        items={moreItems}
+        items={getMoreItems()}
         morePressed={morePressed}
         setMorePressed={setMorePressed}
         onModalHide={() => {
-          if (isMe) {
+          if (isMe || isAdmin) {
             shouldOpenFeedbackModal();
           } else {
             shouldOpenReportModal();

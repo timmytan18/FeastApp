@@ -494,7 +494,6 @@ const AppNavigator = () => {
       const latestYum = await fulfillPromise(promise, getValue, errorMsg);
       // Get latest seen notification
       const latestSeenNotif = await getLocalData(localDataKeys.LATEST_NOTIFICATION);
-      // console.log(latestFollow[0].updatedAt, latestYum[0].updatedAt, latestSeenNotif);
       // If there are new notifs, show badge
       if ((latestFollow && latestFollow[0]) || (latestYum && latestYum[0])) {
         if (!latestSeenNotif || (latestYum[0].updatedAt.localeCompare(latestSeenNotif) > 0)
