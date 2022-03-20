@@ -20,7 +20,8 @@ app.use((req, res, next) => {
 });
 
 const SUPPORT_EMAIL = 'support@feastapp.io';
-const TITLE = 'FEAST IN-APP ISSUE REPORTED';
+const REPORT_TITLE = 'FEAST IN-APP ISSUE REPORTED';
+const FEEDBACK_TITLE = 'FEAST IN-APP FEEDBACK RECEIVED';
 
 app.post('/report', async (req, res) => {
   const params = {
@@ -34,7 +35,7 @@ app.post('/report', async (req, res) => {
       },
       Subject: {
         Charset: 'UTF-8',
-        Data: TITLE,
+        Data: REPORT_TITLE,
       },
     },
     Source: SUPPORT_EMAIL,
@@ -48,6 +49,35 @@ app.post('/report', async (req, res) => {
   } catch (e) {
     console.log(e);
     res.json({ status: 'Report failed', isSuccessful: false });
+  }
+});
+
+app.post('/feedback', async (req, res) => {
+  const params = {
+    Destination: { ToAddresses: [SUPPORT_EMAIL] },
+    Message: {
+      Body: {
+        Text: {
+          Charset: 'UTF-8',
+          Data: JSON.stringify(req.body, null, '\t'),
+        },
+      },
+      Subject: {
+        Charset: 'UTF-8',
+        Data: FEEDBACK_TITLE,
+      },
+    },
+    Source: SUPPORT_EMAIL,
+  };
+
+  const SESService = new aws.SES({ apiVersion: '2010-12-01' });
+
+  try {
+    await SESService.sendEmail(params).promise();
+    res.json({ status: 'Feedback succeed', isSuccessful: true });
+  } catch (e) {
+    console.log(e);
+    res.json({ status: 'Feedback failed', isSuccessful: false });
   }
 });
 
