@@ -33,7 +33,7 @@ const isToday = (updatedAt) => {
     && date.getFullYear() === today.getFullYear();
 };
 
-const NUM_DAYS_TO_FETCH = 7;
+const NUM_DAYS_TO_FETCH = 8;
 const FOLLOW = 'follow';
 const YUM = 'yum';
 
@@ -103,7 +103,7 @@ const Inbox = ({ navigation }) => {
   // Set necessary data
   const [
     {
-      user, reloadProfileTrigger, reloadMapTrigger, deviceHeight,
+      user, reloadProfileTrigger, reloadMapTrigger,
     },
     dispatch,
   ] = useContext(Context);
@@ -180,7 +180,6 @@ const Inbox = ({ navigation }) => {
       params: {
         stories: posts,
         places: { [place.placeId]: place },
-        deviceHeight,
         openYums: true,
       },
     });

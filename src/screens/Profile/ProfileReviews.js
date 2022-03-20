@@ -4,52 +4,103 @@ import React, {
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard, Image,
 } from 'react-native';
-import { getPlaceDetailsQuery, fulfillPromise } from '../../api/functions/queryFunctions';
+import Tooltip from 'react-native-walkthrough-tooltip';
+import { getPlaceDetailsQuery, getUserPostQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import StarsRating from '../components/util/StarsRating';
 import { MONTHS } from '../../constants/constants';
 import {
-  colors, sizes, wp,
+  colors, sizes, wp, shadows,
 } from '../../constants/theme';
 
 const NUM_COLLAPSED_LINES = 3;
 
-const ReviewItem = ({ item, openPlace }) => {
+const openPost = async ({
+  uid, timestamp, navigation, setTooltipActive,
+}) => {
+  setTooltipActive(false);
+  const { promise, getValue, errorMsg } = getUserPostQuery({ uid, timestamp });
+  const postDetails = await fulfillPromise(promise, getValue, errorMsg);
+  navigation.push('StoryModalModal', {
+    screen: 'StoryModal',
+    params: {
+      stories: [postDetails],
+      places: {},
+      postOnly: true,
+    },
+  });
+};
+
+const ProfileReviewItem = ({
+  item, openPlace, uid, navigation,
+}) => {
   const {
     timestamp, review, placeId, imgUrl, s3Photo, name,
   } = item;
   const date = new Date(timestamp);
 
   const [textExpanded, setTextExpanded] = useState(false);
+  const [tooltipActive, setTooltipActive] = useState(false);
 
   return (
     <View
       style={styles.reviewItemContainer}
       activeOpacity={0.5}
     >
-      <TouchableOpacity activeOpacity={0.8} onPress={() => openPlace({ placeId, placeName: name })}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => openPlace({ placeId, placeName: name })}
+      >
         <Image
           style={styles.imageContainer}
           source={{ uri: imgUrl || s3Photo }}
         />
       </TouchableOpacity>
       <View style={styles.infoContainer}>
-        <Text style={styles.placeNameText}>{name}</Text>
-        <StarsRating
-          rating={item.rating}
-          spacing={wp(0.6)}
-          size={wp(3.8)}
-          starStyle={styles.myStarStyle}
-          containerStyle={styles.starsContainer}
-        />
-        {review && (
-          <Text
-            style={styles.reviewText}
-            numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
-            onPress={() => setTextExpanded(!textExpanded)}
-          >
-            {review}
-          </Text>
-        )}
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() => openPlace({ placeId, placeName: name })}
+        >
+          <Text style={styles.placeNameText}>{name}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setTooltipActive(true)} activeOpacity={1}>
+          <StarsRating
+            rating={item.rating}
+            spacing={wp(0.6)}
+            size={wp(3.8)}
+            starStyle={styles.myStarStyle}
+            containerStyle={styles.starsContainer}
+          />
+        </TouchableOpacity>
+        <Tooltip
+          isVisible={tooltipActive}
+          content={(
+            <TouchableOpacity onPress={() => openPost({
+              uid, timestamp, navigation, setTooltipActive,
+            })}
+            >
+              <Text style={styles.tooltipText}>View Post</Text>
+            </TouchableOpacity>
+          )}
+          placement="top"
+          backgroundColor={null}
+          onClose={() => setTooltipActive(false)}
+          childrenWrapperStyle={{ opacity: 0 }}
+          disableShadow
+          tooltipStyle={styles.tooltipContainer}
+        >
+          {review && (
+            <Text
+              style={styles.reviewText}
+              numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
+              onPress={() => {
+                setTextExpanded(!textExpanded);
+                setTooltipActive(true);
+              }}
+            >
+              {review}
+            </Text>
+          )}
+        </Tooltip>
         <Text style={styles.dateText}>
           {MONTHS[date.getMonth()]}
           {' '}
@@ -64,7 +115,7 @@ const ReviewItem = ({ item, openPlace }) => {
 };
 
 const ProfileReviews = ({ navigation, route }) => {
-  const { reviews } = route.params;
+  const { reviews, uid } = route.params;
   const place = useRef(null);
 
   const openPlace = async ({ placeId, placeName }) => {
@@ -86,7 +137,14 @@ const ProfileReviews = ({ navigation, route }) => {
             style={styles.flatListContainer}
             data={reviews}
             extraData={reviews}
-            renderItem={({ item }) => <ReviewItem item={item} openPlace={openPlace} />}
+            renderItem={({ item }) => (
+              <ProfileReviewItem
+                item={item}
+                openPlace={openPlace}
+                uid={uid}
+                navigation={navigation}
+              />
+            )}
             keyExtractor={(item) => item.SK}
             showsVerticalScrollIndicator
             onScrollBeginDrag={Keyboard.dismiss}
@@ -139,6 +197,7 @@ const styles = StyleSheet.create({
   },
   starsContainer: {
     marginVertical: wp(1),
+    alignSelf: 'flex-start',
   },
   reviewText: {
     fontSize: wp(3.9),
@@ -153,6 +212,17 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     paddingLeft: 1,
     paddingVertical: wp(0.8),
+  },
+  tooltipContainer: {
+    ...shadows.darker,
+  },
+  tooltipText: {
+    fontSize: wp(3.5),
+    lineHeight: wp(4.8),
+    fontFamily: 'Medium',
+    color: colors.tertiary,
+    textAlign: 'center',
+    marginHorizontal: wp(2),
   },
 });
 

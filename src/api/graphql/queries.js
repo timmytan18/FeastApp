@@ -359,6 +359,31 @@ export const getUserPostsWithUserInfo = /* GraphQL */ `
   }
 `;
 
+export const getUserPost = /* GraphQL */ `
+  query GetFeastItem($PK: String!, $SK: String!) {
+    getFeastItem(PK: $PK, SK: $SK) {
+      PK
+      SK
+      name
+      placeId
+      geo
+      timestamp
+      categories
+      picture
+      imgUrl
+      dish
+      review
+      rating
+      placeUserInfo {
+        uid
+        name
+        picture
+        identityId
+      }
+    }
+  }
+`;
+
 export const getPlaceInDB = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
@@ -629,6 +654,7 @@ export const getPlaceFollowingUserReviews = /* GraphQL */ `
         PK
         SK
         placeId
+        timestamp
         name
         rating
         review
@@ -664,6 +690,7 @@ export const getPlaceAllUserReviews = /* GraphQL */ `
         PK
         SK
         placeId
+        timestamp
         name
         rating
         review

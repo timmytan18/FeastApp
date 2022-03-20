@@ -2,9 +2,9 @@
 
 import { API, graphqlOperation } from 'aws-amplify';
 import {
-  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getFollowing, getFollowingPK, searchUsers,
-  searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers,
-  getFollowersByTime, getNumFollows, getFollowingPosts, getFollowingPostsDetails,
+  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getUserPost, getFollowing, getFollowingPK,
+  searchUsers, searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture,
+  getFollowers, getFollowersByTime, getNumFollows, getFollowingPosts, getFollowingPostsDetails,
   getFollowingPostsByUser, getFollowersPK, batchGetUserPosts, getPlaceDetails, batchGetPlaceDetails,
   getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
@@ -51,6 +51,19 @@ function getUserPostsQuery({ PK, hash, withUserInfo }) {
   ));
   const getValue = (res) => res.data.listFeastItems.items;
   const errorMsg = 'Error fetching user reviews: ';
+  return { promise, getValue, errorMsg };
+}
+
+// Fetch specific user post
+function getUserPostQuery({ uid, timestamp }) {
+  const PK = `USER#${uid}`;
+  const SK = `#PLACE#${timestamp}`;
+  const promise = API.graphql(graphqlOperation(
+    getUserPost,
+    { PK, SK },
+  ));
+  const getValue = (res) => res.data.getFeastItem;
+  const errorMsg = 'Error fetching user post: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -434,8 +447,8 @@ function batchGetPlaceRatingsQuery({ batch }) {
 }
 
 export {
-  fulfillPromise, getUserProfileQuery, getUserPostsQuery, getFollowingQuery, searchUsersQuery,
-  searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery,
+  fulfillPromise, getUserProfileQuery, getUserPostQuery, getUserPostsQuery, getFollowingQuery,
+  searchUsersQuery, searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery,
   getFollowersByTimeQuery, getNumFollowsQuery, getFollowingPostsQuery,
   getFollowingPostsDetailsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
   getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,

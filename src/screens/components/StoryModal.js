@@ -48,16 +48,16 @@ const StoryModal = ({ navigation, route }) => {
   const {
     stories,
     places,
-    deviceHeight,
     firstImg,
     openYums,
+    postOnly,
   } = route.params;
 
   const [
     {
       user: {
         uid: myUID, PK: myPK, name: myName, picture: myPicture,
-      }, savedPosts,
+      }, savedPosts, deviceHeight,
     },
     dispatch,
   ] = useContext(Context);
@@ -87,6 +87,7 @@ const StoryModal = ({ navigation, route }) => {
   };
 
   const startBarAnimation = () => {
+    if (postOnly) return;
     // reset to beginning
     progressAnim.setValue(0);
 
@@ -133,8 +134,10 @@ const StoryModal = ({ navigation, route }) => {
   // restart animation when screen in focus
   useFocusEffect(
     useCallback(() => {
-      // focus
-      startBarAnimation();
+      // focus - start anim when top is focused
+      if (enablePanResponder.current) {
+        startBarAnimation();
+      }
 
       // blur
       return () => {
@@ -214,6 +217,9 @@ const StoryModal = ({ navigation, route }) => {
     startBarAnimation();
   };
   const panToBottom = () => {
+    if (postOnly) {
+      navigation.goBack();
+    }
     enablePanResponder.current = false;
     setEnablePanResponderState(false);
     translateYAnim({ value: -deviceHeight });
@@ -231,6 +237,7 @@ const StoryModal = ({ navigation, route }) => {
   const movementType = useRef('');
   // const swipeDirection = useRef(''); // horizontal or vertical
   const continueBarAnimation = () => {
+    if (postOnly) return;
     // const currAnimVal = parseInt(JSON.stringify(progressAnim), 10);
     const currAnimVal = progressAnim._value; // could be better way to get current animation
     const duration = storyDuration - currAnimVal * storyDuration;
@@ -266,7 +273,9 @@ const StoryModal = ({ navigation, route }) => {
         //   translateXVal.setValue(gestureState.dx);
         // } else {
         //   swipeDirection.current = 'vertical';
-        translateYVal.setValue(gestureState.dy / 3);
+        if (!postOnly || (postOnly && gestureState.dy > 0)) {
+          translateYVal.setValue(gestureState.dy / 3);
+        }
         // }
       },
       onPanResponderRelease: (_, gestureState) => {
@@ -540,12 +549,6 @@ const StoryModal = ({ navigation, route }) => {
     setShowYummedUsers(true);
   };
 
-  // useEffect(() => {
-  //   if (openYums) {
-  //     showYummedUsersModal({ users: openYums });
-  //   }
-  // }, []);
-
   const [numLines, setNumLines] = useState(null);
   const [numLinesExpanded, setNumLinesExpanded] = useState(null);
   const lineHeight = useRef(null);
@@ -619,7 +622,7 @@ const StoryModal = ({ navigation, route }) => {
           )}
         <View style={styles.cardContainer} {...panResponder.panHandlers}>
           <View style={styles.progressContainer}>
-            {stories
+            {!postOnly && stories
               && (stories.map((story, i) => (
                 <View
                   key={story.SK}
@@ -760,36 +763,38 @@ const StoryModal = ({ navigation, route }) => {
                 startBarAnimation={startBarAnimation}
               />
             </View>
-            <View style={styles.viewPlaceBtnContainer}>
-              <SwipeUpArrow />
-              <LinearGradient
-                colors={gradients.orange.colors}
-                start={gradients.orange.start}
-                end={gradients.orange.end}
-                style={styles.viewPlaceBtnGradient}
-              >
-                <TouchableOpacity
-                  style={styles.viewPlaceBtn}
-                  onPress={() => panToBottom()}
-                  activeOpacity={1}
+            {!postOnly && (
+              <View style={styles.viewPlaceBtnContainer}>
+                <SwipeUpArrow />
+                <LinearGradient
+                  colors={gradients.orange.colors}
+                  start={gradients.orange.start}
+                  end={gradients.orange.end}
+                  style={styles.viewPlaceBtnGradient}
                 >
-                  <MaskedView
-                    maskElement={(
-                      <View style={styles.viewPlaceBtnTextContainer}>
-                        <Text style={styles.viewPlaceBtnText}>View Place</Text>
-                      </View>
-                    )}
+                  <TouchableOpacity
+                    style={styles.viewPlaceBtn}
+                    onPress={() => panToBottom()}
+                    activeOpacity={1}
                   >
-                    <LinearGradient
-                      colors={gradients.orange.colors}
-                      start={gradients.orange.start}
-                      end={gradients.orange.end}
-                      style={{ width: wp(23), height: '100%' }}
-                    />
-                  </MaskedView>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
+                    <MaskedView
+                      maskElement={(
+                        <View style={styles.viewPlaceBtnTextContainer}>
+                          <Text style={styles.viewPlaceBtnText}>View Place</Text>
+                        </View>
+                      )}
+                    >
+                      <LinearGradient
+                        colors={gradients.orange.colors}
+                        start={gradients.orange.start}
+                        end={gradients.orange.end}
+                        style={{ width: wp(23), height: '100%' }}
+                      />
+                    </MaskedView>
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
+            )}
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
               <YumButton
                 size={wp(10)}

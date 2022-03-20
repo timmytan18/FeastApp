@@ -4,11 +4,13 @@ import React, {
 import {
   Text, View, StyleSheet, TouchableOpacity,
 } from 'react-native';
+import Tooltip from 'react-native-walkthrough-tooltip';
+import { getUserPostQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import ProfilePic from './ProfilePic';
 import StarsRating from './util/StarsRating';
 import {
-  colors, sizes, wp,
+  colors, sizes, wp, shadows,
 } from '../../constants/theme';
 
 const NUM_COLLAPSED_LINES = 3;
@@ -21,14 +23,34 @@ const fetchReviewUser = async ({ uid, myUID, navigation }) => {
   );
 };
 
+const openPost = async ({
+  uid, timestamp, navigation, setTooltipActive,
+}) => {
+  setTooltipActive(false);
+  const { promise, getValue, errorMsg } = getUserPostQuery({ uid, timestamp });
+  const postDetails = await fulfillPromise(promise, getValue, errorMsg);
+  navigation.push('StoryModalModal', {
+    screen: 'StoryModal',
+    params: {
+      stories: [postDetails],
+      places: {},
+      postOnly: true,
+    },
+  });
+};
+
 const ReviewItem = ({
   item: {
-    review, rating, placeUserInfo: { name: userName, picture: userPicture, uid },
+    review,
+    rating,
+    timestamp,
+    placeUserInfo: { name: userName, picture: userPicture, uid },
   },
   myUID,
   navigation,
 }) => {
   const [textExpanded, setTextExpanded] = useState(false);
+  const [tooltipActive, setTooltipActive] = useState(false);
   return (
     <View style={styles.userReviewContainer}>
       <TouchableOpacity
@@ -50,19 +72,45 @@ const ReviewItem = ({
         >
           <Text style={styles.reviewTitleText}>{userName}</Text>
         </TouchableOpacity>
-        <StarsRating
-          rating={rating}
-          spacing={wp(0.6)}
-          size={wp(3.8)}
-          containerStyle={styles.starsContainer}
-        />
-        <Text
-          style={styles.userReviewText}
-          numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
-          onPress={() => setTextExpanded(!textExpanded)}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setTooltipActive(true)}
         >
-          {review}
-        </Text>
+          <StarsRating
+            rating={rating}
+            spacing={wp(0.6)}
+            size={wp(3.8)}
+            containerStyle={styles.starsContainer}
+          />
+          <Tooltip
+            isVisible={tooltipActive}
+            content={(
+              <TouchableOpacity onPress={() => openPost({
+                uid, timestamp, navigation, setTooltipActive,
+              })}
+              >
+                <Text style={styles.tooltipText}>View Post</Text>
+              </TouchableOpacity>
+            )}
+            placement="top"
+            backgroundColor={null}
+            onClose={() => setTooltipActive(false)}
+            childrenWrapperStyle={{ opacity: 0 }}
+            disableShadow
+            tooltipStyle={styles.tooltipContainer}
+          >
+            <Text
+              style={styles.userReviewText}
+              numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
+              onPress={() => {
+                setTextExpanded(!textExpanded);
+                setTooltipActive(true);
+              }}
+            >
+              {review}
+            </Text>
+          </Tooltip>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -110,6 +158,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Book',
     color: colors.black,
     marginTop: wp(0.25),
+  },
+  tooltipContainer: {
+    ...shadows.darker,
+  },
+  tooltipText: {
+    fontSize: wp(3.5),
+    lineHeight: wp(4.8),
+    fontFamily: 'Medium',
+    color: colors.tertiary,
+    textAlign: 'center',
+    marginHorizontal: wp(2),
   },
 });
 

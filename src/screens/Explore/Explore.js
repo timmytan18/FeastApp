@@ -292,7 +292,6 @@ const Explore = ({ navigation }) => {
         params: {
           stories: stories.current,
           places: placeDetails.current,
-          deviceHeight: state.deviceHeight,
           firstImg,
         },
       });

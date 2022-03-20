@@ -37,7 +37,7 @@ const RowItem = React.memo(({ row, openPlacePosts, ratings }) => (
   === nextProps.row && prevProps.ratings === nextProps.ratings);
 
 const SavedPosts = ({ navigation, route }) => {
-  const [{ user, deviceHeight }, dispatch] = useContext(Context);
+  const [{ user }, dispatch] = useContext(Context);
 
   const [posts, setPosts] = useState(null);
   const [batch, setBatch] = useState(null);
@@ -170,7 +170,6 @@ const SavedPosts = ({ navigation, route }) => {
         stories,
         users: { [uid]: { userName, userPic } },
         places: { [place.current.placeId]: place.current },
-        deviceHeight,
       },
     });
   };

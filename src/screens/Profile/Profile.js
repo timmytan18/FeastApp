@@ -477,7 +477,7 @@ const Profile = ({ navigation, route }) => {
                 style={styles.followButton}
                 onPress={() => navigation.push(
                   'ProfileReviews',
-                  { reviews: allReviews.current },
+                  { reviews: allReviews.current, uid: user.uid },
                 )}
               >
                 <Text style={styles.followCountText}>{numReviews.current}</Text>
@@ -560,7 +560,6 @@ const Profile = ({ navigation, route }) => {
       params: {
         stories,
         places: { [place.current.placeId]: place.current },
-        deviceHeight: state.deviceHeight,
       },
     });
   };
