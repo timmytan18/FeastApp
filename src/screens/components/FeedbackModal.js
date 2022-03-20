@@ -51,7 +51,7 @@ const FeedbackModal = ({
     setLoading(false);
     Alert.alert(
       'Success',
-      'Your feedback has been sent!',
+      'Your feedback has been sent. Thank you!',
       [{
         text: 'OK',
         onPress: closeModal,
