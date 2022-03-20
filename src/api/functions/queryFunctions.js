@@ -126,7 +126,7 @@ function getFollowersQuery({ PK, onlyReturnPKs }) {
 }
 
 // Get followers by time
-function getFollowersByTimeQuery({ PK, timestamp }) {
+function getFollowersByTimeQuery({ PK, timestamp, limit }) {
   const date = new Date();
   const timeLocal = date.toISOString();
   const promise = API.graphql(graphqlOperation(
@@ -134,7 +134,8 @@ function getFollowersByTimeQuery({ PK, timestamp }) {
     {
       PK,
       LSI1: { between: [`#FOLLOWTIME#${timestamp}`, `#FOLLOWTIME#${timeLocal}`] },
-      limit: 200,
+      limit: limit || 200,
+      sortDirection: 'DESC',
     },
   ));
   const getValue = (res) => res.data.itemsByLSI1.items;
@@ -388,7 +389,7 @@ function getUserYumsReceivedQuery({ uid }) {
 }
 
 // Fetch yums received for a user by time
-function getUserYumsReceivedByTimeQuery({ uid, timestamp }) {
+function getUserYumsReceivedByTimeQuery({ uid, timestamp, limit }) {
   const GSI2 = `YUMPOST#${uid}`;
   const date = new Date();
   const timeLocal = date.toISOString();
@@ -397,7 +398,8 @@ function getUserYumsReceivedByTimeQuery({ uid, timestamp }) {
     {
       GSI2,
       LSI1: { between: [`#YUMTIME#${timestamp}`, `#YUMTIME#${timeLocal}`] },
-      limit: 200,
+      limit: limit || 200,
+      sortDirection: 'DESC',
     },
   ));
   const getValue = (res) => res.data.itemsByGSI2.items;

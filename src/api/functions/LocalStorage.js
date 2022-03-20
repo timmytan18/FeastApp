@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const localDataKeys = {
+  LATEST_NOTIFICATION: 'LATEST_NOTIFICATION',
   SEEN_STORIES: 'SEEN_STORIES',
 };
 

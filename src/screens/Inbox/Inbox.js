@@ -20,6 +20,7 @@ import getElapsedTime from '../../api/functions/GetElapsedTime';
 import ProfilePic from '../components/ProfilePic';
 import FollowButton from '../components/FollowButton';
 import Yum from '../components/util/icons/Yum';
+import { getLocalData, storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { Context } from '../../Store';
 import {
   colors, sizes, wp,
@@ -148,6 +149,7 @@ const Inbox = ({ navigation }) => {
       });
       const notifs = follows.concat(yums);
       notifs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); // sort by most recent
+      await storeLocalData(localDataKeys.LATEST_NOTIFICATION, notifs[0].updatedAt);
       if (mounted.current) {
         setNotifications(notifs);
         setRefreshing(false);

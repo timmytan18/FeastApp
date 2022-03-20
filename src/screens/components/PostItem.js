@@ -24,7 +24,6 @@ const NUM_COLLAPSED_LINES = 2;
 const PostItem = ({
   item, fetchUser, onMorePressed, showYummedUsersModal, me, dispatch, savedPosts, openPlace,
 }) => {
-  console.log('rerender post item');
   let uid; let identityId; let placeId; let name; let geo; let categories;
   let imgUrl; let picture; let dish; let rating; let review; let timestamp;
   let userName; let userPic;

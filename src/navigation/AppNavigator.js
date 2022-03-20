@@ -1,5 +1,5 @@
 import React, {
-  useContext, useEffect,
+  useContext, useEffect, useState,
 } from 'react';
 import {
   Text, StyleSheet, TouchableOpacity, SafeAreaView, View,
@@ -8,7 +8,12 @@ import { API, Storage } from 'aws-amplify';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { getUserAllSavedPostsQuery, fulfillPromise } from '../api/functions/queryFunctions';
+import {
+  getUserAllSavedPostsQuery,
+  getFollowersByTimeQuery,
+  getUserYumsReceivedByTimeQuery,
+  fulfillPromise,
+} from '../api/functions/queryFunctions';
 import Home from '../screens/Home/Home';
 import Explore from '../screens/Explore/Explore';
 import NewPost from '../screens/NewPost/NewPost';
@@ -34,6 +39,7 @@ import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import BackArrow from '../screens/components/util/icons/BackArrow';
 import { GET_SAVED_POST_ID } from '../constants/constants';
 import { secureSave, getSecureValue, keys } from '../api/functions/SecureStore';
+import { getLocalData, storeLocalData, localDataKeys } from '../api/functions/LocalStorage';
 import { Context } from '../Store';
 import {
   colors, sizes, header, wp,
@@ -339,7 +345,7 @@ const newPostTransition = ({ height }) => ({
 });
 
 const MyTabBar = ({
-  state, descriptors, navigation, picture,
+  state, descriptors, navigation, picture, showBadge, setShowBadge,
 }) => {
   const focusedOptions = descriptors[state.routes[state.index].key].options;
 
@@ -348,6 +354,7 @@ const MyTabBar = ({
   }
 
   const NEW_POST_INDEX = 2;
+  const INBOX_INDEX = 3;
 
   return (
     <SafeAreaView style={styles.tabBar}>
@@ -376,6 +383,10 @@ const MyTabBar = ({
                 screen: 'NewPost',
               });
             }
+
+            if (index === INBOX_INDEX) {
+              setShowBadge(false);
+            }
           };
 
           let icon;
@@ -393,7 +404,12 @@ const MyTabBar = ({
           } else if (index === 3) {
             icon = isFocused
               ? <TabIcon icon={<InboxFilledIcon />} focused={isFocused} />
-              : <TabIcon icon={<InboxIcon />} focused={isFocused} />;
+              : (
+                <View>
+                  {showBadge && <View style={styles.badge} />}
+                  <TabIcon icon={<InboxIcon />} focused={isFocused} />
+                </View>
+              );
           } else if (index === 4) {
             icon = isFocused
               ? <TabIcon icon={<ProfileFilledIcon />} image={picture} focused={isFocused} />
@@ -411,11 +427,13 @@ const MyTabBar = ({
   );
 };
 
-const TabNavigator = ({ picture }) => {
+const TabNavigator = ({ picture, showBadge, setShowBadge }) => {
   const Tab = createBottomTabNavigator();
   return (
     <Tab.Navigator
-      tabBar={(props) => MyTabBar({ ...props, picture })}
+      tabBar={(props) => MyTabBar({
+        ...props, picture, showBadge, setShowBadge,
+      })}
       tabBarOptions={{
         showLabel: false,
       }}
@@ -431,16 +449,19 @@ const TabNavigator = ({ picture }) => {
 
 const AppNavigator = () => {
   const [
-    { user: { PK, picture }, deviceHeight },
+    { user: { PK: myPK, uid: myUID, picture }, deviceHeight },
     dispatch,
   ] = useContext(Context);
   const RootStack = createStackNavigator();
+
+  const [showBadge, setShowBadge] = useState(false);
 
   // Fetch any necessary data on main app render
   useEffect(() => {
     (async () => {
       // Get all saved posts
-      const { promise, getValue, errorMsg } = getUserAllSavedPostsQuery({ PK, noDetails: true });
+      let promise; let getValue; let errorMsg;
+      ({ promise, getValue, errorMsg } = getUserAllSavedPostsQuery({ PK: myPK, noDetails: true }));
       const savedPosts = await fulfillPromise(promise, getValue, errorMsg);
       const savedPostsIds = savedPosts.map(
         ({ placeUserInfo: { uid }, timestamp }) => GET_SAVED_POST_ID({ uid, timestamp }),
@@ -449,14 +470,40 @@ const AppNavigator = () => {
         type: 'SET_SAVED_POSTS',
         payload: { savedPosts: new Set(savedPostsIds) },
       });
+
       // Get API keys
       if (!(await getSecureValue(keys.BING_KEY)) || !(await getSecureValue(keys.GOOGLE_KEY))) {
         const { BING_KEY, GOOGLE_KEY } = await API.get('feastapi', '/keys');
         await secureSave(keys.BING_KEY, BING_KEY);
         await secureSave(keys.GOOGLE_KEY, GOOGLE_KEY);
       }
+
+      // Check for new notifications
+      const NUM_DAYS_TO_FETCH = 8;
+      const dateOneWeekAgo = new Date(new Date().setDate(new Date().getDate() - NUM_DAYS_TO_FETCH));
+      const oneWeekAgo = dateOneWeekAgo.toISOString();
+      // Get new followers
+      ({ promise, getValue, errorMsg } = getFollowersByTimeQuery({
+        PK: myPK, timestamp: oneWeekAgo, limit: 1,
+      }));
+      const latestFollow = await fulfillPromise(promise, getValue, errorMsg);
+      // Get new yums
+      ({ promise, getValue, errorMsg } = getUserYumsReceivedByTimeQuery({
+        uid: myUID, timestamp: oneWeekAgo, limit: 1,
+      }));
+      const latestYum = await fulfillPromise(promise, getValue, errorMsg);
+      // Get latest seen notification
+      const latestSeenNotif = await getLocalData(localDataKeys.LATEST_NOTIFICATION);
+      // console.log(latestFollow[0].updatedAt, latestYum[0].updatedAt, latestSeenNotif);
+      // If there are new notifs, show badge
+      if ((latestFollow && latestFollow[0]) || (latestYum && latestYum[0])) {
+        if (!latestSeenNotif || (latestYum[0].updatedAt.localeCompare(latestSeenNotif) > 0)
+          || (latestFollow[0].updatedAt.localeCompare(latestSeenNotif) > 0)) {
+          setShowBadge(true);
+        }
+      }
     })();
-  }, [PK]);
+  }, [myPK]);
 
   return (
     <NavigationContainer>
@@ -465,7 +512,13 @@ const AppNavigator = () => {
           name="Explore"
           options={{ headerShown: false }}
         >
-          {() => <TabNavigator picture={picture} />}
+          {() => (
+            <TabNavigator
+              picture={picture}
+              showBadge={showBadge}
+              setShowBadge={setShowBadge}
+            />
+          )}
         </RootStack.Screen>
         <RootStack.Screen
           name="StoryModalModal"
@@ -515,5 +568,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'flex-start',
     paddingRight: wp(8),
+  },
+  badge: {
+    position: 'absolute',
+    width: wp(2),
+    height: wp(2),
+    backgroundColor: colors.accent2,
+    borderRadius: wp(1),
+    right: -wp(0.5),
+    top: -wp(0.5),
   },
 });
