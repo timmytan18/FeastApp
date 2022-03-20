@@ -22,6 +22,21 @@
                 ]
             },
             "policyResourceName": "/report"
+        },
+        {
+            "name": "/feedback",
+            "lambdaFunction": "reportIssue",
+            "privacy": {
+                "private": true,
+                "auth": [
+                    "/POST",
+                    "/GET",
+                    "/PUT",
+                    "/PATCH",
+                    "/DELETE"
+                ]
+            },
+            "policyResourceName": "/feedback"
         }
     ],
     "resourceName": "feastapi",
@@ -35,7 +50,7 @@
         }
     ],
     "privacy": {
-        "auth": 2,
+        "auth": 3,
         "unauth": 0,
         "authRoleName": "amplify-feastapp-dev-171846-authRole",
         "unAuthRoleName": "amplify-feastapp-dev-171846-unauthRole"
@@ -58,5 +73,5 @@
             ]
         }
     ],
-    "uuid": "c202c5ba"
+    "uuid": "6dec4afa"
 }

@@ -51,7 +51,7 @@
         },
         "reportIssue": {
           "deploymentBucketName": "amplify-feastapp-prod-235603-deployment",
-          "s3Key": "amplify-builds/reportIssue-6c797375742b316e4942-build.zip"
+          "s3Key": "amplify-builds/reportIssue-3232422f565145536b4f-build.zip"
         }
       }
     }
