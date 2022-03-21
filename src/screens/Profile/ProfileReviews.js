@@ -1,5 +1,5 @@
 import React, {
-  useState, useRef,
+  useState, useRef, useEffect,
 } from 'react';
 import {
   StyleSheet, Text, View, FlatList, TouchableOpacity, Keyboard, Image,
@@ -7,6 +7,7 @@ import {
 import Tooltip from 'react-native-walkthrough-tooltip';
 import { getPlaceDetailsQuery, getUserPostQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import StarsRating from '../components/util/StarsRating';
+import BackArrow from '../components/util/icons/BackArrow';
 import { MONTHS } from '../../constants/constants';
 import {
   colors, sizes, wp, shadows,
@@ -30,7 +31,7 @@ const openPost = async ({
   });
 };
 
-const ProfileReviewItem = ({
+const ProfileReviewItem = React.memo(({
   item, openPlace, uid, navigation,
 }) => {
   const {
@@ -40,6 +41,10 @@ const ProfileReviewItem = ({
 
   const [textExpanded, setTextExpanded] = useState(false);
   const [tooltipActive, setTooltipActive] = useState(false);
+
+  const mounted = useRef(true);
+
+  useEffect(() => () => { mounted.current = false; }, []);
 
   return (
     <View
@@ -72,7 +77,7 @@ const ProfileReviewItem = ({
           />
         </TouchableOpacity>
         <Tooltip
-          isVisible={tooltipActive}
+          isVisible={tooltipActive && mounted.current}
           content={(
             <TouchableOpacity onPress={() => openPost({
               uid, timestamp, navigation, setTooltipActive,
@@ -83,7 +88,7 @@ const ProfileReviewItem = ({
           )}
           placement="top"
           backgroundColor={null}
-          onClose={() => setTooltipActive(false)}
+          onClose={() => { if (mounted.current) setTooltipActive(false); }}
           childrenWrapperStyle={{ opacity: 0 }}
           disableShadow
           tooltipStyle={styles.tooltipContainer}
@@ -112,10 +117,12 @@ const ProfileReviewItem = ({
       </View>
     </View>
   );
-};
+}, () => true);
 
-const ProfileReviews = ({ navigation, route }) => {
-  const { reviews, uid } = route.params;
+const ProfileReviews = ({
+  reviews, uid, postRowLength, navigation, route,
+}) => {
+  if (!postRowLength) ({ reviews, uid } = route.params);
   const place = useRef(null);
 
   const openPlace = async ({ placeId, placeName }) => {
@@ -126,6 +133,13 @@ const ProfileReviews = ({ navigation, route }) => {
     navigation.push(
       'PlaceDetail',
       { place: place.current, placeId, placeName },
+    );
+  };
+
+  const goToAllReviews = () => {
+    navigation.push(
+      'ProfileReviews',
+      { reviews, uid },
     );
   };
 
@@ -153,10 +167,27 @@ const ProfileReviews = ({ navigation, route }) => {
             ListFooterComponent={<View style={{ height: wp(3) }} />}
           />
         )}
+      {postRowLength && (
+        <TouchableOpacity
+          style={[styles.seeMoreContainer, { top: rowHeight * postRowLength - wp(12) }]}
+          activeOpacity={0.9}
+          onPress={goToAllReviews}
+        >
+          <Text style={styles.seeMoreText}>See all reviews</Text>
+          <View pointerEvents="none">
+            <BackArrow
+              color={colors.tertiary}
+              size={wp(5)}
+              style={styles.downArrow}
+            />
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
+const rowHeight = wp(57) + wp(2.5);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -223,6 +254,28 @@ const styles = StyleSheet.create({
     color: colors.tertiary,
     textAlign: 'center',
     marginHorizontal: wp(2),
+  },
+  seeMoreContainer: {
+    position: 'absolute',
+    alignSelf: 'flex-end',
+    flexDirection: 'row',
+    right: wp(7.5),
+    alignItems: 'center',
+    paddingHorizontal: wp(4),
+    paddingVertical: wp(3),
+    borderRadius: wp(2.5),
+    backgroundColor: colors.gray2,
+    ...shadows.darker,
+  },
+  seeMoreText: {
+    fontSize: sizes.b2,
+    fontFamily: 'Medium',
+    color: colors.tertiary,
+    marginRight: wp(1.5),
+  },
+  downArrow: {
+    transform: [{ rotate: '180deg' }],
+    ...shadows.base,
   },
 });
 

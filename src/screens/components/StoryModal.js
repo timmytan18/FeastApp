@@ -110,22 +110,30 @@ const StoryModal = ({ navigation, route }) => {
     stopBarAnimation();
     startBarAnimation();
     (async () => {
-      const img = seenImages.current[index.current]
-        ? seenImages.current[index.current] : await Storage.get(
-          stories[index.current].picture,
-          { identityId: stories[index.current].placeUserInfo.identityId },
-        );
+      let img = null;
+      if (stories[index.current].picture) {
+        img = seenImages.current[index.current]
+          ? seenImages.current[index.current] : await Storage.get(
+            stories[index.current].picture,
+            { identityId: stories[index.current].placeUserInfo.identityId },
+          );
+      }
       setImage(img);
       if (index.current + 1 < numStories.current
         && index.current + 1 >= seenImages.current.length) {
-        const nextImg = await Storage.get(
-          stories[index.current + 1].picture,
-          { identityId: stories[index.current + 1].placeUserInfo.identityId },
-        );
+        let nextImg = null;
+        if (stories[index.current + 1].picture) {
+          nextImg = await Storage.get(
+            stories[index.current + 1].picture,
+            { identityId: stories[index.current + 1].placeUserInfo.identityId },
+          );
+        }
         seenImages.current.push(nextImg);
-        try {
-          await Image.prefetch(nextImg);
-        } catch (e) { console.warn(e); }
+        if (nextImg) {
+          try {
+            await Image.prefetch(nextImg);
+          } catch (e) { console.warn(e); }
+        }
       }
       seenStories.current[stories[index.current].SK] = timeLocal;
     })();
@@ -549,6 +557,7 @@ const StoryModal = ({ navigation, route }) => {
     setShowYummedUsers(true);
   };
 
+  const maxCollapsedLines = stories[index.current].picture ? NUM_COLLAPSED_LINES : null;
   const [numLines, setNumLines] = useState(null);
   const [numLinesExpanded, setNumLinesExpanded] = useState(null);
   const lineHeight = useRef(null);
@@ -557,11 +566,11 @@ const StoryModal = ({ navigation, route }) => {
     if (numLinesExpanded == null) {
       setNumLinesExpanded(e.nativeEvent.lines.length);
       lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
-      setNumLines(NUM_COLLAPSED_LINES);
+      setNumLines(maxCollapsedLines);
     }
   }, []);
 
-  const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > NUM_COLLAPSED_LINES);
+  const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > maxCollapsedLines);
 
   return (
     <View style={{ flex: 1 }}>
@@ -732,21 +741,25 @@ const StoryModal = ({ navigation, route }) => {
             )}
             <Text
               style={[styles.reviewText, !isExpanded && { paddingBottom: wp(4) }]}
-              numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
-              onPress={() => setNumLines(
-                isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
-              )}
+              numberOfLines={numLinesExpanded == null ? maxCollapsedLines : numLines}
+              onPress={() => {
+                setNumLines(
+                  isExpanded ? maxCollapsedLines : numLinesExpanded,
+                );
+              }}
             >
               {review}
             </Text>
-            <View>
-              <Image
-                style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
-                source={{ uri: image }}
-              />
-              <View style={styles.emojiContainer} />
-              {dish && <Text style={styles.menuItemText}>{dish}</Text>}
-            </View>
+            {image && (
+              <View>
+                <Image
+                  style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
+                  source={{ uri: image }}
+                />
+                <View style={styles.emojiContainer} />
+                {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.middleContainer}>
@@ -793,6 +806,20 @@ const StoryModal = ({ navigation, route }) => {
                     </MaskedView>
                   </TouchableOpacity>
                 </LinearGradient>
+              </View>
+            )}
+            {postOnly && (
+              <View style={[styles.viewPlaceBtnContainer, { marginTop: wp(2.5) }]}>
+                <TouchableOpacity
+                  style={[styles.viewPlaceBtn, { backgroundColor: 'transparent' }]}
+                  onPress={navigation.goBack}
+                  activeOpacity={1}
+                >
+                  <Text style={[styles.viewPlaceBtnText, { color: '#fff', fontSize: sizes.b3 }]}>Close</Text>
+                </TouchableOpacity>
+                <View style={styles.downArrowPostOnly}>
+                  <SwipeUpArrow />
+                </View>
               </View>
             )}
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
@@ -930,6 +957,10 @@ const styles = StyleSheet.create({
     fontSize: sizes.b4,
     fontFamily: 'Medium',
     paddingBottom: 0.2,
+  },
+  downArrowPostOnly: {
+    marginTop: wp(0.4),
+    transform: [{ rotate: '180deg' }],
   },
   headerContainer: {
     height: wp(15.5),

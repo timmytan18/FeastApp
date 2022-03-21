@@ -221,12 +221,13 @@ const UploadImages = ({ navigation, route }) => {
   useEffect(() => {
     const headerRight = () => (
       <TouchableOpacity
-        style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}
-        disabled={!picture}
         onPress={async () => {
-          const croppedImg = pictureFromPreview
-            && picture === currUncroppedImage.current
-            ? await cropImage() : ({ ...picture });
+          let croppedImg;
+          if (picture) {
+            croppedImg = pictureFromPreview
+              && picture === currUncroppedImage.current
+              ? await cropImage() : ({ ...picture });
+          }
           navigation.navigate('PostDetails', {
             business,
             picture: croppedImg,
@@ -236,8 +237,23 @@ const UploadImages = ({ navigation, route }) => {
           });
         }}
       >
-        <Text style={styles.nextButtonText}>Next</Text>
-        <NextArrow />
+        {picture ? (
+          <View style={[styles.nextButtonContainer, { opacity: picture ? 1 : 0.5 }]}>
+            <Text style={styles.nextButtonText}>Next</Text>
+            <NextArrow />
+          </View>
+        ) : (
+          <View style={styles.nextButtonContainer}>
+            <Text style={[
+              styles.nextButtonText,
+              { color: colors.tertiary, fontFamily: 'MediumItalic' },
+            ]}
+            >
+              Skip
+
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
     );
 
@@ -247,6 +263,21 @@ const UploadImages = ({ navigation, route }) => {
       headerTitleStyle: header.title,
     });
   }, [business, picture, menuItem, navigation]);
+
+  const pickImage = async () => {
+    const image = await ImagePicker.launchImageLibraryAsync(
+      {
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        aspect: POST_IMAGE_ASPECT,
+        quality: 1,
+      },
+    );
+    if (!image.cancelled) {
+      delete image.cancelled;
+      tentativeCurrUncroppedImage.current = image;
+      goToCropModal();
+    }
+  };
 
   const currUncroppedImage = useRef(null);
   const tentativeCurrUncroppedImage = useRef(null);
@@ -261,6 +292,14 @@ const UploadImages = ({ navigation, route }) => {
       }
     }
   }, [route.params?.croppedImg]);
+
+  // Open image picker
+  useEffect(() => {
+    if (route.params?.openImagePicker) {
+      pickImage();
+      route.params.openImagePicker = false;
+    }
+  }, [route.params?.openImagePicker]);
 
   const goToCropModal = () => {
     navigation.navigate('CropModal', {
@@ -286,12 +325,12 @@ const UploadImages = ({ navigation, route }) => {
       }
       if (mounted.current) setLibraryPreview(images);
       if (numPreview) {
-        pictureFromPreview.current = true;
-        if (mounted.current) setUncroppedPicture(assets[0]);
+        // pictureFromPreview.current = true;
+        // if (mounted.current) setUncroppedPicture(assets[0]);
       }
     } else if (libraryPreview.length && libraryPreview[0].length) {
-      pictureFromPreview.current = true;
-      if (mounted.current) setUncroppedPicture(libraryPreview[0][0]);
+      // pictureFromPreview.current = true;
+      // if (mounted.current) setUncroppedPicture(libraryPreview[0][0]);
     }
     if (mounted.current) setTab(LIBRARY_TAB);
     slideInput(0.7);
@@ -375,8 +414,13 @@ const UploadImages = ({ navigation, route }) => {
           activeOpacity={0.6}
           style={styles.gridItem}
           onPress={() => {
-            pictureFromPreview.current = true;
-            setUncroppedPicture(pic);
+            if (pic !== picture) {
+              pictureFromPreview.current = true;
+              setUncroppedPicture(pic);
+            } else {
+              pictureFromPreview.current = false;
+              setUncroppedPicture(null);
+            }
           }}
           key={pic.uri}
         >
@@ -389,25 +433,12 @@ const UploadImages = ({ navigation, route }) => {
     </View>
   );
 
-  const pickImage = async () => {
-    const image = await ImagePicker.launchImageLibraryAsync(
-      {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        aspect: POST_IMAGE_ASPECT,
-        quality: 1,
-      },
-    );
-    if (!image.cancelled) {
-      delete image.cancelled;
-      tentativeCurrUncroppedImage.current = image;
-      goToCropModal();
-    }
-  };
-
   return (
     <SafeAreaView style={[styles.safeAreaContainer, { marginTop: -insets.top }]}>
       <View style={styles.container}>
-        <DismissKeyboardView style={styles.camContainer}>
+        <DismissKeyboardView
+          style={[styles.camContainer, !picture && tab !== CAMERA_TAB && { height: wp(40) }]}
+        >
           {!picture && tab === CAMERA_TAB
             && (
               <Camera
@@ -446,6 +477,15 @@ const UploadImages = ({ navigation, route }) => {
                 </View>
               </Camera>
             )}
+          {!picture && tab !== CAMERA_TAB && (
+            <TouchableOpacity
+              style={styles.noImageContainer}
+              onPress={pickImage}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.noImageText}>Select an image to upload!</Text>
+            </TouchableOpacity>
+          )}
           {picture && tab !== CAMERA_TAB
             && (
               <View>
@@ -469,28 +509,30 @@ const UploadImages = ({ navigation, route }) => {
             )}
         </DismissKeyboardView>
         <View style={styles.bottomContainer}>
-          <Animated.View
-            style={[styles.itemInputContainer, { transform: [{ translateY: inputTranslate }] }]}
-          >
-            <View style={styles.dishIconContainer}>
-              <Dish />
-            </View>
-            <TextInput
-              style={styles.itemInput}
-              onChangeText={(text) => setMenuItem(text)}
-              value={menuItem}
-              placeholder="What's this menu item? (optional)"
-              placeholderTextColor={colors.tertiary}
-              onFocus={() => {
-                setInputActive(true);
-                slideInput(1);
-              }}
-              onEndEditing={() => {
-                setInputActive(false);
-                slideInput(tab === CAMERA_TAB ? 0 : 0.7);
-              }}
-            />
-          </Animated.View>
+          {picture && (
+            <Animated.View
+              style={[styles.itemInputContainer, { transform: [{ translateY: inputTranslate }] }]}
+            >
+              <View style={styles.dishIconContainer}>
+                <Dish />
+              </View>
+              <TextInput
+                style={styles.itemInput}
+                onChangeText={(text) => setMenuItem(text)}
+                value={menuItem}
+                placeholder="What's this menu item? (optional)"
+                placeholderTextColor={colors.tertiary}
+                onFocus={() => {
+                  setInputActive(true);
+                  slideInput(1);
+                }}
+                onEndEditing={() => {
+                  setInputActive(false);
+                  slideInput(tab === CAMERA_TAB ? 0 : 0.7);
+                }}
+              />
+            </Animated.View>
+          )}
           {tab === CAMERA_TAB
             && (
               <TouchableOpacity
@@ -588,6 +630,19 @@ const styles = StyleSheet.create({
   camTool: {
     alignItems: 'center',
     paddingVertical: wp(1),
+  },
+  noImageContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gray2,
+    borderRadius: 4,
+  },
+  noImageText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b2,
+    color: colors.tertiary,
+    textAlign: 'center',
   },
   editContainer: {
     position: 'absolute',
@@ -722,14 +777,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: wp(1),
     borderWidth: wp(0.7),
-    borderColor: colors.tertiary,
+    borderColor: colors.gray2,
     borderRadius: wp(3),
-    backgroundColor: colors.tertiary,
+    backgroundColor: colors.gray2,
   },
   allLibraryText: {
     fontFamily: 'Medium',
     fontSize: sizes.b3,
-    color: '#fff',
+    color: colors.black,
     marginHorizontal: wp(2),
   },
   downArrow: {

@@ -281,11 +281,13 @@ const Explore = ({ navigation }) => {
       }
       // Fetch pictures for each post
       stories.current = currPlacePosts.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-      const firstImg = await Storage.get(
+      const firstImg = stories.current[0].picture ? await Storage.get(
         stories.current[0].picture,
         { identityId: stories.current[0].placeUserInfo.identityId },
-      );
-      try { await Image.prefetch(firstImg); } catch (e) { console.warn(e); }
+      ) : null;
+      if (firstImg) {
+        try { await Image.prefetch(firstImg); } catch (e) { console.warn(e); }
+      }
       setLoadingStories('none');
       navigation.push('StoryModalModal', {
         screen: 'StoryModal',

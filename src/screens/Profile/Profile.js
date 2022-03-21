@@ -1,5 +1,5 @@
 import React, {
-  useState, useEffect, useContext, useRef,
+  useState, useEffect, useContext, useRef, useCallback,
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity,
@@ -24,6 +24,7 @@ import {
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
 import EditProfile from './EditProfile';
+import ProfileReviews from './ProfileReviews';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
@@ -35,6 +36,7 @@ import PostListItem from '../components/PostListItem';
 import ThreeDots from '../components/util/icons/ThreeDots';
 import Gear from '../components/util/icons/Gear';
 import Utensils from '../components/util/icons/Utensils';
+import Review from '../components/util/icons/Review';
 import MapMarker from '../components/util/icons/MapMarker';
 import RatingMapMarker from '../components/RatingMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
@@ -70,10 +72,13 @@ const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
 // Memoize row rendering, only rerender when row content changes
 const RowItem = React.memo(({
   row,
-  translateContent,
-  translateListContentOpacity,
+  translateLeftContent,
+  translateCenterContent,
+  translatePostListContentOpacity,
+  translateReviewListContentOpacity,
   openPlacePosts,
   leftTabPressed,
+  centerTabPressed,
   rightTabPressed,
   translateTabBar,
 }) => {
@@ -83,7 +88,10 @@ const RowItem = React.memo(({
       <Animated.View
         style={[
           styles.postsRowContainer,
-          { transform: [{ translateX: translateContent }], opacity: translateListContentOpacity },
+          {
+            transform: [{ translateX: translateLeftContent }],
+            opacity: translatePostListContentOpacity,
+          },
         ]}
       >
         {row.map(({ placePosts, numYums }) => {
@@ -109,7 +117,9 @@ const RowItem = React.memo(({
           style={styles.tab}
           onPress={leftTabPressed}
         >
-          <View style={styles.tabIcon}><Utensils /></View>
+          <View style={styles.tabIcon}>
+            <Utensils />
+          </View>
           <Animated.View
             style={[
               styles.slider,
@@ -117,6 +127,13 @@ const RowItem = React.memo(({
               noResults && { opacity: 0 },
             ]}
           />
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.tab}
+          onPress={centerTabPressed}
+        >
+          <View style={styles.tabIcon}><Review /></View>
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={1}
@@ -148,6 +165,9 @@ const RowItem = React.memo(({
   );
 }, (prevProps, nextProps) => prevProps.row === nextProps.row
   && prevProps.numReviews === nextProps.numReviews);
+
+const sideMargin = wp(6);
+const screenWidth = wp(100);
 
 const Profile = ({ navigation, route }) => {
   // Set necessary data
@@ -182,8 +202,10 @@ const Profile = ({ navigation, route }) => {
     (async () => {
       const { promise, getValue, errorMsg } = getNumFollowsQuery({ PK: user.PK, SK: user.SK });
       const num = await fulfillPromise(promise, getValue, errorMsg);
-      setNumFollows(num);
-      setRefreshing(false);
+      if (mounted.current) {
+        setNumFollows(num);
+        setRefreshing(false);
+      }
     })();
 
     // Get reviews for user
@@ -210,6 +232,10 @@ const Profile = ({ navigation, route }) => {
   }, [numRefresh.current, isMe, user.PK, user.SK, user.identityId, state.reloadProfileTrigger]);
 
   const getPostPictures = (item) => new Promise((resolve, reject) => {
+    if (!item.picture) {
+      resolve(item);
+      return;
+    }
     Storage.get(item.picture, !isMe && { identityId: user.identityId })
       .then((url) => {
         item.s3Photo = url;
@@ -231,6 +257,7 @@ const Profile = ({ navigation, route }) => {
   const fetchPostsDetails = async (userReviews) => {
     const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
     const placePostsRatingSum = {};
+    const placeTextReviews = {};
     // Get yums received for user
     const updatedPlaceNumYums = {};
     const {
@@ -246,25 +273,36 @@ const Profile = ({ navigation, route }) => {
       numReviews.current = currPosts.length;
       for (let i = 0; i < currPosts.length; i += 1) {
         // add to placePosts map
-        const { placeId } = currPosts[i];
-        if (!placePosts[placeId]) {
-          placePosts[placeId] = [currPosts[i]];
+        const { placeId, s3Photo } = currPosts[i];
+        if (!placePosts[placeId] && !placeTextReviews[placeId]) {
+          if (s3Photo) {
+            placePosts[placeId] = [currPosts[i]];
+            placePosts[placeId][0].visible = true;
+            placeTextReviews[placeId] = 0;
+          } else {
+            placeTextReviews[placeId] = 1;
+          }
           placePostsRatingSum[placeId] = currPosts[i].rating;
-          placePosts[placeId][0].visible = true;
         } else {
-          placePosts[placeId].push(currPosts[i]);
+          if (!placePosts[placeId]) placePosts[placeId] = [];
+          if (s3Photo) placePosts[placeId].push(currPosts[i]);
+          else placeTextReviews[placeId] += 1;
           placePostsRatingSum[placeId] += currPosts[i].rating;
         }
       }
       Object.entries(placePostsRatingSum).forEach(([placeId, sum]) => {
-        placePosts[placeId][0].avgRating = sum / placePosts[placeId].length;
+        if (placePosts[placeId] && (placePosts[placeId].length || placeTextReviews[placeId])) {
+          placePosts[placeId][0].avgRating = sum / (placePosts[placeId].length + placeTextReviews[placeId]);
+        }
       });
 
       // Format posts for FlatList, include numYums
       const placeIdKeys = Object.keys(placePosts);
       if (placeIdKeys && placeIdKeys.length) {
         // if (reviews == null) posts.current = [[]];
-        posts.current = [[]];
+        posts.current = [[], {
+          allReviews: allReviews.current, uid: user.uid, navigation, isReviewsList: true,
+        }];
         for (let i = 0; i < placeIdKeys.length; i += 2) {
           const rowItem = [{
             placePosts: placePosts[placeIdKeys[i]],
@@ -286,7 +324,7 @@ const Profile = ({ navigation, route }) => {
     });
   };
 
-  // // Load more posts
+  // Load more posts
   // const fetchNextPosts = async () => {
   //   if (!nextToken.current) return;
   //   const { promise, getValue, errorMsg } = getUserPostsQuery({
@@ -305,25 +343,42 @@ const Profile = ({ navigation, route }) => {
   // Switch list view & map view animations
   const [mapOpen, setMapOpen] = useState(false);
   const position = useRef(new Animated.Value(0)).current;
+  const animatePosition = (value) => {
+    Animated.spring(position, {
+      toValue: value,
+      speed: 40,
+      bounciness: 2,
+      useNativeDriver: true,
+    }).start();
+  };
+  const tabWidth = screenWidth - sideMargin * 2;
   const translateTabBar = position.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, wp(100) / 2 - wp(3) * 2],
+    inputRange: [0, 1, 2],
+    outputRange: [0, tabWidth / 3, tabWidth / 1.5],
   });
-  const translateContent = position.interpolate({
+  const translateLeftContent = position.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -wp(100)],
+    outputRange: [0, -screenWidth],
   });
-  const translateListContentOpacity = position.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0],
+  const translateCenterContent = position.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [screenWidth, 0, -screenWidth],
+  });
+  const translateRightContent = position.interpolate({
+    inputRange: [1, 2],
+    outputRange: [screenWidth, 0],
+  });
+  const translatePostListContentOpacity = position.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [1, 0, 0],
+  });
+  const translateReviewListContentOpacity = position.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [0, 1, 0],
   });
   const translateMapContentOpacity = position.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-  const translateMapContentZIndex = position.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-1, -1],
+    inputRange: [0, 1, 2],
+    outputRange: [0, 0, 1],
   });
 
   // Flatlist
@@ -373,7 +428,7 @@ const Profile = ({ navigation, route }) => {
         }
       }
     });
-    if (didAlterMarkers) {
+    if (didAlterMarkers && mounted.current) {
       setReviews(markersCopy);
     }
   };
@@ -540,10 +595,7 @@ const Profile = ({ navigation, route }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.followButton}
-                onPress={() => navigation.push(
-                  'ProfileReviews',
-                  { reviews: allReviews.current, uid: user.uid },
-                )}
+                onPress={centerTabPressed}
               >
                 <Text style={styles.followCountText}>{numReviews.current}</Text>
                 <Text style={styles.followText}>Reviews</Text>
@@ -586,29 +638,32 @@ const Profile = ({ navigation, route }) => {
     </View>
   );
 
+  const renderBottomContainer = () => (
+    <View style={styles.footerContainer}>
+      <Text>Hello</Text>
+    </View>
+  );
+
   const leftTabPressed = () => {
     setMapOpen(false);
     flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
-    Animated.spring(position, {
-      toValue: 0,
-      speed: 40,
-      bounciness: 2,
-      useNativeDriver: true,
-    }).start();
+    animatePosition(0);
+  };
+
+  const centerTabPressed = () => {
+    setMapOpen(false);
+    flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+    animatePosition(1);
   };
 
   const rightTabPressed = () => {
     // try/catch to prevent error when switching to map view when flatlist hasn't loaded
     try {
-      flatListRef.current.scrollToIndex({ animated: true, index: 1 });
+      flatListRef.current.scrollToIndex({ animated: true, index: 0 });
       setMapOpen(true);
-      Animated.spring(position, {
-        toValue: 1,
-        speed: 40,
-        bounciness: 2,
-        useNativeDriver: true,
-      }).start();
+      animatePosition(2);
     } catch (e) {
+      console.log(e);
       leftTabPressed();
     }
   };
@@ -629,18 +684,67 @@ const Profile = ({ navigation, route }) => {
     });
   };
 
-  const renderRow = (item) => (
-    <RowItem
-      row={item}
-      translateContent={translateContent}
-      translateListContentOpacity={translateListContentOpacity}
-      openPlacePosts={openPlacePosts}
-      leftTabPressed={leftTabPressed}
-      rightTabPressed={rightTabPressed}
-      translateTabBar={translateTabBar}
-      numReviews={numReviews.current}
-    />
-  );
+  const renderRow = (item) => {
+    if (item.isReviewsList) {
+      return (
+        <View>
+          <Animated.View
+            style={[
+              styles.reviewsRowContainer,
+              {
+                transform: [{ translateX: translateCenterContent }],
+                opacity: translateReviewListContentOpacity,
+              },
+            ]}
+          >
+            <ProfileReviews
+              reviews={item.allReviews}
+              uid={item.uid}
+              navigation={item.navigation}
+              postRowLength={posts.current.length - 2}
+            // onLayout={onReviewListLayout}
+            />
+            {/* <TouchableOpacity style={{ backgroundColor: 'red' }} onPress={() => { console.log('hello'); }}>
+            <Text>Hello</Text>
+          </TouchableOpacity> */}
+          </Animated.View>
+        </View>
+      );
+    }
+    return (
+      <RowItem
+        row={item}
+        translateLeftContent={translateLeftContent}
+        translateCenterContent={translateCenterContent}
+        translatePostListContentOpacity={translatePostListContentOpacity}
+        translateReviewListContentOpacity={translateReviewListContentOpacity}
+        openPlacePosts={openPlacePosts}
+        leftTabPressed={leftTabPressed}
+        centerTabPressed={centerTabPressed}
+        rightTabPressed={rightTabPressed}
+        translateTabBar={translateTabBar}
+        numReviews={numReviews.current}
+      />
+    );
+  };
+
+  // const postListHeight = useRef(0);
+  // const [flatlistBottomMargin, setFlatlistBottomMargin] = useState(0);
+
+  // const onPostListLayout = useCallback((event) => {
+  //   const { height } = event.nativeEvent.layout;
+  //   postListHeight.current = height;
+  // }, []);
+
+  // const onReviewListLayout = useCallback((event) => {
+  //   console.log('onReviewListLayout');
+  //   const { height } = event.nativeEvent.layout;
+  //   if (flatlistBottomMargin === 0) {
+  //     console.log(height);
+  //     console.log(postListHeight.current);
+  //     setFlatlistBottomMargin(Math.max(0, height - postListHeight.current));
+  //   }
+  // }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
@@ -687,6 +791,16 @@ const Profile = ({ navigation, route }) => {
               styles.mapViewTabButtonOverlay,
               {
                 top: insets.top,
+                left: wp(2.5) + wp(31.67),
+              },
+            ]}
+            onPress={centerTabPressed}
+          />
+          <TouchableOpacity
+            style={[
+              styles.mapViewTabButtonOverlay,
+              {
+                top: insets.top,
                 right: wp(2.5),
               },
             ]}
@@ -703,22 +817,26 @@ const Profile = ({ navigation, route }) => {
       />
       <FlatList
         pointerEvents={mapOpen ? 'none' : 'auto'}
+        // onLayout={onPostListLayout}
         scrollEnabled={!mapOpen}
         data={posts.current}
         refreshing={refreshing}
-        renderItem={({ item }) => renderRow(item)}
+        // renderItem={({ item }) => renderRow(item)}
+        CellRendererComponent={({ item }) => renderRow(item)}
         keyExtractor={(item, index) => index}
         onRefresh={() => {
           numRefresh.current += 1;
-          setRefreshing(true);
+          if (mounted.current) setRefreshing(true);
         }}
         initialScrollIndex={0}
+        onScrollToIndexFailed={(err) => { console.log(err); }}
         ref={flatListRef}
         ListHeaderComponent={renderTopContainer()}
+        // ListFooterComponent={renderBottomContainer()}
         stickyHeaderIndices={[1]}
         contentContainerStyle={{
-          paddingBottom: posts.current.length > 3 || numReviews.current === 0
-            ? wp(12) : wp(71) + wp(60) * (3 - posts.current.length),
+          paddingBottom: (posts.current.length > 4 || numReviews.current === 0
+            ? wp(12) : wp(71) + wp(60) * (4 - posts.current.length)),
         }}
       />
       <Animated.View
@@ -726,9 +844,8 @@ const Profile = ({ navigation, route }) => {
           styles.mapContainer,
           { top: insets.top },
           {
-            transform: [{ translateX: translateContent }],
+            transform: [{ translateX: translateRightContent }],
             opacity: translateMapContentOpacity,
-            zIndex: translateMapContentZIndex,
           },
         ]}
       >
@@ -788,11 +905,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flex: 1,
   },
+  footerContainer: {
+    overflow: 'hidden',
+    flex: 1,
+    marginLeft: wp(60),
+    zIndex: 2,
+  },
   mapViewTabButtonOverlay: {
     position: 'absolute',
     zIndex: 2,
     height: wp(11.6),
-    width: wp(47.5),
+    width: wp(31.67),
     opacity: 0,
   },
   headerContainer: {
@@ -914,7 +1037,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     paddingTop: wp(3),
-    paddingHorizontal: wp(6),
+    paddingHorizontal: sideMargin,
     marginBottom: wp(2),
     borderBottomLeftRadius: wp(3),
     borderBottomRightRadius: wp(3),
@@ -929,6 +1052,15 @@ const styles = StyleSheet.create({
   },
   tabIcon: {
     paddingBottom: wp(3.5),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tabText: {
+    fontFamily: 'Semi',
+    fontSize: sizes.b2,
+    color: colors.black,
+    letterSpacing: 0.3,
+    paddingRight: wp(1.5),
   },
   slider: {
     position: 'absolute',
@@ -947,11 +1079,18 @@ const styles = StyleSheet.create({
     marginBottom: wp(2.5),
     flexDirection: 'row',
   },
+  reviewsRowContainer: {
+    position: 'absolute',
+    left: 0,
+    width: '100%',
+    flex: 1,
+  },
   mapContainer: {
     position: 'absolute',
-    left: wp(100),
+    left: 0,
     width: '100%',
     height: '100%',
+    zIndex: -1,
   },
   map: {
     width: '100%',

@@ -39,8 +39,10 @@ const PostItem = ({
   const [image, setImage] = useState(null);
   useEffect(() => {
     (async () => {
-      const s3Photo = await Storage.get(picture, { identityId });
-      setImage(s3Photo);
+      if (picture) {
+        const s3Photo = await Storage.get(picture, { identityId });
+        setImage(s3Photo);
+      }
     })();
   }, []);
 
@@ -52,6 +54,8 @@ const PostItem = ({
     uid, timestamp,
   }));
 
+  const maxCollapsedLines = picture ? NUM_COLLAPSED_LINES : null;
+
   const [numLines, setNumLines] = useState(null);
   const [numLinesExpanded, setNumLinesExpanded] = useState(null);
   const lineHeight = useRef(null);
@@ -60,10 +64,10 @@ const PostItem = ({
     if (numLinesExpanded == null) {
       setNumLinesExpanded(e.nativeEvent.lines.length);
       lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
-      setNumLines(NUM_COLLAPSED_LINES);
+      setNumLines(maxCollapsedLines);
     }
   }, []);
-  const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > NUM_COLLAPSED_LINES);
+  const isExpanded = (numLines === numLinesExpanded && numLinesExpanded > maxCollapsedLines);
   return (
     <View>
       <View style={styles.cardContainer}>
@@ -148,54 +152,61 @@ const PostItem = ({
             </View>
           )}
           <Text
-            style={[styles.reviewText, !isExpanded && { paddingBottom: wp(4) }]}
-            numberOfLines={numLinesExpanded == null ? NUM_COLLAPSED_LINES : numLines}
-            onPress={() => setNumLines(
-              isExpanded ? NUM_COLLAPSED_LINES : numLinesExpanded,
-            )}
+            style={[styles.reviewText, !isExpanded && picture && { paddingBottom: wp(4) }]}
+            numberOfLines={numLinesExpanded == null ? maxCollapsedLines : numLines}
+            onPress={() => {
+              if (picture) {
+                setNumLines(
+                  isExpanded ? maxCollapsedLines : numLinesExpanded,
+                );
+              }
+            }}
           >
             {review}
           </Text>
-          <View>
-            <Image
-              style={[styles.image]}
-              source={{ uri: image }}
-            />
-            <View style={styles.emojiContainer} />
-            {dish && <Text style={styles.menuItemText}>{dish}</Text>}
-            <View style={styles.middleContainer}>
-              <View style={styles.middleButtonsContainer}>
-                <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-                  <SaveButton
-                    isSaved={isSaved}
-                    dispatch={dispatch}
-                    size={wp(10)}
-                    post={item}
-                    place={{ geo, placeInfo: { categories, imgUrl } }}
-                    myUID={myUID}
-                    light
-                  />
-                </View>
-                <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
-                  <YumButton
-                    size={wp(10)}
-                    uid={uid}
-                    placeId={placeId}
-                    timestamp={timestamp}
-                    myUID={myUID}
-                    myPK={myPK}
-                    myName={myName}
-                    myPicture={myPicture}
-                    picture={picture}
-                    showYummedUsersModal={showYummedUsersModal}
-                    light
-                  />
+          {picture && (
+            <View>
+              <Image
+                style={[styles.image]}
+                source={{ uri: image }}
+              />
+              <View style={styles.emojiContainer} />
+              {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+              <View style={styles.middleContainer}>
+                <View style={styles.middleButtonsContainer}>
+                  <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
+                    <SaveButton
+                      isSaved={isSaved}
+                      dispatch={dispatch}
+                      size={wp(10)}
+                      post={item}
+                      place={{ geo, placeInfo: { categories, imgUrl } }}
+                      myUID={myUID}
+                      light
+                    />
+                  </View>
+                  <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
+                    <YumButton
+                      size={wp(10)}
+                      uid={uid}
+                      placeId={placeId}
+                      timestamp={timestamp}
+                      myUID={myUID}
+                      myPK={myPK}
+                      myName={myName}
+                      myPicture={myPicture}
+                      picture={picture}
+                      showYummedUsersModal={showYummedUsersModal}
+                      light
+                    />
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
+          )}
         </View>
       </View>
+      <View style={[styles.separator, picture && { marginTop: wp(3) }]} />
     </View>
   );
 };
@@ -362,6 +373,11 @@ const styles = StyleSheet.create({
     fontSize: sizes.b4,
     color: colors.black,
     paddingTop: wp(1.5),
+  },
+  separator: {
+    width: wp(100),
+    height: 0.5,
+    backgroundColor: colors.gray2,
   },
 });
 

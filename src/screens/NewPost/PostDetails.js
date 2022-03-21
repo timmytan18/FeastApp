@@ -16,6 +16,7 @@ import {
 import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
+import Cam from '../components/util/icons/Cam';
 import EditStarsRating from '../components/EditStarsRating';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
@@ -49,6 +50,8 @@ const propTypes = {
   }).isRequired,
 };
 
+const reviewCharLimit = 256;
+const reviewCharLimitNoImage = 512;
 const PostDetails = ({ navigation, route }) => {
   const {
     business, picture, menuItem, pExists, pCategories,
@@ -66,15 +69,15 @@ const PostDetails = ({ navigation, route }) => {
 
   const [shareDisable, setShareDisable] = useState(!ratingRef.current);
 
-  useEffect(() => {
-    // Save current review and rating
-    function saveReview() {
-      dispatch({
-        type: 'SET_REVIEW_RATING',
-        payload: { review: reviewRef.current, rating: ratingRef.current },
-      });
-    }
+  // Save current review and rating
+  function saveReview() {
+    dispatch({
+      type: 'SET_REVIEW_RATING',
+      payload: { review: reviewRef.current, rating: ratingRef.current },
+    });
+  }
 
+  useEffect(() => {
     // Destructure place attributes
     const {
       placeId,
@@ -153,6 +156,7 @@ const PostDetails = ({ navigation, route }) => {
     }
 
     const onShareFailed = async ({ postImgS3Url }) => {
+      if (!postImgS3Url) return;
       await deletePostFromS3({ s3Key: postImgS3Url });
       Alert.alert(
         'Error',
@@ -174,19 +178,21 @@ const PostDetails = ({ navigation, route }) => {
       const timestamp = date.toISOString();
 
       // Resize and store post image in S3
-      let postImgS3Url;
-      try {
-        postImgS3Url = await resizeAndSaveS3({ image: picture, timestamp });
-      } catch (e) {
-        console.warn('Error storing updated profile picture in S3: ', e);
-        Alert.alert(
-          'Error',
-          'Could not share your review. Please try again.',
-          [{ text: 'OK' }],
-          { cancelable: false },
-        );
-        setShareDisable(false);
-        return;
+      let postImgS3Url = null;
+      if (picture) {
+        try {
+          postImgS3Url = await resizeAndSaveS3({ image: picture, timestamp });
+        } catch (e) {
+          console.warn('Error storing updated profile picture in S3: ', e);
+          Alert.alert(
+            'Error',
+            'Could not share your review. Please try again.',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
+          setShareDisable(false);
+          return;
+        }
       }
 
       // Check if place in DB and fetch categories before sharing
@@ -391,6 +397,13 @@ const PostDetails = ({ navigation, route }) => {
     if (shareDisable) setShareDisable(false);
   };
 
+  const attachImage = () => {
+    saveReview();
+    navigation.navigate('UploadImages', {
+      openImagePicker: true,
+    });
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -434,21 +447,33 @@ const PostDetails = ({ navigation, route }) => {
               reviewRef.current = text;
             }}
             value={review}
-            placeholder="📝 Write a review/caption…"
+            placeholder={`📝 Write a review${picture ? '/caption' : ''}…`}
             placeholderTextColor={colors.tertiary}
             multiline
-            maxLength={256}
+            maxLength={picture ? reviewCharLimit : reviewCharLimitNoImage}
             blurOnSubmit
             returnKeyType="done"
           />
         </View>
-        <View style={styles.imageContainer}>
-          <Image
-            style={styles.image}
-            source={{ uri: picture.uri }}
-          />
-          {menuItem && <Text style={styles.menuItemText}>{menuItem}</Text>}
-        </View>
+        {picture && (
+          <View style={styles.imageContainer}>
+            <Image
+              style={styles.image}
+              source={{ uri: picture.uri }}
+            />
+            {menuItem && <Text style={styles.menuItemText}>{menuItem}</Text>}
+          </View>
+        )}
+        {!picture && (
+          <TouchableOpacity
+            style={styles.noImageContainer}
+            activeOpacity={0.6}
+            onPress={attachImage}
+          >
+            <Cam />
+            <Text style={styles.noImageText}>Attach an image</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -457,7 +482,7 @@ const PostDetails = ({ navigation, route }) => {
 PostDetails.propTypes = propTypes;
 
 const starSize = wp(5.8);
-
+const inputSize = wp(28);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -538,7 +563,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     backgroundColor: colors.gray4,
     borderRadius: wp(2),
-    height: wp(24),
+    height: inputSize,
   },
   imageContainer: {
     width: '100%',
@@ -560,6 +585,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: wp(5),
     left: wp(5),
+  },
+  noImageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: wp(3),
+    paddingVertical: wp(3),
+    marginVertical: wp(3),
+    backgroundColor: colors.gray2,
+    height: inputSize,
+    borderRadius: wp(2),
+    opacity: 0.9,
+  },
+  noImageText: {
+    fontFamily: 'Medium',
+    fontSize: sizes.b3,
+    color: colors.tertiary,
+    marginTop: wp(1),
   },
   reviewTitleStarsContainer: {
     flexDirection: 'row',
