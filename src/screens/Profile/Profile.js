@@ -70,12 +70,24 @@ const propTypes = {
 const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
 
 // Memoize row rendering, only rerender when row content changes
+const areEqual = (prevProps, nextProps) => {
+  let equal = prevProps.numReviews === nextProps.numReviews;
+  if (!equal) return false;
+  if (Array.isArray(prevProps.row) && Array.isArray(nextProps.row)) {
+    equal = prevProps.row.length === nextProps.row.length;
+    if (equal) {
+      equal = prevProps.row.every((prev, i) => prev.avgRating === nextProps.row[i].avgRating);
+    }
+  } else {
+    equal = prevProps.row === nextProps.row;
+  }
+  return equal;
+};
+
 const RowItem = React.memo(({
   row,
   translateLeftContent,
-  translateCenterContent,
   translatePostListContentOpacity,
-  translateReviewListContentOpacity,
   openPlacePosts,
   leftTabPressed,
   centerTabPressed,
@@ -166,8 +178,7 @@ const RowItem = React.memo(({
       }
     </View>
   );
-}, (prevProps, nextProps) => prevProps.row === nextProps.row
-  && prevProps.numReviews === nextProps.numReviews);
+}, areEqual);
 
 const sideMargin = wp(6);
 const screenWidth = wp(100);
@@ -641,12 +652,6 @@ const Profile = ({ navigation, route }) => {
     </View>
   );
 
-  const renderBottomContainer = () => (
-    <View style={styles.footerContainer}>
-      <Text>Hello</Text>
-    </View>
-  );
-
   const leftTabPressed = () => {
     setMapOpen(false);
     flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
@@ -666,7 +671,6 @@ const Profile = ({ navigation, route }) => {
       setMapOpen(true);
       animatePosition(2);
     } catch (e) {
-      console.log(e);
       leftTabPressed();
     }
   };
@@ -687,7 +691,7 @@ const Profile = ({ navigation, route }) => {
     });
   };
 
-  const renderRow = (item) => {
+  const renderRow = useCallback(({ item }) => {
     if (item.isReviewsList) {
       return (
         <View>
@@ -714,9 +718,7 @@ const Profile = ({ navigation, route }) => {
       <RowItem
         row={item}
         translateLeftContent={translateLeftContent}
-        translateCenterContent={translateCenterContent}
         translatePostListContentOpacity={translatePostListContentOpacity}
-        translateReviewListContentOpacity={translateReviewListContentOpacity}
         openPlacePosts={openPlacePosts}
         leftTabPressed={leftTabPressed}
         centerTabPressed={centerTabPressed}
@@ -725,25 +727,7 @@ const Profile = ({ navigation, route }) => {
         numReviews={numReviews.current}
       />
     );
-  };
-
-  // const postListHeight = useRef(0);
-  // const [flatlistBottomMargin, setFlatlistBottomMargin] = useState(0);
-
-  // const onPostListLayout = useCallback((event) => {
-  //   const { height } = event.nativeEvent.layout;
-  //   postListHeight.current = height;
-  // }, []);
-
-  // const onReviewListLayout = useCallback((event) => {
-  //   console.log('onReviewListLayout');
-  //   const { height } = event.nativeEvent.layout;
-  //   if (flatlistBottomMargin === 0) {
-  //     console.log(height);
-  //     console.log(postListHeight.current);
-  //     setFlatlistBottomMargin(Math.max(0, height - postListHeight.current));
-  //   }
-  // }, []);
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
@@ -816,12 +800,10 @@ const Profile = ({ navigation, route }) => {
       />
       <FlatList
         pointerEvents={mapOpen ? 'none' : 'auto'}
-        // onLayout={onPostListLayout}
         scrollEnabled={!mapOpen}
         data={posts.current}
         refreshing={refreshing}
-        // renderItem={({ item }) => renderRow(item)}
-        CellRendererComponent={({ item }) => renderRow(item)}
+        CellRendererComponent={renderRow}
         keyExtractor={(item, index) => index}
         onRefresh={() => {
           numRefresh.current += 1;
@@ -831,7 +813,6 @@ const Profile = ({ navigation, route }) => {
         onScrollToIndexFailed={(err) => { console.log(err); }}
         ref={flatListRef}
         ListHeaderComponent={renderTopContainer()}
-        // ListFooterComponent={renderBottomContainer()}
         stickyHeaderIndices={[1]}
         contentContainerStyle={{
           paddingBottom: (posts.current.length > 4 || numReviews.current === 0

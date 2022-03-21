@@ -163,12 +163,14 @@ const styles = StyleSheet.create({
     ...shadows.darker,
   },
   tooltipText: {
-    fontSize: wp(3.5),
+    fontSize: sizes.b3,
     lineHeight: wp(4.8),
     fontFamily: 'Medium',
     color: colors.tertiary,
     textAlign: 'center',
-    marginHorizontal: wp(2),
+    marginHorizontal: wp(2.5),
+    marginVertical: wp(0.5),
+    paddingTop: 1.5,
   },
 });
 

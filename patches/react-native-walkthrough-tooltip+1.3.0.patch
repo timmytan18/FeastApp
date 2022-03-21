@@ -1,0 +1,207 @@
+diff --git a/node_modules/react-native-walkthrough-tooltip/src/tooltip.js b/node_modules/react-native-walkthrough-tooltip/src/tooltip.js
+index 4de1852..dbbd725 100644
+--- a/node_modules/react-native-walkthrough-tooltip/src/tooltip.js
++++ b/node_modules/react-native-walkthrough-tooltip/src/tooltip.js
+@@ -65,7 +65,7 @@ class Tooltip extends Component {
+     isVisible: false,
+     onClose: () => {
+       console.warn(
+-        '[react-native-walkthrough-tooltip] onClose prop not provided',
++        '[react-native-walkthrough-tooltip] onClose prop no provided',
+       );
+     },
+     placement: 'center', // falls back to "top" if there ARE children
+@@ -110,6 +110,8 @@ class Tooltip extends Component {
+   constructor(props) {
+     super(props);
+ 
++    mounted = false;
++
+     const { isVisible, useInteractionManager } = props;
+ 
+     this.isMeasuringChild = false;
+@@ -137,7 +139,11 @@ class Tooltip extends Component {
+   }
+ 
+   componentDidMount() {
+-    Dimensions.addEventListener('change', this.updateWindowDims);
++    this.mounted = true;
++    this.dimensionsSubscription = Dimensions.addEventListener(
++      'change',
++      this.updateWindowDims,
++    );
+   }
+ 
+   componentDidUpdate(prevProps, prevState) {
+@@ -150,14 +156,25 @@ class Tooltip extends Component {
+     const insetsChanged = !rfcIsEqual(prevState.displayInsets, displayInsets);
+ 
+     if (contentChanged || placementChanged || becameVisible || insetsChanged) {
+-      setTimeout(() => {
+-        this.measureChildRect();
+-      });
++      if (this.mounted) {
++        setTimeout(() => {
++          this.measureChildRect();
++        });
++      }
+     }
+   }
+ 
+   componentWillUnmount() {
+-    Dimensions.removeEventListener('change', this.updateWindowDims);
++    // removeEventListener deprecated
++    // https://reactnative.dev/docs/dimensions#removeeventlistener
++    if (Dimensions.removeEventListener) {
++      // react native < 0.65.*
++      Dimensions.removeEventListener('change', this.updateWindowDims);
++    } else if (this.dimensionsSubscription) {
++      // react native >= 0.65.*
++      this.dimensionsSubscription.remove();
++    }
++    this.mounted = false;
+     if (this.interactionPromise) {
+       this.interactionPromise.cancel();
+     }
+@@ -196,22 +213,24 @@ class Tooltip extends Component {
+   }
+ 
+   updateWindowDims = dims => {
+-    this.setState(
+-      {
+-        windowDims: dims.window,
+-        contentSize: new Size(0, 0),
+-        adjustedContentSize: new Size(0, 0),
+-        anchorPoint: new Point(0, 0),
+-        tooltipOrigin: new Point(0, 0),
+-        childRect: new Rect(0, 0, 0, 0),
+-        measurementsFinished: false,
+-      },
+-      () => {
+-        setTimeout(() => {
+-          this.measureChildRect();
+-        }, 500); // give the rotation a moment to finish
+-      },
+-    );
++    if (this.mounted) {
++      this.setState(
++        {
++          windowDims: dims.window,
++          contentSize: new Size(0, 0),
++          adjustedContentSize: new Size(0, 0),
++          anchorPoint: new Point(0, 0),
++          tooltipOrigin: new Point(0, 0),
++          childRect: new Rect(0, 0, 0, 0),
++          measurementsFinished: false,
++        },
++        () => {
++          setTimeout(() => {
++            this.measureChildRect();
++          }, 500); // give the rotation a moment to finish
++        },
++      );
++    }
+   };
+ 
+   doChildlessPlacement = () => {
+@@ -227,24 +246,28 @@ class Tooltip extends Component {
+   measureContent = e => {
+     const { width, height } = e.nativeEvent.layout;
+     const contentSize = new Size(width, height);
+-    this.setState({ contentSize }, () => {
+-      this.computeGeometry();
+-    });
++    if (this.mounted) {
++      this.setState({ contentSize }, () => {
++        this.computeGeometry();
++      });
++    }
+   };
+ 
+   onChildMeasurementComplete = rect => {
+-    this.setState(
+-      {
+-        childRect: rect,
+-        waitingForInteractions: false,
+-      },
+-      () => {
+-        this.isMeasuringChild = false;
+-        if (this.state.contentSize.width) {
+-          this.computeGeometry();
+-        }
+-      },
+-    );
++    if (this.mounted) {
++      this.setState(
++        {
++          childRect: rect,
++          waitingForInteractions: false,
++        },
++        () => {
++          this.isMeasuringChild = false;
++          if (this.state.contentSize.width) {
++            this.computeGeometry();
++          }
++        },
++      );
++    }
+   };
+ 
+   measureChildRect = () => {
+@@ -334,13 +357,15 @@ class Tooltip extends Component {
+ 
+     const { tooltipOrigin, anchorPoint, adjustedContentSize } = geom;
+ 
+-    this.setState({
+-      tooltipOrigin,
+-      anchorPoint,
+-      placement,
+-      measurementsFinished: childRect.width && contentSize.width,
+-      adjustedContentSize,
+-    });
++    if (this.mounted) {
++      this.setState({
++        tooltipOrigin,
++        anchorPoint,
++        placement,
++        measurementsFinished: childRect.width && contentSize.width,
++        adjustedContentSize,
++      });
++    }
+   };
+ 
+   renderChildInTooltip = () => {
+@@ -428,23 +453,22 @@ class Tooltip extends Component {
+   };
+ 
+   render() {
+-    const { children, isVisible, useReactNativeModal, modalComponent } = this.props;
++    const { children, isVisible, useReactNativeModal } = this.props;
+ 
+     const hasChildren = React.Children.count(children) > 0;
+     const showTooltip = isVisible && !this.state.waitingForInteractions;
+-    const ModalComponent = modalComponent || Modal;
+ 
+     return (
+       <React.Fragment>
+         {useReactNativeModal ? (
+-          <ModalComponent
++          <Modal
+             transparent
+             visible={showTooltip}
+             onRequestClose={this.props.onClose}
+             supportedOrientations={this.props.supportedOrientations}
+           >
+             {this.renderContentForTooltip()}
+-          </ModalComponent>
++          </Modal>
+         ) : null}
+ 
+         {/* This renders the child element in place in the parent's layout */}
+@@ -462,4 +486,5 @@ class Tooltip extends Component {
+   }
+ }
+ 
++
+ export default Tooltip;
+\ No newline at end of file
