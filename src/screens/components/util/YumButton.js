@@ -7,11 +7,11 @@ import { getPostYumsQuery, fulfillPromise } from '../../../api/functions/queryFu
 import { createFeastItem, deleteFeastItem } from '../../../api/graphql/mutations';
 import Yum from './icons/Yum';
 import YumNoFill from './icons/YumNoFill';
-import { sizes, wp } from '../../../constants/theme';
+import { colors, sizes, wp } from '../../../constants/theme';
 
 const YumButton = ({
   size, uid, timestamp, placeId, myUID, myPK, myName, myPicture,
-  picture, showYummedUsersModal, stopBarAnimation, light, openYums,
+  picture, showYummedUsersModal, stopBarAnimation, light, small, openYums,
 }) => {
   const [pressed, setPressed] = useState(false);
   const [yums, setYums] = useState([]);
@@ -123,6 +123,7 @@ const YumButton = ({
       >
         <Text style={[
           styles.bottomButtonText,
+          small && { color: colors.tertiary, paddingTop: 0 },
           yums.length && { textDecorationLine: 'underline' }]}
         >
           {yums.length}

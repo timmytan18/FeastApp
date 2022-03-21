@@ -10,7 +10,7 @@ import Save from './icons/Save';
 import { colors, sizes, wp } from '../../../constants/theme';
 
 const SaveButton = ({
-  isSaved, dispatch, size, post, place, myUID, stopBarAnimation, startBarAnimation, light,
+  isSaved, dispatch, size, post, place, myUID, stopBarAnimation, startBarAnimation, light, small,
 }) => {
   const [pressed, setPressed] = useState(isSaved);
   useEffect(() => {
@@ -131,7 +131,9 @@ const SaveButton = ({
           <Save size={size} color={pressed ? colors.accent : light ? 'rgba(176, 187, 199, 0.6)' : '#464A4F'} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.bottomButtonText}>{pressed ? 'Unsave' : 'Save'}</Text>
+      <Text style={[styles.bottomButtonText, small && { color: colors.tertiary, paddingTop: 0 }]}>
+        {pressed ? 'Unsave' : 'Save'}
+      </Text>
     </View>
 
   );

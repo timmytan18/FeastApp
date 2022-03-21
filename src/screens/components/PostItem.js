@@ -204,6 +204,44 @@ const PostItem = ({
               </View>
             </View>
           )}
+          {!picture && (
+            <View style={[
+              styles.middleButtonsContainer,
+              {
+                flexDirection: 'row', justifyContent: 'space-between', paddingLeft: wp(2), paddingRight: wp(3),
+              },
+            ]}
+            >
+              <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
+                <YumButton
+                  size={wp(8)}
+                  uid={uid}
+                  placeId={placeId}
+                  timestamp={timestamp}
+                  myUID={myUID}
+                  myPK={myPK}
+                  myName={myName}
+                  myPicture={myPicture}
+                  picture={picture}
+                  showYummedUsersModal={showYummedUsersModal}
+                  light
+                  small
+                />
+              </View>
+              <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
+                <SaveButton
+                  isSaved={isSaved}
+                  dispatch={dispatch}
+                  size={wp(8)}
+                  post={item}
+                  place={{ geo, placeInfo: { categories, imgUrl } }}
+                  myUID={myUID}
+                  light
+                  small
+                />
+              </View>
+            </View>
+          )}
         </View>
       </View>
       <View style={[styles.separator, picture && { marginTop: wp(3) }]} />
@@ -378,6 +416,7 @@ const styles = StyleSheet.create({
     width: wp(100),
     height: 0.5,
     backgroundColor: colors.gray2,
+    marginTop: -wp(2),
   },
 });
 
