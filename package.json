@@ -48,7 +48,6 @@
     "react-native-avatar-crop": "^1.3.5",
     "react-native-compressor": "^1.3.3",
     "react-native-emoji-modal": "^0.2.2",
-    "react-native-expo-image-cache": "^4.1.0",
     "react-native-gesture-handler": "~2.1.0",
     "react-native-image-size": "^1.1.3",
     "react-native-indicators": "^0.17.0",

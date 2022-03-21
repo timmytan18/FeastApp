@@ -1,22 +1,17 @@
-diff --git a/node_modules/react-native-walkthrough-tooltip/src/tooltip.d.ts b/node_modules/react-native-walkthrough-tooltip/src/tooltip.d.ts
-index 45aa31e..5a7ef59 100644
---- a/node_modules/react-native-walkthrough-tooltip/src/tooltip.d.ts
-+++ b/node_modules/react-native-walkthrough-tooltip/src/tooltip.d.ts
-@@ -44,6 +44,9 @@ declare module 'react-native-walkthrough-tooltip' {
- 
-     // Styles the View element that wraps the children to clone it
-     childrenWrapperStyle?: StyleProp<ViewStyle>;
-+
-+    // Styles the view element that wraps the original children
-+    parentWrapperStyle?: StyleProp<ViewStyle>
-   }
- 
-   export interface TooltipProps extends Partial<TooltipStyleProps> {
 diff --git a/node_modules/react-native-walkthrough-tooltip/src/tooltip.js b/node_modules/react-native-walkthrough-tooltip/src/tooltip.js
-index 4de1852..e849c2b 100644
+index 4de1852..dbbd725 100644
 --- a/node_modules/react-native-walkthrough-tooltip/src/tooltip.js
 +++ b/node_modules/react-native-walkthrough-tooltip/src/tooltip.js
-@@ -110,10 +110,13 @@ class Tooltip extends Component {
+@@ -65,7 +65,7 @@ class Tooltip extends Component {
+     isVisible: false,
+     onClose: () => {
+       console.warn(
+-        '[react-native-walkthrough-tooltip] onClose prop not provided',
++        '[react-native-walkthrough-tooltip] onClose prop no provided',
+       );
+     },
+     placement: 'center', // falls back to "top" if there ARE children
+@@ -110,6 +110,8 @@ class Tooltip extends Component {
    constructor(props) {
      super(props);
  
@@ -25,12 +20,7 @@ index 4de1852..e849c2b 100644
      const { isVisible, useInteractionManager } = props;
  
      this.isMeasuringChild = false;
-     this.interactionPromise = null;
-+    this.dimensionsSubscription = null;
- 
-     this.childWrapper = React.createRef();
-     this.state = {
-@@ -137,7 +140,11 @@ class Tooltip extends Component {
+@@ -137,7 +139,11 @@ class Tooltip extends Component {
    }
  
    componentDidMount() {
@@ -43,7 +33,7 @@ index 4de1852..e849c2b 100644
    }
  
    componentDidUpdate(prevProps, prevState) {
-@@ -150,14 +157,25 @@ class Tooltip extends Component {
+@@ -150,14 +156,25 @@ class Tooltip extends Component {
      const insetsChanged = !rfcIsEqual(prevState.displayInsets, displayInsets);
  
      if (contentChanged || placementChanged || becameVisible || insetsChanged) {
@@ -62,18 +52,18 @@ index 4de1852..e849c2b 100644
 -    Dimensions.removeEventListener('change', this.updateWindowDims);
 +    // removeEventListener deprecated
 +    // https://reactnative.dev/docs/dimensions#removeeventlistener
-+    if (this.dimensionsSubscription?.remove) {
-+      // react native >= 0.65.*
-+      this.dimensionsSubscription.remove();
-+    } else {
++    if (Dimensions.removeEventListener) {
 +      // react native < 0.65.*
 +      Dimensions.removeEventListener('change', this.updateWindowDims);
++    } else if (this.dimensionsSubscription) {
++      // react native >= 0.65.*
++      this.dimensionsSubscription.remove();
 +    }
 +    this.mounted = false;
      if (this.interactionPromise) {
        this.interactionPromise.cancel();
      }
-@@ -196,22 +214,24 @@ class Tooltip extends Component {
+@@ -196,22 +213,24 @@ class Tooltip extends Component {
    }
  
    updateWindowDims = dims => {
@@ -114,7 +104,7 @@ index 4de1852..e849c2b 100644
    };
  
    doChildlessPlacement = () => {
-@@ -227,24 +247,28 @@ class Tooltip extends Component {
+@@ -227,24 +246,28 @@ class Tooltip extends Component {
    measureContent = e => {
      const { width, height } = e.nativeEvent.layout;
      const contentSize = new Size(width, height);
@@ -158,7 +148,7 @@ index 4de1852..e849c2b 100644
    };
  
    measureChildRect = () => {
-@@ -334,13 +358,15 @@ class Tooltip extends Component {
+@@ -334,13 +357,15 @@ class Tooltip extends Component {
  
      const { tooltipOrigin, anchorPoint, adjustedContentSize } = geom;
  
@@ -181,30 +171,37 @@ index 4de1852..e849c2b 100644
    };
  
    renderChildInTooltip = () => {
-@@ -428,7 +454,12 @@ class Tooltip extends Component {
+@@ -428,23 +453,22 @@ class Tooltip extends Component {
    };
  
    render() {
 -    const { children, isVisible, useReactNativeModal, modalComponent } = this.props;
-+    const {
-+      children,
-+      isVisible,
-+      useReactNativeModal,
-+      modalComponent,
-+    } = this.props;
++    const { children, isVisible, useReactNativeModal } = this.props;
  
      const hasChildren = React.Children.count(children) > 0;
      const showTooltip = isVisible && !this.state.waitingForInteractions;
-@@ -449,7 +480,11 @@ class Tooltip extends Component {
+-    const ModalComponent = modalComponent || Modal;
+ 
+     return (
+       <React.Fragment>
+         {useReactNativeModal ? (
+-          <ModalComponent
++          <Modal
+             transparent
+             visible={showTooltip}
+             onRequestClose={this.props.onClose}
+             supportedOrientations={this.props.supportedOrientations}
+           >
+             {this.renderContentForTooltip()}
+-          </ModalComponent>
++          </Modal>
+         ) : null}
  
          {/* This renders the child element in place in the parent's layout */}
-         {hasChildren ? (
--          <View ref={this.childWrapper} onLayout={this.measureChildRect}>
-+          <View
-+            ref={this.childWrapper}
-+            onLayout={this.measureChildRect}
-+            style={this.props.parentWrapperStyle}
-+          >
-             {children}
-           </View>
-         ) : null}
+@@ -462,4 +486,5 @@ class Tooltip extends Component {
+   }
+ }
+ 
++
+ export default Tooltip;
+\ No newline at end of file
