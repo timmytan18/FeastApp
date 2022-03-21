@@ -2,8 +2,9 @@ import React, {
   useState, useEffect, useRef, useCallback,
 } from 'react';
 import {
-  StyleSheet, Text, View, Image, TouchableOpacity,
+  StyleSheet, Text, View, TouchableOpacity,
 } from 'react-native';
+import { Image } from 'react-native-expo-image-cache';
 import { Storage } from 'aws-amplify';
 import MaskedView from '@react-native-community/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -166,9 +167,16 @@ const PostItem = ({
           </Text>
           {picture && (
             <View>
-              <Image
+              {/* <Image
                 style={[styles.image]}
                 source={{ uri: image }}
+              /> */}
+              <Image
+                style={styles.image}
+                preview={{ uri: image }}
+                uri={image}
+                transitionDuration={100}
+                tint="light"
               />
               <View style={styles.emojiContainer} />
               {dish && <Text style={styles.menuItemText}>{dish}</Text>}
@@ -414,7 +422,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     width: wp(100),
-    height: 0.5,
+    height: 0.4,
     backgroundColor: colors.gray2,
     marginTop: -wp(2),
   },

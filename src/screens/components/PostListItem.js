@@ -1,7 +1,8 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, Image, TouchableOpacity,
+  StyleSheet, Text, View, TouchableOpacity,
 } from 'react-native';
+import { Image } from 'react-native-expo-image-cache';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
 import StarsRating from './util/StarsRating';
@@ -14,6 +15,7 @@ const propTypes = {
   item: PropTypes.shape({
     timestamp: PropTypes.string,
     s3Photo: PropTypes.string,
+    picture: PropTypes.string,
     name: PropTypes.string,
     categories: PropTypes.arrayOf(PropTypes.string),
     avgRating: PropTypes.number,
@@ -32,7 +34,10 @@ const PostListItem = ({
       <Image
         resizeMode="cover"
         style={[styles.postImage, { flex: 1 }]}
-        source={{ uri: item.s3Photo }}
+        preview={{ uri: item.s3Photo }}
+        uri={item.s3Photo}
+        transitionDuration={100}
+        tint="light"
       />
       <View style={styles.gradientContainer}>
         <LinearGradient
