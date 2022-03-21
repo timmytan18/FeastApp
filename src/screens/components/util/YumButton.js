@@ -123,6 +123,7 @@ const YumButton = ({
       >
         <Text style={[
           styles.bottomButtonText,
+          yums.length === 0 && { fontFamily: 'Book' },
           small && { color: colors.tertiary, paddingTop: 0 },
           yums.length && { textDecorationLine: 'underline' }]}
         >
