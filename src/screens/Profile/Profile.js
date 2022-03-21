@@ -116,6 +116,7 @@ const RowItem = React.memo(({
           activeOpacity={1}
           style={styles.tab}
           onPress={leftTabPressed}
+          disabled={noResults}
         >
           <View style={styles.tabIcon}>
             <Utensils />
@@ -132,6 +133,7 @@ const RowItem = React.memo(({
           activeOpacity={1}
           style={styles.tab}
           onPress={centerTabPressed}
+          disabled={noResults}
         >
           <View style={styles.tabIcon}><Review /></View>
         </TouchableOpacity>
@@ -139,6 +141,7 @@ const RowItem = React.memo(({
           activeOpacity={1}
           style={styles.tab}
           onPress={rightTabPressed}
+          disabled={noResults}
         >
           <View style={styles.tabIcon}><MapMarker /></View>
         </TouchableOpacity>
@@ -702,11 +705,7 @@ const Profile = ({ navigation, route }) => {
               uid={item.uid}
               navigation={item.navigation}
               postRowLength={posts.current.length - 2}
-            // onLayout={onReviewListLayout}
             />
-            {/* <TouchableOpacity style={{ backgroundColor: 'red' }} onPress={() => { console.log('hello'); }}>
-            <Text>Hello</Text>
-          </TouchableOpacity> */}
           </Animated.View>
         </View>
       );
