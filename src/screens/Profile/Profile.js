@@ -71,7 +71,8 @@ const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
 
 // Memoize row rendering, only rerender when row content changes
 const areEqual = (prevProps, nextProps) => {
-  let equal = prevProps.numReviews === nextProps.numReviews;
+  let equal = prevProps.numReviews === nextProps.numReviews
+    && prevProps.refresh === nextProps.refresh;
   if (!equal) return false;
   if (Array.isArray(prevProps.row) && Array.isArray(nextProps.row)) {
     equal = prevProps.row.length === nextProps.row.length;
@@ -93,6 +94,7 @@ const RowItem = React.memo(({
   centerTabPressed,
   rightTabPressed,
   translateTabBar,
+  refresh,
 }) => {
   const noResults = row === LIST_STATES.NO_RESULTS;
   if (row !== LIST_STATES.LOADING && !noResults && row.length) {
@@ -115,6 +117,7 @@ const RowItem = React.memo(({
               placePosts={placePosts}
               openPlacePosts={openPlacePosts}
               key={item.timestamp}
+              refresh={refresh}
             />
           );
         })}
@@ -725,6 +728,7 @@ const Profile = ({ navigation, route }) => {
         rightTabPressed={rightTabPressed}
         translateTabBar={translateTabBar}
         numReviews={numReviews.current}
+        refresh={numRefresh.current}
       />
     );
   }, []);

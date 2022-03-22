@@ -22,7 +22,7 @@ import {
 const NUM_COLLAPSED_LINES = 2;
 
 const PostItem = ({
-  item, fetchUser, onMorePressed, showYummedUsersModal, me, dispatch, savedPosts, openPlace,
+  item, fetchUser, onMorePressed, showYummedUsersModal, me, dispatch, savedPosts, openPlace, refresh,
 }) => {
   let uid; let identityId; let placeId; let name; let geo; let categories;
   let imgUrl; let picture; let dish; let rating; let review; let timestamp;
@@ -37,14 +37,20 @@ const PostItem = ({
   }
   const elapsedTime = getElapsedTime(timestamp);
   const [image, setImage] = useState(null);
+
+  const mounted = useRef(true);
   useEffect(() => {
+    mounted.current = true;
     (async () => {
       if (picture) {
         const s3Photo = await Storage.get(picture, { identityId });
-        setImage(s3Photo);
+        if (mounted.current) setImage(s3Photo);
       }
     })();
-  }, []);
+    return () => {
+      mounted.current = false;
+    };
+  }, [refresh]);
 
   const {
     PK: myPK, uid: myUID, name: myName, picture: myPicture,
@@ -61,7 +67,7 @@ const PostItem = ({
   const lineHeight = useRef(null);
 
   const onTextLayout = useCallback((e) => {
-    if (numLinesExpanded == null) {
+    if (numLinesExpanded == null && mounted.current) {
       setNumLinesExpanded(e.nativeEvent.lines.length);
       lineHeight.current = e.nativeEvent.lines[0] ? e.nativeEvent.lines[0].height : 0;
       setNumLines(maxCollapsedLines);
