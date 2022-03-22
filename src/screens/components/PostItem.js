@@ -266,6 +266,8 @@ function areEqual(prevProps, nextProps) {
   return prevIsSaved === nextIsSaved && prevProps.refresh === nextProps.refresh;
 }
 
+export default React.memo(PostItem, areEqual);
+
 const ratingIconSize = wp(12);
 const styles = StyleSheet.create({
   cardContainer: {
@@ -425,5 +427,3 @@ const styles = StyleSheet.create({
     marginTop: -wp(2),
   },
 });
-
-export default React.memo(PostItem, areEqual);

@@ -179,6 +179,7 @@ export const getFollowersByTime = /* GraphQL */ `
           name
           picture
           uid
+          identityId
         }
         updatedAt
       }
