@@ -208,10 +208,22 @@ const PostItem = ({
             <View style={[
               styles.middleButtonsContainer,
               {
-                flexDirection: 'row', justifyContent: 'space-between', paddingLeft: wp(2), paddingRight: wp(3),
+                flexDirection: 'row', justifyContent: 'space-between', paddingLeft: wp(2), paddingRight: wp(2.5),
               },
             ]}
             >
+              <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
+                <SaveButton
+                  isSaved={isSaved}
+                  dispatch={dispatch}
+                  size={wp(8)}
+                  post={item}
+                  place={{ geo, placeInfo: { categories, imgUrl } }}
+                  myUID={myUID}
+                  light
+                  small
+                />
+              </View>
               <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
                 <YumButton
                   size={wp(8)}
@@ -224,18 +236,6 @@ const PostItem = ({
                   myPicture={myPicture}
                   picture={picture}
                   showYummedUsersModal={showYummedUsersModal}
-                  light
-                  small
-                />
-              </View>
-              <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-                <SaveButton
-                  isSaved={isSaved}
-                  dispatch={dispatch}
-                  size={wp(8)}
-                  post={item}
-                  place={{ geo, placeInfo: { categories, imgUrl } }}
-                  myUID={myUID}
                   light
                   small
                 />
