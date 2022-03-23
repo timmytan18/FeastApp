@@ -2,7 +2,7 @@ import React, {
   useEffect, useContext, useState, useRef, useCallback,
 } from 'react';
 import {
-  StyleSheet, View, TouchableOpacity, Image,
+  StyleSheet, View, TouchableOpacity, Image, Text,
 } from 'react-native';
 import { Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
@@ -10,22 +10,26 @@ import { useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
+  getFollowingQuery,
+  getAllPostsQuery,
   getFollowingPostsQuery,
   batchGetUserPostsQuery,
   batchGetPlaceDetailsQuery,
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import getBestGeoPrecision from '../../api/functions/GetBestGeoPrecision';
-// import SearchButton from '../components/util/SearchButton';
+import MoreView from '../components/MoreView';
 import MapMarker from '../components/MapMarker';
+import Toggle from '../components/util/Toggle';
 import LocationMapMarker from '../components/util/LocationMapMarker';
 import LocationArrow from '../components/util/icons/LocationArrow';
 import Expand from '../components/util/icons/Expand';
+import Clock from '../components/util/icons/Clock';
 import { getLocalData, storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { DEFAULT_COORDINATES } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, shadows, wp,
+  colors, shadows, sizes, wp,
 } from '../../constants/theme';
 
 const mapLessLandmarksStyle = [
@@ -48,13 +52,67 @@ const mapLessLandmarksStyle = [
   },
 ];
 
+const timeFiltersFriends = [
+  {
+    index: 0,
+    label: 'Last 24 hours',
+    numDays: 1,
+  },
+  {
+    index: 1,
+    label: 'Last 7 days',
+    numDays: 7,
+  },
+  {
+    index: 2,
+    label: 'Last 30 days',
+    numDays: 30,
+  },
+  {
+    index: 3,
+    label: 'Last year',
+    numDays: 365,
+  },
+  {
+    index: 4,
+    label: 'All time',
+    numDays: 3650,
+  },
+];
+
+const timeFiltersDiscover = [
+  {
+    index: 0,
+    label: 'Last 24 hours',
+    numDays: 1,
+  },
+  {
+    index: 1,
+    label: 'Last 7 days',
+    numDays: 7,
+  },
+  {
+    index: 2,
+    label: 'Last 30 days',
+    numDays: 30,
+  },
+];
+
+const initialDelta = {
+  latitudeDelta: 0.0922, // ~7 miles in height
+  longitudeDelta: 0.0421,
+};
+
+const initialRegion = {
+  latitude: 39.8283,
+  longitude: -98.5795,
+  latitudeDelta: 92.2,
+  longitudeDelta: 42.1,
+};
+
 const Explore = ({ navigation }) => {
   // console.log('HEIGHT: ', hp(100));
   const [state, dispatch] = useContext(Context);
-  const initialDelta = {
-    latitudeDelta: 0.0461, // ~3.5 miles in height
-    longitudeDelta: 0.02105,
-  };
   const geoRange = {
     dLat: 0.3688, // ~28 miles in height
     dLng: 0.1684,
@@ -87,7 +145,24 @@ const Explore = ({ navigation }) => {
     }, []),
   );
 
-  const [markers, setMarkers] = useState([]);
+  // const [redoSearchVisible, setRedoSearchVisible] = useState(null);
+  // const redoSearch = () => {
+  //   setRedoSearchVisible(false);
+  // };
+
+  const [leftSelected, setLeftSelected] = useState(true);
+  const setDiscoverSelected = (isSelected) => {
+    // if discover is selected, limit time filter to last 7 days
+    if (isSelected && filterSelectedIndex > timeFiltersDiscover.length - 1) {
+      setFilterSelectedIndex(1);
+    }
+    setLeftSelected(isSelected);
+  };
+
+  const [filterPressed, setFilterPressed] = useState(false);
+  const [filterSelectedIndex, setFilterSelectedIndex] = useState(1);
+
+  const [markers, setMarkers] = useState(null);
   const mapRef = useRef(null);
   const isFitToMarkers = useRef(false);
 
@@ -95,7 +170,7 @@ const Explore = ({ navigation }) => {
   const placeIdGeo = useRef({}); // obj of placeId: geo
 
   // Keep track of places that have been grouped together, ordered
-  const storiesGroups = useRef({}); // obj of placeId: [placeId]
+  // const storiesGroups = useRef({}); // obj of placeId: [placeId]
 
   // Show / hide markers when region changed based on zoom level & geohash
   const onRegionChanged = async ({ markersCopy, firstLoad }) => {
@@ -129,7 +204,7 @@ const Explore = ({ navigation }) => {
             markersCopy[geoBoxTaken[hash]].isNew = true;
             markersCopy[geoBoxTaken[hash]].onlyHasOld = false;
           }
-          storiesGroups.current[geoBoxTaken[hash]].push(placeKey);
+          // storiesGroups.current[geoBoxTaken[hash]].push(placeKey);
         } else { // if marker in grid with no other markers
           if (!markersCopy[placeKey].visible) { // if marker not already visible, set visible
             markersCopy[placeKey].visible = true;
@@ -137,13 +212,22 @@ const Explore = ({ navigation }) => {
           }
           markersCopy[placeKey].numOtherMarkers = 0;
           geoBoxTaken[hash] = placeKey;
-          storiesGroups.current[placeKey] = [placeKey];
+          // storiesGroups.current[placeKey] = [placeKey];
         }
       }
     });
+    if (markers === null && firstLoad) {
+      animateToCurrLocation({ first: true });
+    }
     if (didAlterMarkers || firstLoad) {
       setMarkers(markersCopy);
     }
+    // if (!leftSelected && !firstLoad && redoSearchVisible === false) {
+    //   setRedoSearchVisible(true);
+    // } else if (firstLoad && !redoSearchVisible) {
+    //   animateToCurrLocation({ first: true });
+    //   setRedoSearchVisible(false);
+    // }
   };
 
   useEffect(() => {
@@ -170,6 +254,22 @@ const Explore = ({ navigation }) => {
           longitude: coords.longitude,
         },
       });
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      let promise; let getValue; let errorMsg;
+      let followingUsers;
+      if (leftSelected) {
+        ({ promise, getValue, errorMsg } = getFollowingQuery({
+          uid: state.user.uid, onlyReturnPKs: true,
+        }));
+        followingUsers = await fulfillPromise(promise, getValue, errorMsg);
+        followingUsers = followingUsers.map((followedUser) => followedUser.uid);
+        followingUsers.push(state.user.uid);
+        followingUsers = new Set(followingUsers);
+      }
 
       // Get following users' reviews
       const placePostsUpdated = {};
@@ -177,9 +277,22 @@ const Explore = ({ navigation }) => {
       const placeMarkers = {}; // place marker for user location
 
       // Fetch all posts for map feed from following users
-      const { promise, getValue, errorMsg } = getFollowingPostsQuery({ PK: state.user.PK });
+      const currFilter = leftSelected ? timeFiltersDiscover : timeFiltersFriends;
+      const dateOneWeekAgo = new Date(new Date().setDate(
+        new Date().getDate() - currFilter[filterSelectedIndex].numDays,
+      ));
+      const oneWeekAgo = dateOneWeekAgo.toISOString();
+      ({ promise, getValue, errorMsg } = leftSelected
+        ? getAllPostsQuery({
+          timestamp: oneWeekAgo,
+        }) : getFollowingPostsQuery({
+          PK: state.user.PK, timestamp: oneWeekAgo,
+        }));
       const allPosts = await fulfillPromise(promise, getValue, errorMsg);
       for (let i = 0; i < allPosts.length; i += 1) {
+        if (leftSelected && followingUsers.has(allPosts[i].placeUserInfo.uid)) {
+          continue;
+        }
         allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash
         // Desconstruct attributes needed from post
         const {
@@ -231,7 +344,7 @@ const Explore = ({ navigation }) => {
       placePosts.current = placePostsUpdated;
       await onRegionChanged({ markersCopy: placeMarkers, firstLoad: true });
     })();
-  }, [state.user.PK, state.user.uid, state.reloadMapTrigger]);
+  }, [state.user.PK, state.user.uid, state.reloadMapTrigger, filterSelectedIndex, leftSelected]);
 
   const stories = useRef([]);
   const placeDetails = useRef({}); // obj of placeId: { details }
@@ -244,16 +357,25 @@ const Explore = ({ navigation }) => {
 
     // Create batch for all stories in group
     const storiesBatch = [];
-    storiesGroups.current[placeId].forEach((placeKey) => {
-      storiesBatch.push(...placePosts.current[placeKey]);
-      // Add place for fetch place details if not already fetched
-      if (!(placeKey in placeDetails.current)) {
-        placeDetailsBatch.push({
-          PK: `PLACE#${placeKey}`,
-          SK: `#INFO#${placeIdGeo.current[placeKey]}`,
-        });
-      }
-    });
+    // storiesGroups.current[placeId].forEach((placeKey) => {
+    //   storiesBatch.push(...placePosts.current[placeKey]);
+    //   // Add place for fetch place details if not already fetched
+    //   if (!(placeKey in placeDetails.current)) {
+    //     placeDetailsBatch.push({
+    //       PK: `PLACE#${placeKey}`,
+    //       SK: `#INFO#${placeIdGeo.current[placeKey]}`,
+    //     });
+    //   }
+    // });
+
+    storiesBatch.push(...placePosts.current[placeId]);
+    // Add place for fetch place details if not already fetched
+    if (!(placeId in placeDetails.current)) {
+      placeDetailsBatch.push({
+        PK: `PLACE#${placeId}`,
+        SK: `#INFO#${placeIdGeo.current[placeId]}`,
+      });
+    }
 
     // Batch fetch stories for group
     const { promise, getValue, errorMsg } = batchGetUserPostsQuery(
@@ -308,15 +430,17 @@ const Explore = ({ navigation }) => {
   }
 
   const { latitude, longitude } = state.location;
-  const initialRegion = {
+  const initialUserRegion = {
     latitude,
     longitude,
     ...initialDelta,
   };
 
-  const animateToCurrLocation = () => {
-    mapRef.current.animateToRegion(initialRegion, 350);
-    isFitToMarkers.current = false;
+  const animateToCurrLocation = ({ first }) => {
+    mapRef.current.animateToRegion(initialUserRegion, first ? 700 : 350);
+    if (markers && Object.keys(markers).length !== 0) {
+      isFitToMarkers.current = false;
+    }
   };
   const fitToMarkers = () => {
     if (markers) {
@@ -325,8 +449,22 @@ const Explore = ({ navigation }) => {
     }
   };
 
+  const currFilter = leftSelected ? timeFiltersDiscover : timeFiltersFriends;
+  const filterItems = currFilter.map(({ index, label }) => ({
+    index,
+    label,
+    selected: filterSelectedIndex === index,
+    onPress: () => { setFilterSelectedIndex(index); },
+  }));
+
   return (
     <View style={styles.container}>
+      <MoreView
+        items={filterItems}
+        morePressed={filterPressed}
+        setMorePressed={setFilterPressed}
+        labelSize={sizes.b3}
+      />
       <MapView
         style={styles.map}
         initialRegion={initialRegion}
@@ -338,7 +476,7 @@ const Explore = ({ navigation }) => {
       // provider={PROVIDER_GOOGLE}
       // customMapStyle={mapLessLandmarksStyle}
       >
-        {Object.entries(markers).map(([placeKey, {
+        {markers && Object.entries(markers).map(([placeKey, {
           name, placeId, lat, lng, uid, userName, userPic,
           category, visible, numOtherMarkers, isNew, onlyHasOld,
         }]) => (
@@ -372,23 +510,47 @@ const Explore = ({ navigation }) => {
           <LocationMapMarker />
         </Marker>
       </MapView>
-      {/* <View style={[styles.searchBtnContainer, shadows.base]}>
-        <SearchButton
-          color={colors.black}
-          size={wp(5.7)}
-          style={styles.searchBtn}
-          pressed={() => navigation.navigate('SearchUsers')}
+      {/* {redoSearchVisible && (
+        <TouchableOpacity
+          style={[styles.redoSearchBtnContainer, shadows.base]}
+          onPress={redoSearch}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.redoSearchText}>Load Posts In This Area</Text>
+        </TouchableOpacity>
+      )} */}
+      <View style={[styles.toggleContainer, shadows.base]}>
+        <Toggle
+          selectedColor={colors.tertiary}
+          gradient
+          leftText="Discover"
+          rightText="Friends"
+          leftSelected={leftSelected}
+          setLeftSelected={setDiscoverSelected}
         />
-      </View> */}
+      </View>
       <TouchableOpacity
         onPress={() => (isFitToMarkers.current
-          ? animateToCurrLocation()
+          ? animateToCurrLocation({ first: false })
           : fitToMarkers())}
         activeOpacity={0.9}
         style={[styles.locationBackBtnContainer, shadows.base]}
       >
-        {isFitToMarkers.current ? <LocationArrow size={wp(5)} />
+        {isFitToMarkers.current || !markers
+          || Object.keys(markers).length === 0 ? <LocationArrow size={wp(5)} />
           : <Expand />}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.filterContainer, shadows.base]}
+        onPress={() => setFilterPressed(true)}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.filterText}>
+          {currFilter[filterSelectedIndex].label}
+        </Text>
+        <View style={{ paddingBottom: 0.6 }}>
+          <Clock size={wp(4.5)} />
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -404,19 +566,32 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  // searchBtnContainer: {
-  //   position: 'absolute',
-  //   top: wp(16),
-  //   right: wp(9),
-  // },
-  // searchBtn: {
-  //   width: wp(14),
-  //   height: wp(14),
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   borderRadius: wp(5),
-  //   backgroundColor: '#fff',
-  // },
+  redoSearchBtnContainer: {
+    width: wp(38.5),
+    paddingHorizontal: wp(1.5),
+    position: 'absolute',
+    top: wp(32.5),
+    left: wp(30.75),
+    backgroundColor: colors.gray4,
+    borderRadius: wp(1.5),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+  },
+  redoSearchText: {
+    fontSize: sizes.b4,
+    fontFamily: 'Medium',
+    color: colors.black,
+    textAlign: 'center',
+    paddingVertical: wp(1.6),
+  },
+  toggleContainer: {
+    position: 'absolute',
+    top: wp(18),
+    left: '28%',
+    backgroundColor: '#fff',
+    borderRadius: wp(2),
+  },
   locationBackBtnContainer: {
     position: 'absolute',
     bottom: wp(9),
@@ -426,7 +601,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: wp(6.5),
-    backgroundColor: colors.lightBlue,
+    backgroundColor: colors.tertiary,
+  },
+  filterContainer: {
+    position: 'absolute',
+    bottom: wp(11),
+    left: wp(8),
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.gray4,
+    paddingHorizontal: wp(3.5),
+    paddingVertical: wp(1.5),
+    borderRadius: wp(1.5),
+  },
+  filterText: {
+    fontSize: sizes.b3,
+    fontFamily: 'Medium',
+    color: colors.tertiary,
+    marginLeft: wp(0.5),
+    marginRight: wp(2),
   },
 });
 

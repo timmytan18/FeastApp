@@ -5,8 +5,8 @@ import {
   getUserProfile, getUserPosts, getUserPostsWithUserInfo, getUserPost, getFollowing, getFollowingPK,
   searchUsers, searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture,
   getFollowers, getFollowersByTime, getNumFollows, getFollowingPosts, getFollowingPostsDetails,
-  getFollowingPostsByUser, getFollowersPK, batchGetUserPosts, getPlaceDetails, batchGetPlaceDetails,
-  getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
+  getFollowingPostsByUser, getFollowersPK, batchGetUserPosts, getAllPosts, getPlaceDetails,
+  batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
   getUserYumsReceivedByTime, getPostYumsNoDetails, getUserEmail, getPlaceRating,
   batchGetPlaceRatings,
@@ -195,19 +195,22 @@ function getPlaceInDBQuery({ placePK, withCategoriesAndPicture }) {
   return { promise, getValue, errorMsg };
 }
 
-// Get all posts in feed from following
-function getFollowingPostsQuery({ PK }) {
+// Get posts in feed from following
+function getFollowingPostsQuery({ PK, timestamp }) {
+  let SK = { beginsWith: '#FOLLOWINGPOST#' };
+  if (timestamp) {
+    const date = new Date();
+    const timeLocal = date.toISOString();
+    SK = { between: [`#FOLLOWINGPOST#${timestamp}`, `#FOLLOWINGPOST#${timeLocal}`] };
+  }
   const promise = API.graphql(graphqlOperation(
     getFollowingPosts,
     {
-      PK,
-      SK: { beginsWith: '#FOLLOWINGPOST#' },
-      sortDirection: 'DESC',
-      limit: 1000,
+      PK, SK, sortDirection: 'DESC', limit: 1000,
     },
   ));
   const getValue = (res) => res.data.listFeastItems.items;
-  const errorMsg = 'Error getting followers/following list: ';
+  const errorMsg = 'Error getting posts in feed by time: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -232,7 +235,7 @@ function getFollowingPostsDetailsQuery({
     const { nextToken: currNextToken } = res.data.listFeastItems;
     return { currPosts, nextToken: currNextToken };
   };
-  const errorMsg = 'Error getting followers/following list: ';
+  const errorMsg = 'Error getting posts with details in feed: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -256,6 +259,23 @@ function batchGetUserPostsQuery({ batch }) {
   ));
   const getValue = (res) => res.data.batchGetFeastItems;
   const errorMsg = 'Error batch getting user posts: ';
+  return { promise, getValue, errorMsg };
+}
+
+function getAllPostsQuery({ timestamp }) {
+  const date = new Date();
+  const timeLocal = date.toISOString();
+  const promise = API.graphql(graphqlOperation(
+    getAllPosts,
+    {
+      GSI2: 'POST#',
+      LSI1: { between: [`#POSTTIME#${timestamp}`, `#POSTTIME#${timeLocal}`] },
+      sortDirection: 'DESC',
+      limit: 1000,
+    },
+  ));
+  const getValue = (res) => res.data.itemsByGSI2.items;
+  const errorMsg = 'Error getting all posts: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -455,8 +475,8 @@ export {
   searchUsersQuery, searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery,
   getFollowersByTimeQuery, getNumFollowsQuery, getFollowingPostsQuery,
   getFollowingPostsDetailsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
-  getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
-  getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
-  getPostYumsQuery, getUserYumsReceivedQuery, getUserYumsReceivedByTimeQuery, getUserEmailQuery,
-  getPlaceRatingQuery, batchGetPlaceRatingsQuery,
+  getAllPostsQuery, getPlaceDetailsQuery, batchGetPlaceDetailsQuery,
+  getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery,
+  getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery,
+  getUserYumsReceivedByTimeQuery, getUserEmailQuery, getPlaceRatingQuery, batchGetPlaceRatingsQuery,
 };

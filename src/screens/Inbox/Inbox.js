@@ -149,7 +149,9 @@ const Inbox = ({ navigation }) => {
       });
       const notifs = follows.concat(yums);
       notifs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); // sort by most recent
-      await storeLocalData(localDataKeys.LATEST_NOTIFICATION, notifs[0].updatedAt);
+      if (notifs && notifs.length) {
+        await storeLocalData(localDataKeys.LATEST_NOTIFICATION, notifs[0].updatedAt);
+      }
       if (mounted.current) {
         setNotifications(notifs);
         setRefreshing(false);

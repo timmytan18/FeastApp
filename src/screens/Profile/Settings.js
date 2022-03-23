@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity,
 } from 'react-native';
-import { Auth } from 'aws-amplify';
+import { Auth, API, graphqlOperation } from 'aws-amplify';
+// import { updateFeastItem } from '../../api/graphql/mutations';
 import * as WebBrowser from 'expo-web-browser';
 import { getUserEmailQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import Line from '../components/util/Line';
@@ -12,6 +13,23 @@ import { clearAllLocalData } from '../../api/functions/LocalStorage';
 import {
   wp, colors, sizes,
 } from '../../constants/theme';
+
+// const alterDb = async () => {
+//   const { promise, getValue, errorMsg } = getAllPostsQuery({});
+//   const posts = await fulfillPromise(promise, getValue, errorMsg);
+//   console.log(posts);
+
+//   posts.forEach(async ({ PK, SK, timestamp }) => {
+//     try {
+//       await API.graphql(graphqlOperation(
+//         updateFeastItem,
+//         { input: { PK, SK, LSI1: `#POSTTIME#${timestamp}` } },
+//       ));
+//     } catch (err) {
+//       console.warn('Error updating identityId', err);
+//     }
+//   });
+// };
 
 const Settings = ({ route }) => {
   const { uid } = route.params;

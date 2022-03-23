@@ -563,6 +563,41 @@ export const batchGetUserPosts = /* GraphQL */ `
   }
 `;
 
+export const getAllPosts = /* GraphQL */ `
+  query ItemsByGSI2(
+    $GSI2: String
+    $LSI1: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI2(
+      GSI2: $GSI2
+      LSI1: $LSI1
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        PK
+        SK
+        placeId
+        name
+        geo
+        categories
+        placeUserInfo {
+          uid
+          name
+          picture
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 export const getPlaceDetails = /* GraphQL */ `
   query ListFeastItems(
     $PK: String

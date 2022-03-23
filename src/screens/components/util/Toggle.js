@@ -1,50 +1,129 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   StyleSheet, View, Text, TouchableOpacity,
 } from 'react-native';
-import { sizes, colors, wp } from '../../../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import {
+  sizes, colors, gradients, wp,
+} from '../../../constants/theme';
 
 const Toggle = ({
-  selectedColor, leftText, rightText, leftSelected, setLeftSelected,
-}) => (
-  <View style={styles.container}>
-    <TouchableOpacity
-      style={[
-        styles.toggleButtonContainer,
-        leftSelected && { backgroundColor: selectedColor },
-      ]}
-      activeOpacity={1}
-      onPress={() => setLeftSelected(true)}
-    >
-      <Text
+  selectedColor, gradient, leftText, rightText, leftSelected, setLeftSelected,
+}) => {
+  if (gradient) {
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={[!leftSelected ? styles.toggleButtonContainer : { flex: 1 }]}
+          activeOpacity={1}
+          onPress={() => setLeftSelected(true)}
+        >
+          {leftSelected ? (
+            <LinearGradient
+              colors={gradients.orange.colors}
+              start={gradients.orange.start}
+              end={gradients.orange.end}
+              style={[styles.toggleButtonContainer, { borderWidth: 1.5, borderColor: '#fff' }]}
+            >
+              <Text
+                style={[
+                  styles.toggleButtonText,
+                  { fontSize: wp(3.67) },
+                  leftSelected && { color: '#fff' },
+                ]}
+              >
+                {leftText}
+              </Text>
+            </LinearGradient>
+          ) : (
+            <Text
+              style={[
+                styles.toggleButtonText,
+                { fontSize: wp(3.67) },
+                leftSelected && { color: '#fff' },
+              ]}
+            >
+              {leftText}
+            </Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[leftSelected ? styles.toggleButtonContainer : { flex: 1 }]}
+          activeOpacity={1}
+          onPress={() => setLeftSelected(false)}
+        >
+          {!leftSelected ? (
+            <LinearGradient
+              colors={gradients.orange.colors}
+              start={gradients.orange.start}
+              end={gradients.orange.end}
+              style={[styles.toggleButtonContainer, { borderWidth: 1.5, borderColor: '#fff' }]}
+            >
+              <Text
+                style={[
+                  styles.toggleButtonText,
+                  { fontSize: wp(3.67) },
+                  !leftSelected && { color: '#fff' },
+                ]}
+              >
+                {rightText}
+              </Text>
+            </LinearGradient>
+          ) : (
+            <Text
+              style={[
+                styles.toggleButtonText,
+                { fontSize: wp(3.67) },
+                !leftSelected && { color: '#fff' },
+              ]}
+            >
+              {rightText}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
         style={[
-          styles.toggleButtonText,
-          leftSelected && { color: '#fff' },
+          styles.toggleButtonContainer,
+          leftSelected && { backgroundColor: selectedColor },
         ]}
+        activeOpacity={1}
+        onPress={() => setLeftSelected(true)}
       >
-        {leftText}
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      style={[
-        styles.toggleButtonContainer,
-        !leftSelected && { backgroundColor: selectedColor },
-      ]}
-      activeOpacity={1}
-      onPress={() => setLeftSelected(false)}
-    >
-      <Text
+        <Text
+          style={[
+            styles.toggleButtonText,
+            leftSelected && { color: '#fff' },
+          ]}
+        >
+          {leftText}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={[
-          styles.toggleButtonText,
-          { fontSize: wp(3.67) },
-          !leftSelected && { color: '#fff' },
+          styles.toggleButtonContainer,
+          !leftSelected && { backgroundColor: selectedColor },
         ]}
+        activeOpacity={1}
+        onPress={() => setLeftSelected(false)}
       >
-        {rightText}
-      </Text>
-    </TouchableOpacity>
-  </View>
-);
+        <Text
+          style={[
+            styles.toggleButtonText,
+            { fontSize: wp(3.67) },
+            !leftSelected && { color: '#fff' },
+          ]}
+        >
+          {rightText}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

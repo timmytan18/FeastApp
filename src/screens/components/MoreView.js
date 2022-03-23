@@ -1,20 +1,24 @@
 import React, {
-  useState, useEffect, useContext, useRef,
+  useContext,
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, FlatList,
 } from 'react-native';
 import Modal from 'react-native-modal';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Context } from '../../Store';
 import Line from './util/Line';
 import {
-  colors, sizes, gradients, wp, hp, shadows,
+  colors, sizes, gradients, wp,
 } from '../../constants/theme';
 
 const MoreItem = ({ item, setMorePressed, labelSize }) => (
   <View style={styles.moreItem}>
     <TouchableOpacity
-      style={styles.moreItemContainer}
+      style={[
+        styles.moreItemContainer,
+        item.selected !== undefined && { justifyContent: 'space-between', marginLeft: wp(2), paddingRight: wp(5) },
+      ]}
       onPress={() => {
         setMorePressed(false);
         item.onPress();
@@ -31,6 +35,27 @@ const MoreItem = ({ item, setMorePressed, labelSize }) => (
       >
         {item.label}
       </Text>
+      {item.selected !== undefined && (
+        <View style={[
+          styles.selectedContainer,
+          item.selected && {
+            height: wp(6),
+            width: wp(6),
+            borderRadius: wp(3),
+          },
+        ]}
+        >
+          {/* <View style={styles.selectedCenter} /> */}
+          {item.selected && (
+            <LinearGradient
+              colors={gradients.orange.colors}
+              start={gradients.orange.start}
+              end={gradients.orange.end}
+              style={styles.selectedCenter}
+            />
+          )}
+        </View>
+      )}
     </TouchableOpacity>
     {!item.end && <Line length={wp(100) - (sizes.margin * 2)} color={colors.gray2} />}
   </View>
@@ -70,7 +95,6 @@ const MoreView = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: wp(2), paddingBottom: wp(5) }}
         />
-        <View style={styles.bottomMargin} />
       </View>
     </Modal>
   );
@@ -98,7 +122,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingLeft: sizes.margin + wp(3),
+    paddingLeft: wp(7),
   },
   moreText: {
     fontFamily: 'Medium',
@@ -106,6 +130,23 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     color: colors.black,
     paddingTop: wp(0.5),
+  },
+  selectedContainer: {
+    height: wp(5.7),
+    width: wp(5.7),
+    borderRadius: wp(2.85),
+    marginRight: wp(7),
+    borderWidth: 2.5,
+    borderColor: colors.gray3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedCenter: {
+    height: wp(3.92),
+    width: wp(3.92),
+    borderRadius: wp(1.96),
+    position: 'absolute',
+    backgroundColor: colors.accent,
   },
 });
 

@@ -1,13 +1,13 @@
 import React from 'react';
 import {
-  StyleSheet, View, Text, TouchableOpacity,
+  StyleSheet, View, Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIndicator } from 'react-native-indicators';
 import ProfilePic from './ProfilePic';
 import {
-  colors, sizes, gradients, wp,
+  sizes, gradients, wp,
 } from '../../constants/theme';
 import { } from 'react-native-gesture-handler';
 
@@ -30,10 +30,10 @@ const MapMarker = ({
 }) => {
   const visibilityStyle = visible ? {} : { width: 0 };
   const borderGradient = isNew ? gradients.purple : gradients.gray;
-  const numIconGradient = onlyHasOld ? gradients.gray : gradients.purple;
+  // const numIconGradient = onlyHasOld ? gradients.gray : gradients.purple;
   return (
     <View style={styles.container}>
-      {visible && numOtherMarkers > 0 && (
+      {/* {visible && numOtherMarkers > 0 && (
         <View style={styles.badgeContainer}>
           <LinearGradient
             colors={numIconGradient.colors}
@@ -47,12 +47,13 @@ const MapMarker = ({
             </Text>
           </LinearGradient>
         </View>
-      )}
+      )} */}
       <LinearGradient
         colors={borderGradient.colors}
         start={borderGradient.start}
         end={borderGradient.end}
-        style={[styles.gradientContainer, visibilityStyle]}
+        style={styles.gradientContainer}
+      // style={[styles.gradientContainer, visibilityStyle]}
       >
         {loadingStories && loadingStories === placeId && (
           <MaterialIndicator
@@ -102,7 +103,7 @@ function areEqual(prevProps, nextProps) {
     || (prevProps.placeId === prevProps.loadingStories
       && nextProps.loadingStories === 'none')
     || (nextProps.visible !== prevProps.visible)
-    || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
+    // || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
     || (nextProps.isNew !== prevProps.isNew)) {
     return false;
   }
