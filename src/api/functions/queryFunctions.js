@@ -270,6 +270,7 @@ function getAllPostsQuery({ timestamp }) {
     {
       GSI2: 'POST#',
       LSI1: { between: [`#POSTTIME#${timestamp}`, `#POSTTIME#${timeLocal}`] },
+      // LSI1: { beginsWith: '#PLACE#' },
       sortDirection: 'DESC',
       limit: 1000,
     },

@@ -207,7 +207,7 @@ const PostDetails = ({ navigation, route }) => {
       const userPlaceSK = `#PLACE#${timestamp}`;
       const GSI1 = `POST#${placeId}`;
       const GSI2 = 'POST#';
-      const LSI1 = `#PLACE#${hash}`;
+      const LSI1 = `#POSTTIME#${timestamp}`;
       const LSI2 = `#PLACE#${placeId}`;
       const userReview = reviewRef.current;
       const userRating = ratingRef.current;
