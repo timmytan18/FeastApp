@@ -93,41 +93,45 @@ const SearchUsers = ({ navigation }) => {
     );
   };
 
-  const renderSearchItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.userItemContainer}
-      activeOpacity={0.5}
-      onPress={() => (
-        searchByUser
-          ? openUser({ user: item })
-          : openPlace({ placeId: item.placeId }))}
-    >
-      <View style={[
-        styles.userIconContainer,
-        !searchByUser && { borderRadius: PLACE_ICON_BORDER_RADIUS },
-      ]}
+  const renderSearchItem = ({ item }) => {
+    console.log(item);
+    return (
+      <TouchableOpacity
+        style={styles.userItemContainer}
+        activeOpacity={0.5}
+        onPress={() => (
+          searchByUser
+            ? openUser({ user: item })
+            : openPlace({ placeId: item.placeId }))}
       >
-        {searchByUser && (
-          <ProfilePic
-            extUrl={item.picture}
-            uid={item.uid}
-            isMe={false}
-            size={USER_ICON_SIZE}
-            style={styles.userIconImage}
-          />
-        )}
-        {!searchByUser && (
-          <View style={styles.placeIconImage}>
-            <Image source={{ uri: item.placeInfo.imgUrl }} style={styles.placeIconImage} />
-          </View>
-        )}
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.userNameText}>{item.name}</Text>
-        {item.city && <Text style={styles.userCityText}>{item.city}</Text>}
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={[
+          styles.userIconContainer,
+          !searchByUser && { borderRadius: PLACE_ICON_BORDER_RADIUS },
+        ]}
+        >
+          {searchByUser && (
+            <ProfilePic
+              extUrl={item.picture}
+              uid={item.uid}
+              isMe={false}
+              size={USER_ICON_SIZE}
+              style={styles.userIconImage}
+            />
+          )}
+          {!searchByUser && (
+            <View style={styles.placeIconImage}>
+              <Image source={{ uri: item.placeInfo.imgUrl }} style={styles.placeIconImage} />
+            </View>
+          )}
+        </View>
+        <View style={styles.infoContainer}>
+          <Text style={styles.userNameText}>{item.name}</Text>
+          {item.city !== null && item.city.length > 0
+            && <Text style={styles.userCityText}>{item.city}</Text>}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const changeTab = ({ toLeft }) => {
     setSearchList(toLeft ? suggestedUsers.current : []);

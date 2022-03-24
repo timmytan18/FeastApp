@@ -461,7 +461,8 @@ const PostDetails = ({ navigation, route }) => {
               style={styles.image}
               source={{ uri: picture.uri }}
             />
-            {menuItem && <Text style={styles.menuItemText}>{menuItem}</Text>}
+            {menuItem !== null && menuItem.length > 0
+              && <Text style={styles.menuItemText}>{menuItem}</Text>}
           </View>
         )}
         {!picture && (

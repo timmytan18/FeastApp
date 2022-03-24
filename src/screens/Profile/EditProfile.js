@@ -161,7 +161,7 @@ const EditProfile = ({
           </TouchableOpacity>
         </View>
         <View style={{ flex: 0.1 }}>
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          {error !== null && <Text style={styles.errorText}>{error}</Text>}
         </View>
       </DismissKeyboardView>
     </Modal>

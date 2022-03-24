@@ -7,7 +7,7 @@ const GEOHASH_PRECISION_AREAS = [
   parseFloat('1.885928213596344e-06'), parseFloat('5.893525667488575e-08'), parseFloat('1.744670149253733e-09'), parseFloat('5.058365426240893e-11'),
 ];
 
-const MONTHS = ['Jan', 'Feb', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const GET_SAVED_POST_ID = ({ uid, timestamp }) => `${uid}_${timestamp}`;
 
