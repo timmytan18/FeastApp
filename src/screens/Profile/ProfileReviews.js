@@ -94,7 +94,7 @@ const ProfileReviewItem = React.memo(({
           disableShadow
           tooltipStyle={styles.tooltipContainer}
         >
-          {review && (
+          {review !== null && review.length > 0 && (
             <Text
               style={styles.reviewText}
               numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
