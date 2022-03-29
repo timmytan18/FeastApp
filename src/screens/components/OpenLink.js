@@ -23,7 +23,7 @@ function extractPostmatesAlias(url) {
   return url.slice(i + 9);
 }
 
-export default function link(type, alias) {
+export default async function link({ type, alias, callback }) {
   if (!alias) {
     return;
   }
@@ -31,10 +31,11 @@ export default function link(type, alias) {
   const links = [null, null];
 
   if (type === 'YELP') {
-    WebBrowser.openBrowserAsync(`https://m.yelp.com/biz/${alias}`);
+    await WebBrowser.openBrowserAsync(`https://m.yelp.com/biz/${alias}`);
     return;
   } if (type === 'DEFAULT') {
-    WebBrowser.openBrowserAsync(alias);
+    const res = await WebBrowser.openBrowserAsync(alias);
+    if (callback && res.type === 'cancel') callback();
     return;
   }
 
@@ -77,9 +78,12 @@ export default function link(type, alias) {
 
   if (links[0]) {
     Linking.openURL(links[0]).catch((err) => {
-      WebBrowser.openBrowserAsync(links[1]);
+      WebBrowser.openBrowserAsync(links[1]).then((res) => {
+        if (callback && res.type === 'cancel') callback();
+      });
     });
   } else {
-    WebBrowser.openBrowserAsync(links[1]);
+    const res = await WebBrowser.openBrowserAsync(links[1]);
+    if (callback && res.type === 'cancel') callback();
   }
 }

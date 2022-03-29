@@ -189,28 +189,31 @@ const PlaceDetailView = React.memo(({
       Object.entries(delivery).forEach(([_type, url]) => {
         const type = _type.replace(/\s+/g, '').toLowerCase();
         deliveryItems.push({
-          onPress: () => link(type, url),
+          onPress: () => link({ type, alias: url, callback: () => setDeliveryPressed(false) }),
           icon: (
             <View style={{ width: '10%', alignItems: 'center' }}>
               {getDeliveryIcon(type)}
             </View>
           ),
           label: _type,
+          keepModalOpen: true,
         });
       });
     }
     if (placeInfo.menuUrl) {
       menuWebItems.push({
-        onPress: () => link('DEFAULT', placeInfo.menuUrl),
+        onPress: () => link({ type: 'DEFAULT', alias: placeInfo.menuUrl, callback: () => setMenuWebPressed(false) }),
         icon: <View style={{ width: '10%', alignItems: 'center' }}><Menu /></View>,
         label: 'See menu',
+        keepModalOpen: true,
       });
     }
     if (placeInfo.placeUrl) {
       menuWebItems.push({
-        onPress: () => link('DEFAULT', placeInfo.placeUrl),
+        onPress: () => link({ type: 'DEFAULT', alias: placeInfo.placeUrl, callback: () => setMenuWebPressed(false) }),
         icon: <View style={{ width: '10%', alignItems: 'center' }}><Redirect /></View>,
         label: 'Visit website',
+        keepModalOpen: true,
       });
     }
   }
@@ -385,7 +388,7 @@ const BodyContent = React.memo(({
             {PLACE_SCRAPED && place.placeInfo.yelpAlias ? (
               <TouchableOpacity
                 style={[styles.actionButtonContainer, { backgroundColor: '#fadbdb' }]}
-                onPress={() => link('YELP', place.placeInfo.yelpAlias)}
+                onPress={() => link({ type: 'YELP', alias: place.placeInfo.yelpAlias })}
               >
                 <Yelp />
               </TouchableOpacity>

@@ -20,7 +20,7 @@ const MoreItem = ({ item, setMorePressed, labelSize }) => (
         item.selected !== undefined && { justifyContent: 'space-between', marginLeft: wp(2), paddingRight: wp(5) },
       ]}
       onPress={() => {
-        setMorePressed(false);
+        if (!item.keepModalOpen) setMorePressed(false);
         item.onPress();
       }}
       activeOpacity={0.7}
@@ -71,7 +71,7 @@ const MoreView = ({
       isVisible={morePressed}
       backdropOpacity={0.5}
       backdropTransitionOutTiming={0}
-      onModalHide={onModalHide && onModalHide}
+      onModalHide={onModalHide}
       onBackdropPress={() => {
         setMorePressed(false);
         if (onDismiss) {
