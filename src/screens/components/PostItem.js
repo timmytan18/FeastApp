@@ -204,6 +204,7 @@ const PostItem = ({
                       picture={picture}
                       showYummedUsersModal={showYummedUsersModal}
                       light
+                      refresh={refresh}
                     />
                   </View>
                 </View>

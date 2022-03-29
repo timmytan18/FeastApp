@@ -11,42 +11,44 @@ import { colors, sizes, wp } from '../../../constants/theme';
 
 const YumButton = ({
   size, uid, timestamp, placeId, myUID, myPK, myName, myPicture,
-  picture, showYummedUsersModal, stopBarAnimation, light, small, openYums,
+  picture, showYummedUsersModal, stopBarAnimation, light, small, openYums, refresh,
 }) => {
   const [pressed, setPressed] = useState(false);
   const [yums, setYums] = useState([]);
   const mounted = useRef(true);
 
-  useEffect(() => {
-    mounted.current = true;
-    // Fetch yums
-    (async () => {
-      const { promise, getValue, errorMsg } = await getPostYumsQuery({ uid, timestamp });
-      const yumsItems = await fulfillPromise(promise, getValue, errorMsg);
-      if (yumsItems) {
-        // Check if user has yummed
-        let yummed = false;
-        for (let i = 0; i < yumsItems.length; i += 1) {
-          if (yumsItems[i].uid === myUID) {
-            // swap user yum item with last item in array
-            [yumsItems[i], yumsItems[yumsItems.length - 1]] = [
-              yumsItems[yumsItems.length - 1], yumsItems[i],
-            ];
-            yummed = true;
-            break;
-          }
-        }
-        if (mounted.current) {
-          setYums(yumsItems);
-          setPressed(yummed);
-          if (openYums) {
-            showYummedUsersModalPressed({ yumsItems });
-          }
+  // Get yums for this post
+  const fetchYums = async () => {
+    const { promise, getValue, errorMsg } = await getPostYumsQuery({ uid, timestamp });
+    const yumsItems = await fulfillPromise(promise, getValue, errorMsg);
+    if (yumsItems) {
+      // Check if user has yummed
+      let yummed = false;
+      for (let i = 0; i < yumsItems.length; i += 1) {
+        if (yumsItems[i].uid === myUID) {
+          // swap user yum item with last item in array
+          [yumsItems[i], yumsItems[yumsItems.length - 1]] = [
+            yumsItems[yumsItems.length - 1], yumsItems[i],
+          ];
+          yummed = true;
+          break;
         }
       }
-    })();
+      if (mounted.current) {
+        setYums(yumsItems);
+        setPressed(yummed);
+        if (openYums) {
+          showYummedUsersModalPressed({ yumsItems });
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    mounted.current = true;
+    fetchYums();
     return () => { mounted.current = false; };
-  }, [myUID, placeId, timestamp, uid]);
+  }, [myUID, placeId, timestamp, uid, refresh]);
 
   const yumPressed = async () => {
     const date = new Date();
@@ -80,8 +82,7 @@ const YumButton = ({
         ));
       } catch (err) {
         console.warn('Error deleting yum: ', err);
-        setPressed(currPressed);
-        setYums([...yums, input]);
+        fetchYums();
       }
     } else {
       // Create yum
@@ -93,8 +94,7 @@ const YumButton = ({
         ));
       } catch (err) {
         console.warn('Error creating yum: ', err);
-        setPressed(currPressed);
-        setYums([...yums.slice(0, -1)]);
+        fetchYums();
       }
     }
   };
