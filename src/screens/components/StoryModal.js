@@ -750,7 +750,7 @@ const StoryModal = ({ navigation, route }) => {
             >
               {review}
             </Text>
-            {image && (
+            {image ? (
               <View>
                 <Image
                   style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
@@ -758,6 +758,12 @@ const StoryModal = ({ navigation, route }) => {
                 />
                 <View style={styles.emojiContainer} />
                 {dish && <Text style={styles.menuItemText}>{dish}</Text>}
+              </View>
+            ) : (
+              <View
+                style={[styles.image, styles.noImage]}
+              >
+                <Text style={styles.noImageText}>No image</Text>
               </View>
             )}
           </View>
@@ -1021,6 +1027,17 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
     width: '100%',
     aspectRatio: POST_IMAGE_ASPECT[0] / POST_IMAGE_ASPECT[1],
+  },
+  noImage: {
+    backgroundColor: colors.gray2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    aspectRatio: 0.9,
+  },
+  noImageText: {
+    fontFamily: 'Book',
+    fontSize: sizes.b3,
+    color: colors.tertiary,
   },
   menuItemText: {
     position: 'absolute',
