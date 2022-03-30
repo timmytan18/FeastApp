@@ -123,7 +123,7 @@ const ProfileReviewItem = React.memo(({
 const ProfileReviews = ({
   reviews, uid, postRowLength, navigation, route,
 }) => {
-  if (!postRowLength) ({ reviews, uid } = route.params);
+  if (postRowLength === undefined) ({ reviews, uid } = route.params);
   const place = useRef(null);
 
   const openPlace = async ({ placeId, placeName }) => {
@@ -143,7 +143,6 @@ const ProfileReviews = ({
       { reviews, uid },
     );
   };
-
   return (
     <View style={styles.container}>
       {reviews
@@ -168,9 +167,13 @@ const ProfileReviews = ({
             ListFooterComponent={<View style={{ height: wp(3) }} />}
           />
         )}
-      {postRowLength && (
+      {postRowLength !== undefined && (
         <TouchableOpacity
-          style={[styles.seeMoreContainer, { top: rowHeight * postRowLength - wp(12) }]}
+          style={[
+            styles.seeMoreContainer,
+            postRowLength > 3 && { top: rowHeight * postRowLength - wp(12) },
+            postRowLength <= 3 && { bottom: 0 },
+          ]}
           activeOpacity={0.9}
           onPress={goToAllReviews}
         >

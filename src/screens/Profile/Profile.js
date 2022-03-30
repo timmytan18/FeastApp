@@ -71,7 +71,7 @@ const propTypes = {
   }).isRequired,
 };
 
-const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS' };
+const LIST_STATES = { LOADING: 'LOADING', NO_RESULTS: 'NO_RESULTS', NO_PHOTOS: 'NO_PHOTOS' };
 
 // Memoize row rendering, only rerender when row content changes
 const areEqual = (prevProps, nextProps) => {
@@ -103,7 +103,7 @@ const RowItem = React.memo(({
   isMe,
 }) => {
   const noResults = row === LIST_STATES.NO_RESULTS;
-  if (row !== LIST_STATES.LOADING && !noResults && row.length) {
+  if (row !== LIST_STATES.LOADING && row !== LIST_STATES.NO_PHOTOS && !noResults && row.length) {
     return (
       <Animated.View
         style={[
@@ -318,8 +318,7 @@ const Profile = ({ navigation, route }) => {
 
     // Format posts for FlatList, include numYums
     const placeIdKeys = Object.keys(placePosts);
-    if (placeIdKeys && placeIdKeys.length) {
-      // if (reviews == null) posts.current = [[]];
+    if ((placeIdKeys && placeIdKeys.length) || allReviews.current) {
       posts.current = [[], {
         allReviews: allReviews.current, uid: user.uid, navigation, isReviewsList: true,
       }];
@@ -335,6 +334,9 @@ const Profile = ({ navigation, route }) => {
           });
         }
         posts.current.push(rowItem);
+      }
+      if (!placeIdKeys || placeIdKeys.length === 0) {
+        posts.current[0] = LIST_STATES.NO_PHOTOS;
       }
     }
     if (mounted.current) {
@@ -784,7 +786,7 @@ const Profile = ({ navigation, route }) => {
   };
 
   const renderRow = useCallback(({ item, index }) => {
-    if (item.isReviewsList) {
+    if (item !== LIST_STATES.NO_PHOTOS && item.isReviewsList) {
       return (
         <View>
           <Animated.View
