@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import {
   View, TouchableOpacity, Text, Alert,
 } from 'react-native';
@@ -11,6 +11,7 @@ import {
   batchCreateFollowingPosts, batchDeleteFollowingPosts,
 } from '../../api/graphql/mutations';
 import TwoButtonAlert from './util/TwoButtonAlert';
+import { Context } from '../../Store';
 import {
   colors, gradients,
 } from '../../constants/theme';
@@ -40,7 +41,7 @@ const propTypes = {
 const ADDED_ATTR = [];
 
 const FollowButton = ({
-  currentUser, myUser, dispatch, containerStyle, textStyle,
+  currentUser, myUser, containerStyle, textStyle,
 }) => {
   // Destructure current user (profile user is viewing) object
   const {
@@ -50,6 +51,8 @@ const FollowButton = ({
   if (currentUser.picture) {
     picture = currentUser.picture;
   }
+
+  const [{ bannedUsers }, dispatch] = useContext(Context);
 
   // Create follower object using my info
   const myID = myUser.uid;
@@ -225,14 +228,16 @@ const FollowButton = ({
     }
   };
 
+  const banned = bannedUsers.has(uid);
   return (
-    <View style={containerStyle}>
+    <View style={[containerStyle, banned && { opacity: 0.5 }]}>
       {!following
         && (
           <TouchableOpacity
             onPress={changeFollowingConfirmation}
             activeOpacity={0.6}
             style={{ width: '100%', height: '100%' }}
+            disabled={banned}
           >
             <LinearGradient
               colors={gradients.purple.colors}
@@ -249,6 +254,7 @@ const FollowButton = ({
           style={[containerStyle, { backgroundColor: colors.gray3, width: '100%' }]}
           onPress={changeFollowingConfirmation}
           activeOpacity={0.6}
+          disabled={banned}
         >
           <Text style={[textStyle, { color: colors.black }]}>Following</Text>
         </TouchableOpacity>

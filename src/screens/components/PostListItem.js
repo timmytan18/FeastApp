@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  StyleSheet, Text, View, Image, TouchableOpacity,
+  StyleSheet, Text, View, TouchableOpacity, Image,
 } from 'react-native';
+import { Image as CacheImage } from 'react-native-expo-image-cache';
 import PropTypes from 'prop-types';
 import { Storage } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,7 +15,6 @@ import {
 const propTypes = {
   item: PropTypes.shape({
     timestamp: PropTypes.string,
-    s3Photo: PropTypes.string,
     picture: PropTypes.string,
     name: PropTypes.string,
     categories: PropTypes.arrayOf(PropTypes.string),
@@ -25,16 +25,18 @@ const propTypes = {
   }).isRequired,
 };
 
+const NUM_ROWS_TO_CACHE = 8;
+
 const PostListItem = ({
-  item, numYums, placePosts, openPlacePosts, refresh,
+  item, index, numYums, placePosts, openPlacePosts, refresh, isMe,
 }) => {
-  const [image, setImage] = useState(item.s3Photo);
+  const [image, setImage] = useState(null);
   const mounted = useRef(true);
 
   useEffect(() => {
     mounted.current = true;
     (async () => {
-      if (item.picture && refresh > 0) {
+      if (item.picture) {
         const s3Photo = await Storage.get(
           item.picture,
           { identityId: item.placeUserInfo.identityId },
@@ -45,8 +47,7 @@ const PostListItem = ({
     return () => {
       mounted.current = false;
     };
-  }, [refresh]);
-
+  }, [item.picture, item.placeUserInfo.identityId, refresh]);
   return (
     <TouchableOpacity
       style={styles.postItem}
@@ -54,11 +55,22 @@ const PostListItem = ({
       onPress={() => openPlacePosts({ stories: placePosts })}
     >
       <View style={styles.postImage}>
-        <Image
-          resizeMode="cover"
-          style={[styles.postImage, { flex: 1 }]}
-          source={{ uri: image }}
-        />
+        {isMe && image && index < NUM_ROWS_TO_CACHE && (
+          <CacheImage
+            style={[styles.postImage, { flex: 1 }]}
+            preview={{ uri: image }}
+            uri={image}
+            cacheKey={item.picture}
+            tint="light"
+          />
+        )}
+        {(!isMe || !image || index >= NUM_ROWS_TO_CACHE) && (
+          <Image
+            resizeMode="cover"
+            style={[styles.postImage, { flex: 1 }]}
+            source={{ uri: image }}
+          />
+        )}
         <View style={styles.gradientContainer}>
           <LinearGradient
             colors={['rgba(0,0,0,0.32)', 'transparent']}

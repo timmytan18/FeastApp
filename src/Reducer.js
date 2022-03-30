@@ -23,6 +23,11 @@ const Reducer = (state, action) => {
         ...state,
         savedPosts: action.payload.savedPosts,
       };
+    case 'SET_BANNED_USERS':
+      return {
+        ...state,
+        bannedUsers: action.payload.bannedUsers,
+      };
     case 'SET_REVIEW_RATING':
       return {
         ...state,

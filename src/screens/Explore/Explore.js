@@ -276,7 +276,7 @@ const Explore = ({ navigation }) => {
       const userPlaces = {}; // obj of uid: set(placeIds)
       const placeMarkers = {}; // place marker for user location
 
-      // Fetch all posts for map feed from following users
+      // Fetch all posts for map feed from following/all users
       const currFilter = leftSelected ? timeFiltersDiscover : timeFiltersFriends;
       const dateOneWeekAgo = new Date(new Date().setDate(
         new Date().getDate() - currFilter[filterSelectedIndex].numDays,
@@ -290,7 +290,8 @@ const Explore = ({ navigation }) => {
         }));
       const allPosts = await fulfillPromise(promise, getValue, errorMsg);
       for (let i = 0; i < allPosts.length; i += 1) {
-        if (leftSelected && followingUsers.has(allPosts[i].placeUserInfo.uid)) {
+        if ((leftSelected && followingUsers.has(allPosts[i].placeUserInfo.uid))
+          || state.bannedUsers.has(allPosts[i].placeUserInfo.uid)) {
           continue;
         }
         allPosts[i].coordinates = geohash.decode(allPosts[i].geo); // Get lat/lng from geohash

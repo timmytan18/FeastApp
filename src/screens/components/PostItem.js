@@ -1,9 +1,10 @@
 import React, {
-  useState, useEffect, useRef, useCallback,
+  useState, useEffect, useRef, useCallback, useContext,
 } from 'react';
 import {
-  StyleSheet, Text, View, Image, TouchableOpacity,
+  StyleSheet, Text, View, TouchableOpacity,
 } from 'react-native';
+import { Image } from 'react-native-expo-image-cache';
 import { Storage } from 'aws-amplify';
 import MaskedView from '@react-native-community/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +15,7 @@ import ThreeDots from './util/icons/ThreeDots';
 import StarsRating from './util/StarsRating';
 import MapMarker from './util/icons/MapMarker';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
+import { Context } from '../../Store';
 import { POST_IMAGE_ASPECT, GET_SAVED_POST_ID } from '../../constants/constants';
 import {
   colors, wp, sizes, gradients,
@@ -22,8 +24,9 @@ import {
 const NUM_COLLAPSED_LINES = 2;
 
 const PostItem = ({
-  item, fetchUser, onMorePressed, showYummedUsersModal, me, dispatch, savedPosts, openPlace, refresh,
+  item, fetchUser, onMorePressed, showYummedUsersModal, me, savedPosts, openPlace, refresh,
 }) => {
+  const [{ bannedUsers }, dispatch] = useContext(Context);
   let uid; let identityId; let placeId; let name; let geo; let categories;
   let imgUrl; let picture; let dish; let rating; let review; let timestamp;
   let userName; let userPic;
@@ -35,6 +38,9 @@ const PostItem = ({
       placeId, name, picture, dish, rating, review, timestamp, geo, categories, imgUrl,
     } = item);
   }
+  // Don't render if banned
+  if (bannedUsers.has(uid)) return null;
+
   const elapsedTime = getElapsedTime(timestamp);
   const [image, setImage] = useState(null);
 
@@ -50,7 +56,7 @@ const PostItem = ({
     return () => {
       mounted.current = false;
     };
-  }, [refresh]);
+  }, [identityId, picture]);
 
   const {
     PK: myPK, uid: myUID, name: myName, picture: myPicture,
@@ -173,8 +179,10 @@ const PostItem = ({
           {picture && (
             <View>
               <Image
-                style={[styles.image]}
-                source={{ uri: image }}
+                style={styles.image}
+                preview={{ uri: image }}
+                uri={image}
+                tint="light"
               />
               <View style={styles.emojiContainer} />
               {dish && <Text style={styles.menuItemText}>{dish}</Text>}

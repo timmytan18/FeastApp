@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { StyleSheet, View, Image } from 'react-native';
 import NoProfile from './util/icons/NoProfile';
-import { colors, sizes } from '../../constants/theme';
 import awsmobile from '../../aws-exports';
+import { Context } from '../../Store';
 
 const { aws_user_files_s3_bucket: bucket } = awsmobile;
 
@@ -17,13 +17,16 @@ const ProfilePic = ({
 
   const iconStyle = { height: size, width: size, borderRadius: size / 2 };
 
+  const [{ bannedUsers }] = useContext(Context);
+  const banned = bannedUsers.has(uid);
+
   return (
     <View style={[
       style,
       iconStyle,
     ]}
     >
-      {!isMe && (
+      {!isMe && !banned && (
         <Image
           source={{ uri: url }}
           resizeMode="cover"
@@ -34,7 +37,7 @@ const ProfilePic = ({
           ]}
         />
       )}
-      {(isMe || (extUrl && url !== extUrl)) && (
+      {(isMe || (extUrl && url !== extUrl)) && !banned && (
         <Image
           source={{ uri: isLocal ? extUrl : `${extUrl}?${new Date()}` }}
           resizeMode="cover"

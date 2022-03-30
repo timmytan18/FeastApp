@@ -104,7 +104,7 @@ const Inbox = ({ navigation }) => {
   // Set necessary data
   const [
     {
-      user, reloadProfileTrigger, reloadMapTrigger,
+      user, bannedUsers, reloadProfileTrigger, reloadMapTrigger,
     },
     dispatch,
   ] = useContext(Context);
@@ -221,7 +221,6 @@ const Inbox = ({ navigation }) => {
             <FollowButton
               currentUser={item}
               myUser={user}
-              dispatch={dispatch}
               containerStyle={styles.followContainer}
               textStyle={styles.followText}
             />
@@ -254,6 +253,8 @@ const Inbox = ({ navigation }) => {
   );
 
   const renderItem = ({ item, index }) => {
+    const currUID = item.type === FOLLOW ? item.follower.uid : item.uid;
+    if (bannedUsers.has(currUID)) return null;
     if (index === 0) todayNotifs.current = true;
     const notifItem = item.type === FOLLOW
       ? renderFollowerItem({ item: item.follower, updatedAt: item.updatedAt })

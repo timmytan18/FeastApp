@@ -73,14 +73,6 @@ const Main = () => {
       s3Picture: picture,
     };
 
-    if (picture) {
-      try {
-        await Image.prefetch(picture);
-      } catch (e) {
-        console.log('Error prefetching profile picture:', e);
-      }
-    }
-
     // Put user in global state
     dispatch({ type: 'SET_USER', payload: user });
   }

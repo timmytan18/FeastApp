@@ -20,7 +20,7 @@ import {
 
 const FollowsList = ({ navigation, route }) => {
   const { PK, uid, type } = route.params;
-  const [{ user, reloadProfileTrigger }, dispatch] = useContext(Context);
+  const [{ user, bannedUsers, reloadProfileTrigger }] = useContext(Context);
   const { uid: myUID, PK: myPK } = user;
 
   const [usersList, setUsersList] = useState(null);
@@ -77,6 +77,7 @@ const FollowsList = ({ navigation, route }) => {
     } else {
       item = item.follower;
     }
+    if (bannedUsers.has(item.uid)) return null;
     return (
       <TouchableOpacity
         style={styles.userItemContainer}
@@ -103,7 +104,6 @@ const FollowsList = ({ navigation, route }) => {
             <FollowButton
               currentUser={item}
               myUser={user}
-              dispatch={dispatch}
               containerStyle={styles.followContainer}
               textStyle={styles.followText}
             />

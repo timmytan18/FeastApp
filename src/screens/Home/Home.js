@@ -4,9 +4,9 @@ import React, {
 import {
   StyleSheet, View, FlatList, TouchableOpacity, Text,
 } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-// import { BlurView } from 'expo-blur';
+import { BlurView } from 'expo-blur';
 import { useScrollToTop } from '@react-navigation/native';
 import { BallIndicator } from 'react-native-indicators';
 import {
@@ -65,9 +65,9 @@ const Home = ({ navigation }) => {
         <Logo />
       </TouchableOpacity>
     );
-    // const blurredHeader = () => (
-    //   <BlurView tint="light" intensity="100" style={StyleSheet.absoluteFill} />
-    // );
+    const blurredHeader = () => (
+      <BlurView tint="light" intensity="100" style={StyleSheet.absoluteFill} />
+    );
     const headerSearch = () => (
       <SearchButton
         color={colors.black}
@@ -79,9 +79,9 @@ const Home = ({ navigation }) => {
     navigation.setOptions({
       headerTitle: headerLogo,
       headerRight: headerSearch,
-      // headerTransparent: true,
-      // headerBackground: blurredHeader,
-      // animationEnabled: false,
+      headerTransparent: true,
+      headerBackground: blurredHeader,
+      animationEnabled: false,
     });
   }, []);
 
@@ -252,9 +252,15 @@ const Home = ({ navigation }) => {
     return null;
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View
-      style={[styles.rootContainer, loading && { opacity: 0.6, backgroundColor: colors.gray }]}
+    <SafeAreaView
+      style={[
+        styles.rootContainer,
+        { marginTop: insets.top },
+        loading && { opacity: 0.6, backgroundColor: colors.gray },
+      ]}
       pointerEvents={loading ? 'none' : 'auto'}
       edges={['top']}
     >
@@ -316,7 +322,6 @@ const Home = ({ navigation }) => {
               onMorePressed={onMorePressed}
               showYummedUsersModal={showYummedUsersModal}
               me={state.user}
-              dispatch={dispatch}
               savedPosts={savedPosts}
               openPlace={openPlace}
               refresh={numRefresh.current}
@@ -344,7 +349,7 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         )}
-    </View>
+    </SafeAreaView>
   );
 };
 

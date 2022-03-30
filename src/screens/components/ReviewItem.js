@@ -1,6 +1,4 @@
-import React, {
-  useState,
-} from 'react';
+import React, { useState, useContext } from 'react';
 import {
   Text, View, StyleSheet, TouchableOpacity,
 } from 'react-native';
@@ -9,6 +7,7 @@ import { getUserPostQuery, fulfillPromise } from '../../api/functions/queryFunct
 import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import ProfilePic from './ProfilePic';
 import StarsRating from './util/StarsRating';
+import { Context } from '../../Store';
 import {
   colors, sizes, wp, shadows,
 } from '../../constants/theme';
@@ -49,8 +48,10 @@ const ReviewItem = ({
   myUID,
   navigation,
 }) => {
+  const [{ bannedUsers }] = useContext(Context);
   const [textExpanded, setTextExpanded] = useState(false);
   const [tooltipActive, setTooltipActive] = useState(false);
+  if (bannedUsers.has(uid)) return null;
   return (
     <View style={styles.userReviewContainer}>
       <TouchableOpacity

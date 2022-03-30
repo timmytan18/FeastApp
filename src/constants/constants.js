@@ -13,7 +13,10 @@ const GET_SAVED_POST_ID = ({ uid, timestamp }) => `${uid}_${timestamp}`;
 
 const ADMIN_UIDS = new Set(['934304ca-c0bf-4cfd-83e3-7f1f5d7501f1', 'a8d8331f-6e6a-422b-bd20-65b4a8b3eec3']);
 
+const ADMIN_PASSWORD = 'ILOVEFOOD';
+
 export {
   POST_IMAGE_ASPECT, GEOHASH_PRECISION_AREAS, MONTHS,
   GET_SAVED_POST_ID, DEFAULT_COORDINATES, ADMIN_UIDS,
+  ADMIN_PASSWORD,
 };

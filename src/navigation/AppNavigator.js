@@ -37,9 +37,10 @@ import NewPostIcon from './icons/NewPost';
 import { InboxIcon, InboxFilledIcon } from './icons/Inbox';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import BackArrow from '../screens/components/util/icons/BackArrow';
+import getBannedUsers from '../api/functions/GetBannedUsers';
 import { GET_SAVED_POST_ID } from '../constants/constants';
 import { secureSave, getSecureValue, keys } from '../api/functions/SecureStore';
-import { getLocalData, storeLocalData, localDataKeys } from '../api/functions/LocalStorage';
+import { getLocalData, localDataKeys } from '../api/functions/LocalStorage';
 import { Context } from '../Store';
 import {
   colors, sizes, header, wp,
@@ -449,16 +450,20 @@ const TabNavigator = ({ picture, showBadge, setShowBadge }) => {
 
 const AppNavigator = () => {
   const [
-    { user: { PK: myPK, uid: myUID, picture }, deviceHeight },
+    { user: { PK: myPK, uid: myUID, picture }, bannedUsers, deviceHeight },
     dispatch,
   ] = useContext(Context);
   const RootStack = createStackNavigator();
 
   const [showBadge, setShowBadge] = useState(false);
+  const [currBannedUsers, setCurrBannedUsers] = useState(bannedUsers);
 
   // Fetch any necessary data on main app render
   useEffect(() => {
     (async () => {
+      // Get banned users
+      await getBannedUsers(dispatch);
+
       // Get all saved posts
       let promise; let getValue; let errorMsg;
       ({ promise, getValue, errorMsg } = getUserAllSavedPostsQuery({ PK: myPK, noDetails: true }));
@@ -496,13 +501,31 @@ const AppNavigator = () => {
       const latestSeenNotif = await getLocalData(localDataKeys.LATEST_NOTIFICATION);
       // If there are new notifs, show badge
       if ((latestFollow && latestFollow[0]) || (latestYum && latestYum[0])) {
-        if (!latestSeenNotif || (latestYum[0].updatedAt.localeCompare(latestSeenNotif) > 0)
-          || (latestFollow[0].updatedAt.localeCompare(latestSeenNotif) > 0)) {
+        if (!latestSeenNotif || (latestYum.length && latestYum[0].updatedAt.localeCompare(latestSeenNotif) > 0)
+          || (latestFollow.length && latestFollow[0].updatedAt.localeCompare(latestSeenNotif) > 0)) {
           setShowBadge(true);
         }
       }
     })();
   }, [myPK]);
+
+  useEffect(() => {
+    setCurrBannedUsers(bannedUsers);
+  }, [bannedUsers]);
+
+  if (currBannedUsers.has(myUID)) {
+    return (
+      <NavigationContainer>
+        <RootStack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <RootStack.Screen name="Banned" component={Banned} />
+        </RootStack.Navigator>
+      </NavigationContainer>
+    );
+  }
 
   return (
     <NavigationContainer>
@@ -536,6 +559,18 @@ const AppNavigator = () => {
     </NavigationContainer>
   );
 };
+
+const Banned = () => (
+  <View style={{
+    flex: 1, justifyContent: 'center', alignItems: 'center', margin: wp(15),
+  }}
+  >
+    <Text style={{ fontFamily: 'Book', fontSize: sizes.b2, textAlign: 'center' }}>
+      You have been temporarily banned from using Feast.
+      Please email support at support@feastapp.io
+    </Text>
+  </View>
+);
 
 export default AppNavigator;
 

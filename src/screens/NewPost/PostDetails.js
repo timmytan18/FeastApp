@@ -19,6 +19,7 @@ import BackArrow from '../components/util/icons/BackArrow';
 import Cam from '../components/util/icons/Cam';
 import EditStarsRating from '../components/EditStarsRating';
 import CenterSpinner from '../components/util/CenterSpinner';
+import getBannedUsers from '../../api/functions/GetBannedUsers';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
@@ -76,6 +77,12 @@ const PostDetails = ({ navigation, route }) => {
       payload: { review: reviewRef.current, rating: ratingRef.current },
     });
   }
+
+  useEffect(() => {
+    (async () => {
+      await getBannedUsers(dispatch);
+    })();
+  }, []);
 
   useEffect(() => {
     // Destructure place attributes

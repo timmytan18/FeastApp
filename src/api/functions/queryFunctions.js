@@ -9,7 +9,7 @@ import {
   batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
   getUserYumsReceivedByTime, getPostYumsNoDetails, getUserEmail, getPlaceRating,
-  batchGetPlaceRatings,
+  batchGetPlaceRatings, getBannedUsers,
 } from '../graphql/queries';
 
 async function fulfillPromise(promise, getValue, errorMsg) {
@@ -471,6 +471,17 @@ function batchGetPlaceRatingsQuery({ batch }) {
   return { promise, getValue, errorMsg };
 }
 
+// Fetch all banned users
+function getBannedUsersQuery() {
+  const promise = API.graphql(graphqlOperation(
+    getBannedUsers,
+    { GSI1: 'BANNEDUSER#', SK: { beginsWith: '#BAN#' }, limit: 200 },
+  ));
+  const getValue = (res) => res.data.itemsByGSI1.items;
+  const errorMsg = 'Error fetch all banned users: ';
+  return { promise, getValue, errorMsg };
+}
+
 export {
   fulfillPromise, getUserProfileQuery, getUserPostQuery, getUserPostsQuery, getFollowingQuery,
   searchUsersQuery, searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery,
@@ -480,4 +491,5 @@ export {
   getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery,
   getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery,
   getUserYumsReceivedByTimeQuery, getUserEmailQuery, getPlaceRatingQuery, batchGetPlaceRatingsQuery,
+  getBannedUsersQuery,
 };

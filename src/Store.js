@@ -7,6 +7,7 @@ const initialState = {
   rating: null,
   location: { longitude: null, latitude: null },
   savedPosts: new Set(),
+  bannedUsers: new Set(),
   restaurants: [],
   headerHeight: null,
   error: null,

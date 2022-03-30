@@ -3,11 +3,11 @@ import React, {
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity,
-  Animated, StatusBar, FlatList,
+  Animated, StatusBar, FlatList, Alert,
 } from 'react-native';
+import { API, graphqlOperation } from 'aws-amplify';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
-import { Storage } from 'aws-amplify';
 import MapView, { Marker } from 'react-native-maps';
 import geohash from 'ngeohash';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
@@ -15,6 +15,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BallIndicator } from 'react-native-indicators';
 import MaskedView from '@react-native-community/masked-view';
 // import { useScrollToTop } from '@react-navigation/native';
+import {
+  createFeastItem, deleteFeastItem,
+} from '../../api/graphql/mutations';
 import {
   getUserPostsQuery,
   getNumFollowsQuery,
@@ -46,8 +49,9 @@ import Save from '../components/util/icons/Save';
 import Cam from '../components/util/icons/Cam';
 import X from '../components/util/icons/X';
 import Feedback from '../components/util/icons/Feedback';
+import getBannedUsers from '../../api/functions/GetBannedUsers';
+import { ADMIN_UIDS, ADMIN_PASSWORD } from '../../constants/constants';
 import { Context } from '../../Store';
-import { ADMIN_UIDS } from '../../constants/constants';
 import {
   colors, gradients, sizes, wp, shadows,
 } from '../../constants/theme';
@@ -87,6 +91,7 @@ const areEqual = (prevProps, nextProps) => {
 
 const RowItem = React.memo(({
   row,
+  index,
   translateLeftContent,
   translatePostListContentOpacity,
   openPlacePosts,
@@ -95,6 +100,7 @@ const RowItem = React.memo(({
   rightTabPressed,
   translateTabBar,
   refresh,
+  isMe,
 }) => {
   const noResults = row === LIST_STATES.NO_RESULTS;
   if (row !== LIST_STATES.LOADING && !noResults && row.length) {
@@ -113,11 +119,13 @@ const RowItem = React.memo(({
           return (
             <PostListItem
               item={item}
+              index={index}
               numYums={numYums}
               placePosts={placePosts}
               openPlacePosts={openPlacePosts}
               key={item.timestamp}
               refresh={refresh}
+              isMe={isMe}
             />
           );
         })}
@@ -204,6 +212,9 @@ const Profile = ({ navigation, route }) => {
   const onTab = !(route && route.params && route.params.user);
   const isMe = !(!onTab && route.params.user.PK !== state.user.PK);
   const isAdmin = (!onTab && ADMIN_UIDS.has(route.params.user.uid));
+  const iAmAdmin = (!onTab && ADMIN_UIDS.has(state.user.uid));
+  const isBanned = onTab ? state.bannedUsers.has(state.user.uid)
+    : state.bannedUsers.has(route.params.user.uid);
   const user = isMe ? state.user : route.params.user;
 
   const [numFollows, setNumFollows] = useState([0, 0]);
@@ -215,6 +226,14 @@ const Profile = ({ navigation, route }) => {
 
   useEffect(() => {
     mounted.current = true;
+
+    if (state.bannedUsers.has(user.uid)) {
+      posts.current = [LIST_STATES.NO_RESULTS];
+      setReviews({});
+      setRefreshing(false);
+      return;
+    }
+
     // Get number of followers and following
     (async () => {
       const { promise, getValue, errorMsg } = getNumFollowsQuery({ PK: user.PK, SK: user.SK });
@@ -248,29 +267,6 @@ const Profile = ({ navigation, route }) => {
     };
   }, [numRefresh.current, isMe, user.PK, user.SK, user.identityId, state.reloadProfileTrigger]);
 
-  const getPostPictures = (item) => new Promise((resolve, reject) => {
-    if (!item.picture) {
-      resolve(item);
-      return;
-    }
-    Storage.get(item.picture, !isMe && { identityId: user.identityId })
-      .then((url) => {
-        item.s3Photo = url;
-        // Attach placeUserInfo property for StoryModal
-        item.placeUserInfo = {
-          uid: user.uid,
-          name: user.name,
-          picture: user.picture,
-          identityId: user.identityId,
-        };
-        resolve(item);
-      })
-      .catch((err) => {
-        console.warn('Error fetching post picture from S3: ', err);
-        reject();
-      });
-  });
-
   const fetchPostsDetails = async (userReviews) => {
     const placePosts = {}; // { placeKey: [placePost, placePost, ...] }
     const placePostsRatingSum = {};
@@ -286,59 +282,65 @@ const Profile = ({ navigation, route }) => {
     yums.forEach(({ placeId }) => {
       updatedPlaceNumYums[placeId] = (updatedPlaceNumYums[placeId] || 0) + 1;
     });
-    Promise.all(userReviews.map(getPostPictures)).then((currPosts) => {
-      numReviews.current = currPosts.length;
-      for (let i = 0; i < currPosts.length; i += 1) {
-        // add to placePosts map
-        const { placeId, s3Photo } = currPosts[i];
-        if (!placePosts[placeId] && !placeTextReviews[placeId]) {
-          if (s3Photo) {
-            placePosts[placeId] = [currPosts[i]];
-            placePosts[placeId][0].visible = true;
-            placeTextReviews[placeId] = 0;
-          } else {
-            placeTextReviews[placeId] = 1;
-          }
-          placePostsRatingSum[placeId] = currPosts[i].rating;
+    numReviews.current = userReviews.length;
+    for (let i = 0; i < userReviews.length; i += 1) {
+      if (userReviews[i].picture) {
+        userReviews[i].placeUserInfo = {
+          uid: user.uid,
+          name: user.name,
+          picture: user.picture,
+          identityId: user.identityId,
+        };
+      }
+      // add to placePosts map
+      const { placeId, picture } = userReviews[i];
+      if (!placePosts[placeId] && !placeTextReviews[placeId]) {
+        if (picture) {
+          placePosts[placeId] = [userReviews[i]];
+          placePosts[placeId][0].visible = true;
+          placeTextReviews[placeId] = 0;
         } else {
-          if (!placePosts[placeId]) placePosts[placeId] = [];
-          if (s3Photo) placePosts[placeId].push(currPosts[i]);
-          else placeTextReviews[placeId] += 1;
-          placePostsRatingSum[placeId] += currPosts[i].rating;
+          placeTextReviews[placeId] = 1;
         }
+        placePostsRatingSum[placeId] = userReviews[i].rating;
+      } else {
+        if (!placePosts[placeId]) placePosts[placeId] = [];
+        if (picture) placePosts[placeId].push(userReviews[i]);
+        else placeTextReviews[placeId] += 1;
+        placePostsRatingSum[placeId] += userReviews[i].rating;
       }
-      Object.entries(placePostsRatingSum).forEach(([placeId, sum]) => {
-        if (placePosts[placeId] && (placePosts[placeId].length || placeTextReviews[placeId])) {
-          placePosts[placeId][0].avgRating = sum / (placePosts[placeId].length + placeTextReviews[placeId]);
-        }
-      });
-
-      // Format posts for FlatList, include numYums
-      const placeIdKeys = Object.keys(placePosts);
-      if (placeIdKeys && placeIdKeys.length) {
-        // if (reviews == null) posts.current = [[]];
-        posts.current = [[], {
-          allReviews: allReviews.current, uid: user.uid, navigation, isReviewsList: true,
-        }];
-        for (let i = 0; i < placeIdKeys.length; i += 2) {
-          const rowItem = [{
-            placePosts: placePosts[placeIdKeys[i]],
-            numYums: updatedPlaceNumYums[placeIdKeys[i]],
-          }];
-          if (i + 1 < placeIdKeys.length) {
-            rowItem.push({
-              placePosts: placePosts[placeIdKeys[i + 1]],
-              numYums: updatedPlaceNumYums[placeIdKeys[i + 1]],
-            });
-          }
-          posts.current.push(rowItem);
-        }
-      }
-      if (mounted.current) {
-        setReviews(placePosts);
-        setRefreshing(false);
+    }
+    Object.entries(placePostsRatingSum).forEach(([placeId, sum]) => {
+      if (placePosts[placeId] && (placePosts[placeId].length || placeTextReviews[placeId])) {
+        placePosts[placeId][0].avgRating = sum / (placePosts[placeId].length + placeTextReviews[placeId]);
       }
     });
+
+    // Format posts for FlatList, include numYums
+    const placeIdKeys = Object.keys(placePosts);
+    if (placeIdKeys && placeIdKeys.length) {
+      // if (reviews == null) posts.current = [[]];
+      posts.current = [[], {
+        allReviews: allReviews.current, uid: user.uid, navigation, isReviewsList: true,
+      }];
+      for (let i = 0; i < placeIdKeys.length; i += 2) {
+        const rowItem = [{
+          placePosts: placePosts[placeIdKeys[i]],
+          numYums: updatedPlaceNumYums[placeIdKeys[i]],
+        }];
+        if (i + 1 < placeIdKeys.length) {
+          rowItem.push({
+            placePosts: placePosts[placeIdKeys[i + 1]],
+            numYums: updatedPlaceNumYums[placeIdKeys[i + 1]],
+          });
+        }
+        posts.current.push(rowItem);
+      }
+    }
+    if (mounted.current) {
+      setReviews(placePosts);
+      setRefreshing(false);
+    }
   };
 
   // Load more posts
@@ -488,6 +490,87 @@ const Profile = ({ navigation, route }) => {
     }
   };
 
+  // Ban user confirmation
+  const banUserConfirmation = () => {
+    Alert.prompt(
+      isBanned ? 'Un-Ban User' : 'Ban User',
+      isBanned ? 'Admin only. Confirm un-ban?' : 'Admin only. Confirm reversible ban?',
+      (passcode) => {
+        if (passcode === ADMIN_PASSWORD) {
+          if (isBanned) unBanUser();
+          else banUser();
+        } else {
+          Alert.alert(
+            'Error',
+            'Incorrect passcode',
+            [{ text: 'OK' }],
+            { cancelable: false },
+          );
+        }
+      },
+      'secure-text',
+    );
+  };
+
+  const banUser = async () => {
+    const banUserInput = {
+      PK: `USER#${user.uid}`,
+      SK: `#BAN#${user.uid}`,
+      GSI1: 'BANNEDUSER#',
+      uid: user.uid,
+      name: user.name,
+    };
+    try {
+      await API.graphql(graphqlOperation(
+        createFeastItem,
+        { input: banUserInput },
+      ));
+      await getBannedUsers(dispatch);
+      Alert.alert(
+        'Success',
+        'User banned',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+    } catch (e) {
+      console.warn(e);
+      Alert.alert(
+        'Error',
+        'Could not ban user',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+    }
+  };
+
+  const unBanUser = async () => {
+    const unBanUserInput = {
+      PK: `USER#${user.uid}`,
+      SK: `#BAN#${user.uid}`,
+    };
+    try {
+      await API.graphql(graphqlOperation(
+        deleteFeastItem,
+        { input: unBanUserInput },
+      ));
+      await getBannedUsers(dispatch);
+      Alert.alert(
+        'Success',
+        'User un-banned',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+    } catch (e) {
+      console.warn(e);
+      Alert.alert(
+        'Error',
+        'Could not un-ban user',
+        [{ text: 'OK' }],
+        { cancelable: false },
+      );
+    }
+  };
+
   // More modal
   const moreItemsMe = [
     {
@@ -521,13 +604,20 @@ const Profile = ({ navigation, route }) => {
     },
   ];
 
+  const moreItemsIAmAdmin = [
+    {
+      onPress: banUserConfirmation,
+      icon: <X size={wp(7.2)} color="red" />,
+      label: isBanned ? 'Un-Ban User' : 'Ban user',
+      end: true,
+    },
+  ];
+
   const getMoreItems = () => {
-    if (isMe) {
-      return moreItemsMe;
-    } if (!isAdmin) {
-      return moreItemsOther;
-    }
-    return moreItemsAdmin;
+    if (isMe) return moreItemsMe;
+    if (isAdmin) return moreItemsAdmin;
+    if (iAmAdmin) return moreItemsIAmAdmin;
+    return moreItemsOther;
   };
 
   const renderTopContainer = () => (
@@ -583,7 +673,7 @@ const Profile = ({ navigation, route }) => {
               style={[styles.locationText, !user.city && { fontFamily: 'MediumItalic' }]}
               numberOfLines={2}
             >
-              {user.city || 'No location'}
+              {!isBanned && user.city ? user.city : 'No location'}
             </Text>
           </View>
           <View style={styles.infoContainer}>
@@ -643,7 +733,6 @@ const Profile = ({ navigation, route }) => {
                   <FollowButton
                     currentUser={user}
                     myUser={state.user}
-                    dispatch={dispatch}
                     containerStyle={styles.editContainer}
                     textStyle={styles.editText}
                   />
@@ -694,7 +783,7 @@ const Profile = ({ navigation, route }) => {
     });
   };
 
-  const renderRow = useCallback(({ item }) => {
+  const renderRow = useCallback(({ item, index }) => {
     if (item.isReviewsList) {
       return (
         <View>
@@ -720,6 +809,7 @@ const Profile = ({ navigation, route }) => {
     return (
       <RowItem
         row={item}
+        index={index}
         translateLeftContent={translateLeftContent}
         translatePostListContentOpacity={translatePostListContentOpacity}
         openPlacePosts={openPlacePosts}
@@ -729,6 +819,7 @@ const Profile = ({ navigation, route }) => {
         translateTabBar={translateTabBar}
         numReviews={numReviews.current}
         refresh={numRefresh.current}
+        isMe={isMe}
       />
     );
   }, []);
