@@ -1,9 +1,14 @@
 import { Platform } from 'react-native';
 
 import {
-  widthPercentageToDP as wp,
+  widthPercentageToDP,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+
+const isIOS = Platform.OS === 'ios';
+const { isPad } = Platform;
+
+const wp = isPad ? (size) => widthPercentageToDP(size / 2) : (size) => widthPercentageToDP(size);
 
 const colors = {
   accent: '#7928C0', // dark purple
@@ -72,8 +77,6 @@ const sizes = {
 const header = {
   title: { fontFamily: 'Semi', fontSize: sizes.h3, color: colors.black },
 };
-
-const isIOS = Platform.OS === 'ios';
 
 export {
   colors, shadows, gradients, sizes, header, wp, hp, isIOS,
