@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import StarsRating from './util/StarsRating';
 import Yum from './util/icons/Yum';
 import {
-  colors, sizes, wp, shadows,
+  colors, sizes, wp, shadows, isPad,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -50,7 +50,7 @@ const PostListItem = ({
   }, [item.picture, item.placeUserInfo.identityId, refresh]);
   return (
     <TouchableOpacity
-      style={styles.postItem}
+      style={[styles.postItem, { width: isPad ? wp(53.5) : wp(45) }]}
       activeOpacity={0.9}
       onPress={() => openPlacePosts({ stories: placePosts })}
     >
@@ -117,8 +117,7 @@ export default PostListItem;
 
 const styles = StyleSheet.create({
   postItem: {
-    width: wp(45),
-    height: wp(57),
+    aspectRatio: 0.79,
     backgroundColor: '#fff',
     borderRadius: wp(3),
     ...shadows.baseEven,

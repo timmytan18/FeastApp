@@ -8,7 +8,8 @@ import {
 const isIOS = Platform.OS === 'ios';
 const { isPad } = Platform;
 
-const wp = isPad ? (size) => widthPercentageToDP(size / 2) : (size) => widthPercentageToDP(size);
+const wp = isPad ? (size) => widthPercentageToDP(size * 0.5) : (size) => widthPercentageToDP(size);
+const wpFull = (size) => widthPercentageToDP(size);
 
 const colors = {
   accent: '#7928C0', // dark purple
@@ -55,7 +56,7 @@ const sizes = {
   font: 14,
   radius: 6,
   padding: 25,
-  margin: wp(4),
+  margin: isPad ? wp(16) : wp(4),
 
   // font sizes
   h1: wp(6.9), // 26
@@ -79,5 +80,5 @@ const header = {
 };
 
 export {
-  colors, shadows, gradients, sizes, header, wp, hp, isIOS,
+  colors, shadows, gradients, sizes, header, wp, wpFull, hp, isIOS, isPad,
 };

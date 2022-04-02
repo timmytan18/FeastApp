@@ -23,7 +23,7 @@ import Yum from '../components/util/icons/Yum';
 import { storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp,
+  colors, sizes, wp, wpFull,
 } from '../../constants/theme';
 
 const today = new Date();
@@ -290,7 +290,7 @@ const Inbox = ({ navigation }) => {
         }}
         initialScrollIndex={0}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ width: wp(100), paddingVertical: sizes.margin }}
+        contentContainerStyle={{ width: wpFull(100), paddingVertical: wpFull(4) }}
       />
       {notifications !== null && notifications.length === 0
         && (

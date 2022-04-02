@@ -41,7 +41,7 @@ import MoreView from './MoreView';
 import StarsRating from './util/StarsRating';
 import { Context } from '../../Store';
 import {
-  colors, sizes, gradients, wp, shadows,
+  colors, sizes, gradients, wp, wpFull, shadows,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     top: 0,
     zIndex: 1,
     height: wp(100),
-    width: wp(100),
+    width: wpFull(100),
   },
   imageContainer: {
     flex: 1,
@@ -656,13 +656,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   topContainer: {
-    paddingHorizontal: wp(4),
+    paddingHorizontal: sizes.margin,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
   titleTextContainer: {
     width: '100%',
-    paddingHorizontal: wp(4),
+    paddingHorizontal: sizes.margin,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
@@ -770,13 +770,13 @@ const styles = StyleSheet.create({
     fontSize: sizes.b1,
   },
   breaker: {
-    width: wp(100),
+    width: wpFull(100),
     height: wp(2),
     marginVertical: wp(6),
     backgroundColor: colors.gray2,
   },
   bottomContainer: {
-    paddingHorizontal: wp(4.5),
+    paddingHorizontal: sizes.margin * 1.03,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
     marginBottom: wp(36),
     alignSelf: 'center',
     borderRadius: wp(2),
-    marginHorizontal: wp(4),
+    marginHorizontal: sizes.margin,
   },
   map: {
     flex: 1,

@@ -3,10 +3,7 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Svg, {
   G, Rect, Path, Circle,
 } from 'react-native-svg';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const Instagram = ({ username }) => {
   const size = wp(9);

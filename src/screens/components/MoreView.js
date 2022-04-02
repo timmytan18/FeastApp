@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Context } from '../../Store';
 import Line from './util/Line';
 import {
-  colors, sizes, gradients, wp,
+  colors, sizes, gradients, wp, wpFull,
 } from '../../constants/theme';
 
 const MoreItem = ({ item, setMorePressed, labelSize }) => (
@@ -57,7 +57,7 @@ const MoreItem = ({ item, setMorePressed, labelSize }) => (
         </View>
       )}
     </TouchableOpacity>
-    {!item.end && <Line length={wp(100) - (sizes.margin * 2)} color={colors.gray2} />}
+    {!item.end && <Line length={wpFull(100) - (wp(10))} color={colors.gray2} />}
   </View>
 );
 

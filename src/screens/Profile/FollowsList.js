@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingLeft: wp(5),
+    paddingLeft: sizes.margin + wp(1),
     paddingRight: sizes.margin,
     backgroundColor: '#fff',
   },

@@ -1,9 +1,6 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const DollarSign = (props) => (
   <Svg width={wp(5)} height={wp(5)} viewBox="0 0 18 18" {...props}>

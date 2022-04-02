@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     marginHorizontal: sizes.margin,
-    marginVertical: sizes.margin * 3,
+    marginVertical: sizes.margin * 2,
   },
   headerText: {
     fontFamily: 'Semi',

@@ -26,7 +26,9 @@ import SearchButton from '../components/util/SearchButton';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
 import { DEFAULT_COORDINATES } from '../../constants/constants';
-import { colors, sizes, wp } from '../../constants/theme';
+import {
+  colors, isPad, sizes, wp, wpFull,
+} from '../../constants/theme';
 
 const NUM_POSTS_TO_FETCH = 8;
 const NUM_DAYS_TO_FETCH = 7;
@@ -259,6 +261,7 @@ const Home = ({ navigation }) => {
       style={[
         styles.rootContainer,
         { marginTop: insets.top },
+        isPad && { paddingTop: wpFull(3) },
         loading && { opacity: 0.6, backgroundColor: colors.gray },
       ]}
       pointerEvents={loading ? 'none' : 'auto'}
@@ -334,7 +337,7 @@ const Home = ({ navigation }) => {
           }}
           initialScrollIndex={0}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ width: wp(100) }}
+          contentContainerStyle={{ width: wpFull(100) }}
           onEndReached={getMorePosts}
           ListFooterComponent={listFooterComponent}
         />
@@ -395,11 +398,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: sizes.margin,
     paddingBottom: 9,
-  },
-  searchBtn: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: sizes.margin,
   },
   scrollView: {
     backgroundColor: '#131617',

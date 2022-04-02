@@ -23,7 +23,7 @@ import getBannedUsers from '../../api/functions/GetBannedUsers';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, sizes, wp, header,
+  colors, sizes, wp, wpFull, header,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -416,7 +416,7 @@ const PostDetails = ({ navigation, route }) => {
       <ScrollView
         onScrollBeginDrag={Keyboard.dismiss}
         showsVerticalScrollIndicator={false}
-        style={{ padding: wp(4) }}
+        style={{ paddingHorizontal: sizes.margin, paddingVertical: wpFull(4) }}
       >
         <View style={styles.postHeader}>
           <ProfilePic

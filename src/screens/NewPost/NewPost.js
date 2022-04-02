@@ -19,7 +19,7 @@ import Redirect from '../components/util/icons/Redirect';
 import MapMarker from '../components/util/icons/MapMarker';
 import { getSecureValue, keys } from '../../api/functions/SecureStore';
 import {
-  colors, gradients, shadows, sizes, wp,
+  colors, gradients, shadows, sizes, wp, wpFull,
 } from '../../constants/theme';
 
 const BING_CAT_TYPE = 'EatDrink';
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   topTextContainer: {
     alignSelf: 'flex-start',
-    marginTop: wp(5),
+    marginTop: wpFull(5),
     marginBottom: wp(2),
     marginLeft: sizes.margin,
   },
@@ -469,14 +469,14 @@ const styles = StyleSheet.create({
   searchBoxContainer: {
     flex: 0.06,
     width: '100%',
-    paddingHorizontal: wp(3.5),
+    paddingHorizontal: sizes.margin - wp(0.5),
     paddingTop: wp(3),
     paddingBottom: wp(5),
   },
   topContainer: {
     flex: 0.11,
     width: '100%',
-    paddingHorizontal: wp(4),
+    paddingHorizontal: sizes.margin,
   },
   locationTitleContainer: {
     flexDirection: 'row',
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    width: wp(92),
+    width: wpFull(100) - sizes.margin * 2,
   },
   infoContainer: {
     flex: 0.7,

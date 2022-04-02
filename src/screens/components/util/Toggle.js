@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  sizes, colors, gradients, wp,
+  sizes, colors, gradients, wp, wpFull,
 } from '../../../constants/theme';
 
 const Toggle = ({
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: wp(44),
+    width: wpFull(44),
     height: wp(8.8),
     borderRadius: wp(2),
     borderWidth: 1.25,

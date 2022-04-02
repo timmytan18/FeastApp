@@ -6,7 +6,7 @@ import Unlock from '../components/util/icons/Unlock';
 import BadgeCheck from '../components/util/icons/BadgeCheck';
 import Line from '../components/util/Line';
 import {
-  colors, sizes, wp,
+  colors, sizes, wp, wpFull,
 } from '../../constants/theme';
 
 const EmailInput = ({
@@ -35,7 +35,7 @@ const EmailInput = ({
         }}
       />
     </View>
-    <Line length={wp(100) - (sizes.margin * 2)} color={colors.tertiary} />
+    <Line length={wpFull(100) - (sizes.margin * 2)} color={colors.tertiary} />
   </View>
 );
 
@@ -64,7 +64,7 @@ const PasswordInput = ({
         value={value || null}
       />
     </View>
-    <Line length={wp(100) - (sizes.margin * 2)} color={colors.tertiary} />
+    <Line length={wpFull(100) - (sizes.margin * 2)} color={colors.tertiary} />
   </View>
 );
 
@@ -90,7 +90,7 @@ const ConfirmPasswordInput = ({
         value={value || null}
       />
     </View>
-    <Line length={wp(100) - (sizes.margin * 2)} color={colors.tertiary} />
+    <Line length={wpFull(100) - (sizes.margin * 2)} color={colors.tertiary} />
   </View>
 );
 
@@ -98,7 +98,7 @@ const NameInput = ({ onChange, value }) => (
   <View>
     <View style={styles.inputContainer}>
       <TextInput
-        style={[styles.textInput, { flex: null, width: wp(94) - (sizes.margin), marginLeft: 5 }]}
+        style={[styles.textInput, { flex: null, width: wpFull(94) - (sizes.margin), marginLeft: 5 }]}
         onChangeText={(text) => onChange(text)}
         placeholder="Full name"
         value={value || null}
@@ -110,7 +110,7 @@ const NameInput = ({ onChange, value }) => (
       />
     </View>
     <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-      <Line length={wp(94) - (sizes.margin)} color={colors.tertiary} />
+      <Line length={wpFull(94) - (sizes.margin)} color={colors.tertiary} />
     </View>
   </View>
 );
@@ -136,7 +136,7 @@ const VerificationInput = ({ onChange, passwordInput }) => (
         }}
       />
     </View>
-    <Line length={wp(100) - (sizes.margin * 2)} color={colors.tertiary} />
+    <Line length={wpFull(100) - (sizes.margin * 2)} color={colors.tertiary} />
   </View>
 );
 

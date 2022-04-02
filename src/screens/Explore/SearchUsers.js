@@ -20,7 +20,7 @@ import ProfilePic from '../components/ProfilePic';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { ADMIN_UIDS } from '../../constants/constants';
 import {
-  colors, sizes, wp, shadows,
+  colors, sizes, wp, wpFull, shadows,
 } from '../../constants/theme';
 
 const SearchUsers = ({ navigation }) => {
@@ -32,7 +32,7 @@ const SearchUsers = ({ navigation }) => {
 
   const translate = position.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, wp(50)],
+    outputRange: [0, wpFull(50)],
   });
 
   const [searchList, setSearchList] = useState([]);
@@ -218,7 +218,8 @@ const styles = StyleSheet.create({
   userIconContainer: {
     height: USER_ICON_SIZE,
     width: USER_ICON_SIZE,
-    marginHorizontal: sizes.margin,
+    marginLeft: sizes.margin,
+    marginRight: wp(4),
     borderRadius: USER_ICON_SIZE / 2,
   },
   userIconImage: {
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     height: wp(1),
-    width: wp(40),
+    width: wpFull(40),
     alignSelf: 'center',
     backgroundColor: colors.tertiary,
     borderTopLeftRadius: wp(1),

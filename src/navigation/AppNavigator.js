@@ -43,7 +43,7 @@ import { secureSave, getSecureValue, keys } from '../api/functions/SecureStore';
 import { getLocalData, localDataKeys } from '../api/functions/LocalStorage';
 import { Context } from '../Store';
 import {
-  colors, sizes, header, wp,
+  colors, sizes, header, wp, wpFull,
 } from '../constants/theme';
 
 Storage.configure({ level: 'protected' });
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     height: wp(2),
     backgroundColor: colors.accent2,
     borderRadius: wp(1),
-    right: -wp(0.5),
-    top: -wp(0.5),
+    right: -wpFull(0.5),
+    top: -wpFull(0.5),
   },
 });

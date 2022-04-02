@@ -1,9 +1,6 @@
 import * as React from 'react';
 import Svg, { G, Circle, Path } from 'react-native-svg';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const YumNoFill = ({ size, color }) => (
   <Svg

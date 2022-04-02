@@ -1,10 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const Yelp = ({ color }) => (
   <FontAwesome name="yelp" style={[styles.yelpIcon, { color: color || '#f44336' }]} />

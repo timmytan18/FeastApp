@@ -29,7 +29,7 @@ import { getLocalData, storeLocalData, localDataKeys } from '../../api/functions
 import { DEFAULT_COORDINATES } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, shadows, sizes, wp,
+  colors, shadows, sizes, wp, wpFull,
 } from '../../constants/theme';
 
 const mapLessLandmarksStyle = [
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   toggleContainer: {
     position: 'absolute',
     top: wp(18),
-    left: '28%',
+    left: wpFull(28),
     backgroundColor: '#fff',
     borderRadius: wp(2),
   },

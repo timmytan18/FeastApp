@@ -38,7 +38,7 @@ import { mergeLocalData, localDataKeys } from '../../api/functions/LocalStorage'
 import { GET_SAVED_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, shadows, gradients, sizes, wp,
+  colors, shadows, gradients, sizes, wp, isPad, wpFull,
 } from '../../constants/theme';
 
 const NUM_COLLAPSED_LINES = 2;
@@ -61,6 +61,8 @@ const StoryModal = ({ navigation, route }) => {
     },
     dispatch,
   ] = useContext(Context);
+
+  const deviceAspect = deviceHeight / wpFull(100);
 
   const index = useRef(0);
   const [indexState, setIndexState] = useState(0);
@@ -753,7 +755,11 @@ const StoryModal = ({ navigation, route }) => {
             {image ? (
               <View>
                 <Image
-                  style={[styles.image, isExpanded && { aspectRatio: 0.9 }]}
+                  style={[
+                    styles.image,
+                    (isPad || (deviceAspect < 1.9)) && { aspectRatio: 1.05 },
+                    isExpanded && { aspectRatio: 0.9 },
+                  ]}
                   source={{ uri: image }}
                 />
                 <View style={styles.emojiContainer} />
@@ -761,7 +767,7 @@ const StoryModal = ({ navigation, route }) => {
               </View>
             ) : (
               <View
-                style={[styles.image, styles.noImage]}
+                style={[styles.image, isPad && { aspectRatio: 1.05 }, styles.noImage]}
               >
                 <Text style={styles.noImageText}>No image</Text>
               </View>

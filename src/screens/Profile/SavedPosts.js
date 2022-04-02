@@ -15,7 +15,9 @@ import {
 import CenterSpinner from '../components/util/CenterSpinner';
 import Save from '../components/util/icons/Save';
 import { Context } from '../../Store';
-import { wp, sizes, colors } from '../../constants/theme';
+import {
+  wp, sizes, colors, isPad, wpFull,
+} from '../../constants/theme';
 
 // Memoize row rendering, only rerender when row content changes
 const RowItem = React.memo(({ row, openPlacePosts, ratings }) => (
@@ -35,6 +37,8 @@ const RowItem = React.memo(({ row, openPlacePosts, ratings }) => (
   </View>
 ), (prevProps, nextProps) => prevProps.row
   === nextProps.row && prevProps.ratings === nextProps.ratings);
+
+const itemsInRow = isPad ? 3 : 2;
 
 const SavedPosts = ({ navigation, route }) => {
   const [{ user }, dispatch] = useContext(Context);
@@ -120,12 +124,12 @@ const SavedPosts = ({ navigation, route }) => {
             const updatedPosts = [];
             const placeIdKeys = Object.keys(placePosts);
             if (placeIdKeys && placeIdKeys.length) {
-              for (let i = 0; i < placeIdKeys.length; i += 2) {
-                if (i + 1 < placeIdKeys.length) {
-                  updatedPosts.push([placePosts[placeIdKeys[i]], placePosts[placeIdKeys[i + 1]]]);
-                } else {
-                  updatedPosts.push([placePosts[placeIdKeys[i]]]);
+              for (let i = 0; i < placeIdKeys.length; i += itemsInRow) {
+                const currRow = [placePosts[placeIdKeys[i]]];
+                for (let j = i + 1; j < i + itemsInRow && j < placeIdKeys.length; j += 1) {
+                  currRow.push(placePosts[placeIdKeys[j]]);
                 }
+                updatedPosts.push(currRow);
               }
             }
             if (mounted.current) {
@@ -208,14 +212,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   flatlistContainer: {
-    paddingTop: wp(3),
+    paddingTop: wpFull(3),
     paddingBottom: wp(12),
   },
   postsRowContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    marginHorizontal: wp(4),
-    marginBottom: wp(2.5),
+    marginHorizontal: sizes.margin,
+    marginBottom: wpFull(2.5),
     flexDirection: 'row',
   },
   noResultsContainer: {

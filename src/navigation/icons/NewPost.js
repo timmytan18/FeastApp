@@ -7,10 +7,7 @@ import Svg, {
   Circle,
   Rect,
 } from 'react-native-svg';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../constants/theme';
 
 const NewPostIcon = (props) => (
   <Svg width={wp(7.1)} height={wp(7.1)} viewBox="0 0 27 27" {...props}>

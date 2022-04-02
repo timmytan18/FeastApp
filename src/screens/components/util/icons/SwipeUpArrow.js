@@ -1,10 +1,11 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
+import { wp } from '../../../../constants/theme';
 
 const SwipeUpArrow = (props) => (
   <Svg
-    width={20}
-    height={11}
+    width={wp(5.2)}
+    height={wp(3)}
     viewBox="0 0 20 11"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

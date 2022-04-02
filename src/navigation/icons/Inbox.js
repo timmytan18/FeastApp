@@ -2,11 +2,14 @@ import * as React from 'react';
 import Svg, {
   Path, G, Defs, ClipPath,
 } from 'react-native-svg';
+import { wp } from '../../constants/theme';
+
+const size = wp(7.37);
 
 const InboxIcon = (props) => (
   <Svg
-    width={29}
-    height={34}
+    width={size}
+    height={size}
     viewBox="0 0 28 26"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -30,8 +33,8 @@ const InboxIcon = (props) => (
 
 const InboxFilledIcon = (props) => (
   <Svg
-    width={29}
-    height={34}
+    width={size}
+    height={size}
     viewBox="0 0 28 26"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

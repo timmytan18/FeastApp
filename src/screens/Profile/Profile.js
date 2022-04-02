@@ -14,7 +14,6 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BallIndicator } from 'react-native-indicators';
 import MaskedView from '@react-native-community/masked-view';
-// import { useScrollToTop } from '@react-navigation/native';
 import {
   createFeastItem, deleteFeastItem,
 } from '../../api/graphql/mutations';
@@ -53,7 +52,7 @@ import getBannedUsers from '../../api/functions/GetBannedUsers';
 import { ADMIN_UIDS, ADMIN_PASSWORD } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
-  colors, gradients, sizes, wp, shadows,
+  colors, gradients, sizes, wp, wpFull, shadows, isPad,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -191,8 +190,9 @@ const RowItem = React.memo(({
   );
 }, areEqual);
 
-const sideMargin = wp(6);
-const screenWidth = wp(100);
+const sideMargin = wpFull(6);
+const screenWidth = wpFull(100);
+const itemsInRow = isPad ? 3 : 2;
 
 const Profile = ({ navigation, route }) => {
   // Set necessary data
@@ -322,16 +322,18 @@ const Profile = ({ navigation, route }) => {
       posts.current = [[], {
         allReviews: allReviews.current, uid: user.uid, navigation, isReviewsList: true,
       }];
-      for (let i = 0; i < placeIdKeys.length; i += 2) {
+      for (let i = 0; i < placeIdKeys.length; i += itemsInRow) {
         const rowItem = [{
           placePosts: placePosts[placeIdKeys[i]],
           numYums: updatedPlaceNumYums[placeIdKeys[i]],
         }];
-        if (i + 1 < placeIdKeys.length) {
-          rowItem.push({
-            placePosts: placePosts[placeIdKeys[i + 1]],
-            numYums: updatedPlaceNumYums[placeIdKeys[i + 1]],
-          });
+        for (let j = i + 1; j < i + itemsInRow; j += 1) {
+          if (j < placeIdKeys.length) {
+            rowItem.push({
+              placePosts: placePosts[placeIdKeys[j]],
+              numYums: updatedPlaceNumYums[placeIdKeys[j]],
+            });
+          }
         }
         posts.current.push(rowItem);
       }
@@ -635,7 +637,7 @@ const Profile = ({ navigation, route }) => {
               containerStyle={[styles.backArrowContainer, !isMe && { paddingRight: wp(5) }]}
             />
           )}
-          <View style={[{ paddingTop: wp(3) }, isMe && { paddingLeft: wp(5) }]}>
+          <View style={[{ paddingTop: wp(3) }, isMe && { paddingLeft: sizes.margin + wp(1) }]}>
             <MaskedView
               maskElement={(
                 <Text style={styles.headerTitle}>
@@ -861,7 +863,7 @@ const Profile = ({ navigation, route }) => {
               styles.mapViewTabButtonOverlay,
               {
                 top: insets.top,
-                left: wp(2.5),
+                left: wpFull(2.5),
               },
             ]}
             onPress={leftTabPressed}
@@ -871,7 +873,7 @@ const Profile = ({ navigation, route }) => {
               styles.mapViewTabButtonOverlay,
               {
                 top: insets.top,
-                left: wp(2.5) + wp(31.67),
+                left: wpFull(2.5) + wpFull(31.67),
               },
             ]}
             onPress={centerTabPressed}
@@ -881,7 +883,7 @@ const Profile = ({ navigation, route }) => {
               styles.mapViewTabButtonOverlay,
               {
                 top: insets.top,
-                right: wp(2.5),
+                right: wpFull(2.5),
               },
             ]}
             onPress={rightTabPressed}
@@ -913,7 +915,7 @@ const Profile = ({ navigation, route }) => {
         stickyHeaderIndices={[1]}
         contentContainerStyle={{
           paddingBottom: (posts.current.length > 4 || numReviews.current === 0
-            ? wp(12) : wp(71) + wp(60) * (4 - posts.current.length)),
+            ? wpFull(12) : wpFull(71) + wpFull(60) * (4 - posts.current.length)),
         }}
       />
       <Animated.View
@@ -992,13 +994,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 2,
     height: wp(11.6),
-    width: wp(31.67),
+    width: wpFull(31.67),
     opacity: 0,
   },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -1021,7 +1022,7 @@ const styles = StyleSheet.create({
   },
   moreButton: {
     alignSelf: 'center',
-    paddingRight: wp(5),
+    paddingRight: sizes.margin + wp(1),
     paddingTop: wp(0.2),
   },
   topProfileContainer: {
@@ -1115,7 +1116,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     paddingTop: wp(3),
     paddingHorizontal: sideMargin,
-    marginBottom: wp(2),
+    marginBottom: wpFull(2),
     borderBottomLeftRadius: wp(3),
     borderBottomRightRadius: wp(3),
     flexDirection: 'row',
@@ -1152,7 +1153,7 @@ const styles = StyleSheet.create({
   postsRowContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    marginHorizontal: wp(4),
+    marginHorizontal: sizes.margin,
     marginBottom: wp(2.5),
     flexDirection: 'row',
   },

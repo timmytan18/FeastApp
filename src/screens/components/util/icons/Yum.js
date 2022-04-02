@@ -7,10 +7,7 @@ import Svg, {
   Circle,
   Path,
 } from 'react-native-svg';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const Yum = (props) => {
   const { size } = props;

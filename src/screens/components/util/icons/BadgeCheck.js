@@ -1,8 +1,6 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
-import {
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const BadgeCheck = ({ size }) => (
   <Svg width={size || wp(7)} height={size || wp(7)} viewBox="0 0 24 24">

@@ -1,10 +1,11 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
+import { wp } from '../../../../constants/theme';
 
 const Edit = (props) => (
   <Svg
-    width={22}
-    height={22}
+    width={wp(5.7)}
+    height={wp(5.7)}
     viewBox="0 0 24 24"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

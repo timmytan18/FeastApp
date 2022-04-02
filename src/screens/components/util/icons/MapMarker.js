@@ -1,9 +1,6 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
-import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import { wp } from '../../../../constants/theme';
 
 const MapMarker = (props) => {
   const { color, size } = props;

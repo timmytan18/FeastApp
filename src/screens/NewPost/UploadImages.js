@@ -28,7 +28,7 @@ import { POST_IMAGE_ASPECT } from '../../constants/constants';
 import ENV from '../../constants/environment';
 import { Context } from '../../Store';
 import {
-  colors, sizes, header, wp,
+  colors, sizes, header, wp, isPad, wpFull,
 } from '../../constants/theme';
 
 const propTypes = {
@@ -435,7 +435,7 @@ const UploadImages = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={[styles.safeAreaContainer, { marginTop: -insets.top }]}>
-      <View style={styles.container}>
+      <View style={[styles.container, isPad && { paddingHorizontal: sizes.margin }]}>
         <DismissKeyboardView
           style={[styles.camContainer, !picture && tab !== CAMERA_TAB && { height: wp(40) }]}
         >
@@ -646,8 +646,8 @@ const styles = StyleSheet.create({
   },
   editContainer: {
     position: 'absolute',
-    top: sizes.margin,
-    right: sizes.margin,
+    top: wpFull(4),
+    right: wpFull(4),
     opacity: 0.9,
     backgroundColor: colors.gray4,
     height: wp(13),

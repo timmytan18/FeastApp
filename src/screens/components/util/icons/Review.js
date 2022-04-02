@@ -1,10 +1,11 @@
 import * as React from 'react';
 import Svg, { Rect, Path } from 'react-native-svg';
+import { wp } from '../../../../constants/theme';
 
 const Review = (props) => (
   <Svg
-    width={20}
-    height={20}
+    width={wp(5.1)}
+    height={wp(5.1)}
     viewBox="0 0 20 22"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

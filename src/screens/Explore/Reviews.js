@@ -12,7 +12,7 @@ import {
 import ReviewItem from '../components/ReviewItem';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
-import { sizes, wp } from '../../constants/theme';
+import { sizes, wp, wpFull } from '../../constants/theme';
 
 const NUM_REVIEWS_TO_FETCH = 10;
 
@@ -74,7 +74,7 @@ const Reviews = ({ navigation, route }) => {
             showsVerticalScrollIndicator
             onScrollBeginDrag={Keyboard.dismiss}
             keyboardShouldPersistTaps="handled"
-            ListHeaderComponent={<View style={{ height: wp(3) }} />}
+            ListHeaderComponent={<View style={{ height: wpFull(3) }} />}
             ListFooterComponent={<View style={{ height: wp(3) }} />}
             contentContainerStyle={{ paddingBottom: wp(12) }}
             onEndReached={() => fetchNextReviews()}
