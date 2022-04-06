@@ -1038,7 +1038,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray2,
     justifyContent: 'center',
     alignItems: 'center',
-    aspectRatio: 0.9,
+    aspectRatio: 1.2,
   },
   noImageText: {
     fontFamily: 'Book',
