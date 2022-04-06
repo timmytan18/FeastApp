@@ -146,6 +146,7 @@ export const getFollowers = /* GraphQL */ `
           SK
           name
           picture
+          identityId
           uid
         }
         updatedAt
