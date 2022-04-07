@@ -53,6 +53,7 @@ type Follower {
   identityId: String
   followedSK: String
   picture: String
+  expoPushToken: String
 }
 
 type PlaceInfo {

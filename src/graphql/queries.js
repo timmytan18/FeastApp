@@ -31,6 +31,7 @@ export const batchGetFeastItems = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -106,6 +107,7 @@ export const getFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -196,6 +198,7 @@ export const listFeastItems = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -284,6 +287,7 @@ export const itemsByGSI1 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -372,6 +376,7 @@ export const itemsByGSI2 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -460,6 +465,7 @@ export const itemsByLSI1 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -548,6 +554,7 @@ export const itemsByLSI2 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -636,6 +643,7 @@ export const itemsByLSI3 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -724,6 +732,7 @@ export const itemsByLSI4 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo
@@ -812,6 +821,7 @@ export const itemsByLSI5 = /* GraphQL */ `
           identityId
           followedSK
           picture
+          expoPushToken
         }
         placeId
         geo

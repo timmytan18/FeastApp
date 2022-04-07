@@ -31,6 +31,7 @@ export const incrementFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -106,6 +107,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -181,6 +183,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -259,6 +262,7 @@ export const createFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -337,6 +341,7 @@ export const updateFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -415,6 +420,7 @@ export const deleteFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo

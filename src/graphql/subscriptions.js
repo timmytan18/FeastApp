@@ -31,6 +31,7 @@ export const onCreateFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -106,6 +107,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -181,6 +183,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
