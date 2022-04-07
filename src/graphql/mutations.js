@@ -16,6 +16,7 @@ export const incrementFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -30,6 +31,7 @@ export const incrementFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -63,6 +65,7 @@ export const incrementFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -89,6 +92,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -103,6 +107,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -136,6 +141,7 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -162,6 +168,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -176,6 +183,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -209,6 +217,7 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -238,6 +247,7 @@ export const createFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -252,6 +262,7 @@ export const createFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -285,6 +296,7 @@ export const createFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -314,6 +326,7 @@ export const updateFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -328,6 +341,7 @@ export const updateFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -361,6 +375,7 @@ export const updateFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -390,6 +405,7 @@ export const deleteFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -404,6 +420,7 @@ export const deleteFeastItem = /* GraphQL */ `
         identityId
         followedSK
         picture
+        expoPushToken
       }
       placeId
       geo
@@ -437,6 +454,7 @@ export const deleteFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating

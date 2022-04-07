@@ -20,6 +20,7 @@ type FeastItem
   name: String
   uid: String
   identityId: String
+  expoPushToken: String
   phone: String
   email: String
   picture: String
@@ -52,6 +53,7 @@ type Follower {
   identityId: String
   followedSK: String
   picture: String
+  expoPushToken: String
 }
 
 type PlaceInfo {
@@ -79,6 +81,7 @@ type PlaceUserInfo {
   name: String
   picture: String
   identityId: String
+  expoPushToken: String
 }
 
 type Query {
@@ -137,6 +140,7 @@ input PlaceUserInfoInput {
   name: String
   picture: String
   identityId: String
+  expoPushToken: String
 }
 
 input PrimaryKeyInput {

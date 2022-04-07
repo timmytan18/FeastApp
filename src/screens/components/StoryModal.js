@@ -56,7 +56,7 @@ const StoryModal = ({ navigation, route }) => {
   const [
     {
       user: {
-        uid: myUID, PK: myPK, name: myName, picture: myPicture,
+        uid: myUID, PK: myPK, name: myName, picture: myPicture, expoPushToken: myExpoPushToken,
       }, savedPosts, deviceHeight,
     },
     dispatch,
@@ -346,13 +346,15 @@ const StoryModal = ({ navigation, route }) => {
 
   const scrollRef = useRef();
 
-  let uid; let placeId; let name; let s3Photo; let picture;
+  let uid; let placeId; let name; let picture;
   let dish; let rating; let review; let timestamp;
-  let userName; let userPic;
+  let userName; let userPic; let expoPushToken;
   if (stories && stories.length && index.current < stories.length) {
     ({
-      placeUserInfo: { uid, name: userName, picture: userPic },
-      placeId, name, s3Photo, picture, dish, rating, review, timestamp,
+      placeUserInfo: {
+        uid, name: userName, picture: userPic, expoPushToken,
+      },
+      placeId, name, picture, dish, rating, review, timestamp,
     } = stories[index.current]);
   }
 
@@ -840,10 +842,12 @@ const StoryModal = ({ navigation, route }) => {
                 uid={uid}
                 placeId={placeId}
                 timestamp={timestamp}
+                expoPushToken={expoPushToken}
                 myUID={myUID}
                 myPK={myPK}
                 myName={myName}
                 myPicture={myPicture}
+                myExpoPushToken={myExpoPushToken}
                 picture={picture}
                 showYummedUsersModal={showYummedUsersModal}
                 stopBarAnimation={stopBarAnimation}
