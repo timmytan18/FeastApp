@@ -2,12 +2,11 @@
 
 import { API, graphqlOperation } from 'aws-amplify';
 import {
-  getUserProfile, getUserExpoPushToken, getUserPosts, getUserPostsWithUserInfo, getUserPost,
-  getFollowing, getFollowingPK, searchUsers, searchPlaces, getIsFollowing, getPlaceInDB,
-  getPlaceInDBWithCategoriesAndPicture, getFollowers, getFollowersByTime, getNumFollows,
-  getFollowingPosts, getFollowingPostsDetails, getFollowingPostsByUser, getFollowersPK,
-  batchGetUserPosts, getAllPosts, getPlaceDetails, batchGetPlaceDetails,
-  getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
+  getUserProfile, getUserPosts, getUserPostsWithUserInfo, getUserPost, getFollowing, getFollowingPK,
+  searchUsers, searchPlaces, getIsFollowing, getPlaceInDB, getPlaceInDBWithCategoriesAndPicture,
+  getFollowers, getFollowersByTime, getNumFollows, getFollowingPosts, getFollowingPostsDetails,
+  getFollowingPostsByUser, getFollowersPK, batchGetUserPosts, getAllPosts, getPlaceDetails,
+  batchGetPlaceDetails, getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
   getUserYumsReceivedByTime, getPostYumsNoDetails, getUserEmail, getPlaceRating,
   batchGetPlaceRatings, getBannedUsers,
@@ -35,26 +34,8 @@ function getUserProfileQuery({ PK, SK, uid }) {
   const promise = API.graphql(
     graphqlOperation(getUserProfile, { PK: userPK, SK: { beginsWith: userSK } }),
   );
-  const getValue = (res) => res.data.listFeastItems.items[0] || null;
+  const getValue = (res) => res.data.listFeastItems.items[0];
   const errorMsg = 'Error fetching user profile data: ';
-  return { promise, getValue, errorMsg };
-}
-
-// Get user expo push token
-function getUserExpoPushTokenQuery({ uid }) {
-  const PK = `USER#${uid}`;
-  const SK = '#PROFILE#';
-  const promise = API.graphql(graphqlOperation(
-    getUserExpoPushToken,
-    { PK, SK: { beginsWith: SK } },
-  ));
-  const getValue = (res) => {
-    if (res.data.listFeastItems.items[0]) {
-      return res.data.listFeastItems.items[0].expoPushToken;
-    }
-    return null;
-  };
-  const errorMsg = 'Error getting user expo push token: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -502,13 +483,13 @@ function getBannedUsersQuery() {
 }
 
 export {
-  fulfillPromise, getUserProfileQuery, getUserExpoPushTokenQuery, getUserPostQuery,
-  getUserPostsQuery, getFollowingQuery, searchUsersQuery, searchPlacesQuery,
-  getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery, getFollowersByTimeQuery,
-  getNumFollowsQuery, getFollowingPostsQuery, getFollowingPostsDetailsQuery,
-  getFollowingPostsByUserQuery, batchGetUserPostsQuery, getAllPostsQuery,
-  getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
-  getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
-  getPostYumsQuery, getUserYumsReceivedQuery, getUserYumsReceivedByTimeQuery, getUserEmailQuery,
-  getPlaceRatingQuery, batchGetPlaceRatingsQuery, getBannedUsersQuery,
+  fulfillPromise, getUserProfileQuery, getUserPostQuery, getUserPostsQuery, getFollowingQuery,
+  searchUsersQuery, searchPlacesQuery, getIsFollowingQuery, getPlaceInDBQuery, getFollowersQuery,
+  getFollowersByTimeQuery, getNumFollowsQuery, getFollowingPostsQuery,
+  getFollowingPostsDetailsQuery, getFollowingPostsByUserQuery, batchGetUserPostsQuery,
+  getAllPostsQuery, getPlaceDetailsQuery, batchGetPlaceDetailsQuery,
+  getPlaceFollowingUserReviewsQuery, getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery,
+  getAllSavedPostItemsQuery, getPostYumsQuery, getUserYumsReceivedQuery,
+  getUserYumsReceivedByTimeQuery, getUserEmailQuery, getPlaceRatingQuery, batchGetPlaceRatingsQuery,
+  getBannedUsersQuery,
 };

@@ -209,7 +209,7 @@ const PostDetails = ({ navigation, route }) => {
 
       // Add post to user posts
       const {
-        PK: userPK, uid, name: userName, s3Picture: userPic, identityId, expoPushToken,
+        PK: userPK, uid, name: userName, s3Picture: userPic, identityId,
       } = state.user;
       const userPlaceSK = `#PLACE#${timestamp}`;
       const GSI1 = `POST#${placeId}`;
@@ -241,7 +241,6 @@ const PostDetails = ({ navigation, route }) => {
           name: userName,
           picture: userPic,
           identityId,
-          expoPushToken,
         },
       };
       try {
@@ -315,7 +314,6 @@ const PostDetails = ({ navigation, route }) => {
           name: userName,
           picture: userPic,
           identityId,
-          expoPushToken,
         },
       };
       // Created all post items for each follower

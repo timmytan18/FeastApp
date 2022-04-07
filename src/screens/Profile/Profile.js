@@ -290,7 +290,6 @@ const Profile = ({ navigation, route }) => {
           name: user.name,
           picture: user.picture,
           identityId: user.identityId,
-          expoPushToken: user.expoPushToken,
         };
       }
       // add to placePosts map

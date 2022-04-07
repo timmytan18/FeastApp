@@ -2,7 +2,7 @@
   "expo": {
     "name": "feast-1.0",
     "slug": "feast",
-    "version": "1.0.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -15,7 +15,7 @@
     "assetBundlePatterns": ["**/*"],
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "3",
+      "buildNumber": "3.6",
       "supportsTablet": true,
       "bundleIdentifier": "com.ttan18.feast",
       "userInterfaceStyle": "automatic",
@@ -36,6 +36,6 @@
       "favicon": "./assets/icon.png"
     },
     "scheme": "feast",
-    "plugins": ["react-native-compressor", "expo-notifications"]
+    "plugins": ["react-native-compressor"]
   }
 }

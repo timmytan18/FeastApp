@@ -1,11 +1,11 @@
 import React, {
-  useState, useEffect, useContext, useRef, useCallback,
+  useState, useEffect, useContext, useRef,
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, FlatList, Image,
 } from 'react-native';
 import { BallIndicator } from 'react-native-indicators';
-import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
+import { useScrollToTop } from '@react-navigation/native';
 import { Storage } from 'aws-amplify';
 import {
   getUserYumsReceivedByTimeQuery,
@@ -100,12 +100,13 @@ const YumNotifItem = ({ item, openUserProfile, openPost }) => {
   );
 };
 
-const Inbox = ({ navigation, route }) => {
+const Inbox = ({ navigation }) => {
   // Set necessary data
   const [
     {
       user, bannedUsers, reloadProfileTrigger, reloadMapTrigger,
     },
+    dispatch,
   ] = useContext(Context);
 
   const [notifications, setNotifications] = useState(null);
@@ -116,16 +117,6 @@ const Inbox = ({ navigation, route }) => {
 
   const flatlistRef = useRef(null);
   useScrollToTop(flatlistRef);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (route.params && route.params.shouldReload) {
-        numRefresh.current += 1;
-        setRefreshing(true);
-        route.params.shouldReload = false;
-      }
-    }, [route.params]),
-  );
 
   useEffect(() => {
     mounted.current = true;
@@ -152,10 +143,9 @@ const Inbox = ({ navigation, route }) => {
       ({ promise, getValue, errorMsg } = getUserYumsReceivedByTimeQuery({
         uid: user.uid, timestamp: oneWeekAgo,
       }));
-      let yums = await fulfillPromise(promise, getValue, errorMsg);
-      yums = yums.filter((item) => {
+      const yums = await fulfillPromise(promise, getValue, errorMsg);
+      yums.forEach((item) => {
         item.type = YUM;
-        return (item.uid !== user.uid);
       });
       const notifs = follows.concat(yums);
       notifs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); // sort by most recent

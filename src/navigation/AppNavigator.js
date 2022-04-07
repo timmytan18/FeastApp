@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     height: wp(2),
     backgroundColor: colors.accent2,
     borderRadius: wp(1),
-    right: -wpFull(0.75),
-    top: -wpFull(0.75),
+    right: -wpFull(0.5),
+    top: -wpFull(0.5),
   },
 });

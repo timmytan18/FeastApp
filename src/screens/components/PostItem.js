@@ -29,11 +29,11 @@ const PostItem = ({
   const [{ bannedUsers }, dispatch] = useContext(Context);
   let uid; let identityId; let placeId; let name; let geo; let categories;
   let imgUrl; let picture; let dish; let rating; let review; let timestamp;
-  let userName; let userPic; let expoPushToken;
+  let userName; let userPic;
   if (item) {
     ({
       placeUserInfo: {
-        uid, name: userName, picture: userPic, identityId, expoPushToken,
+        uid, name: userName, picture: userPic, identityId,
       },
       placeId, name, picture, dish, rating, review, timestamp, geo, categories, imgUrl,
     } = item);
@@ -59,7 +59,7 @@ const PostItem = ({
   }, [identityId, picture]);
 
   const {
-    PK: myPK, uid: myUID, name: myName, picture: myPicture, expoPushToken: myExpoPushToken,
+    PK: myPK, uid: myUID, name: myName, picture: myPicture,
   } = me;
 
   const isSaved = savedPosts.has(GET_SAVED_POST_ID({
@@ -205,12 +205,10 @@ const PostItem = ({
                       uid={uid}
                       placeId={placeId}
                       timestamp={timestamp}
-                      expoPushToken={expoPushToken}
                       myUID={myUID}
                       myPK={myPK}
                       myName={myName}
                       myPicture={myPicture}
-                      myExpoPushToken={myExpoPushToken}
                       picture={picture}
                       showYummedUsersModal={showYummedUsersModal}
                       light
@@ -247,12 +245,10 @@ const PostItem = ({
                   uid={uid}
                   placeId={placeId}
                   timestamp={timestamp}
-                  expoPushToken={expoPushToken}
                   myUID={myUID}
                   myPK={myPK}
                   myName={myName}
                   myPicture={myPicture}
-                  myExpoPushToken={myExpoPushToken}
                   picture={picture}
                   showYummedUsersModal={showYummedUsersModal}
                   light

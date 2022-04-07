@@ -5,17 +5,11 @@ import {
 import { API, graphqlOperation } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import PropTypes from 'prop-types';
-import {
-  getFollowingPostsByUserQuery,
-  getUserPostsQuery,
-  getUserExpoPushTokenQuery,
-  fulfillPromise,
-} from '../../api/functions/queryFunctions';
+import { getFollowingPostsByUserQuery, getUserPostsQuery, fulfillPromise } from '../../api/functions/queryFunctions';
 import {
   createFeastItem, deleteFeastItem, incrementFeastItem,
   batchCreateFollowingPosts, batchDeleteFollowingPosts,
 } from '../../api/graphql/mutations';
-import { sendFollowNotif } from '../../api/functions/Notifications';
 import TwoButtonAlert from './util/TwoButtonAlert';
 import { Context } from '../../Store';
 import {
@@ -30,7 +24,6 @@ const propTypes = {
     name: PropTypes.string,
     username: PropTypes.string,
     identityId: PropTypes.string,
-    expoPushToken: PropTypes.string,
     picture: PropTypes.string,
     following: PropTypes.bool,
   }).isRequired,
@@ -40,7 +33,6 @@ const propTypes = {
     SK: PropTypes.string,
     name: PropTypes.string,
     identityId: PropTypes.string,
-    expoPushToken: PropTypes.string,
     picture: PropTypes.string,
     s3Picture: PropTypes.string,
   }).isRequired,
@@ -55,12 +47,9 @@ const FollowButton = ({
   const {
     PK, SK, uid, name, username, identityId,
   } = currentUser;
-  let picture = null; let expoPushToken = null;
+  let picture = null;
   if (currentUser.picture) {
     picture = currentUser.picture;
-  }
-  if (currentUser.expoPushToken) {
-    expoPushToken = currentUser.expoPushToken;
   }
 
   const [{ bannedUsers }, dispatch] = useContext(Context);
@@ -74,7 +63,6 @@ const FollowButton = ({
     SK: mySK,
     name: myUser.name,
     identityId: myUser.identityId,
-    expoPushToken: myUser.expoPushToken,
     followedSK: SK,
     uid: myID,
   };
@@ -106,7 +94,6 @@ const FollowButton = ({
           uid,
           picture,
           identityId,
-          expoPushToken,
         },
       });
       ADDED_ATTR.forEach((attr) => {
@@ -154,7 +141,6 @@ const FollowButton = ({
         username,
         ...(picture && { picture }),
         identityId,
-        expoPushToken,
         uid,
         follower,
       };
@@ -191,17 +177,6 @@ const FollowButton = ({
       dispatch({ type: 'SET_RELOAD_PROFILE' });
     } catch (err) {
       console.warn('Error update follower/following counts: ', err);
-    }
-
-    // Send push notification to user
-    if (!currFollow) {
-      if (!expoPushToken) {
-        const {
-          promise, getValue, errorMsg,
-        } = getUserExpoPushTokenQuery({ uid });
-        expoPushToken = await fulfillPromise(promise, getValue, errorMsg);
-      }
-      sendFollowNotif({ follower: myUser.name, expoPushToken });
     }
   };
 

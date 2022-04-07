@@ -7,7 +7,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { BlurView } from 'expo-blur';
-import * as Notifications from 'expo-notifications';
 import { useScrollToTop } from '@react-navigation/native';
 import { BallIndicator } from 'react-native-indicators';
 import {
@@ -26,7 +25,7 @@ import Logo from '../components/util/icons/Logo';
 import SearchButton from '../components/util/SearchButton';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
-import { DEFAULT_COORDINATES, NOTIF_TYPES } from '../../constants/constants';
+import { DEFAULT_COORDINATES } from '../../constants/constants';
 import {
   colors, isPad, sizes, wp, wpFull,
 } from '../../constants/theme';
@@ -51,30 +50,6 @@ const Home = ({ navigation }) => {
   const reportPressedRef = useRef(false);
 
   const mounted = useRef(true);
-
-  const notificationListener = useRef();
-  const responseListener = useRef();
-
-  useEffect(() => {
-    // This listener is fired whenever a notification is received while the app is foregrounded
-    notificationListener.current = Notifications.addNotificationReceivedListener();
-
-    // This listener is fired whenever a user taps on or interacts with a notification
-    // (works when app is foregrounded, backgrounded, or killed)
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      const notifData = response.notification.request.content.data;
-      if (notifData.type === NOTIF_TYPES.FOLLOW || notifData.type === NOTIF_TYPES.YUM) {
-        navigation.navigate('InboxTab', {
-          screen: 'Inbox', params: { shouldReload: true },
-        });
-      }
-    });
-
-    return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
-      Notifications.removeNotificationSubscription(responseListener.current);
-    };
-  }, []);
 
   const flatlistRef = useRef(null);
   useScrollToTop(flatlistRef);

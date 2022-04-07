@@ -83,33 +83,7 @@ export const getUserProfile = /* GraphQL */ `
         name
         picture
         identityId
-        expoPushToken
         city
-      }
-      nextToken
-    }
-  }
-`;
-
-export const getUserExpoPushToken = /* GraphQL */ `
-  query ListFeastItems(
-    $PK: String
-    $SK: ModelStringKeyConditionInput
-    $filter: ModelFeastItemFilterInput
-    $limit: Int
-    $nextToken: String
-    $sortDirection: ModelSortDirection
-  ) {
-    listFeastItems(
-      PK: $PK
-      SK: $SK
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-      sortDirection: $sortDirection
-    ) {
-      items {
-        expoPushToken
       }
       nextToken
     }
@@ -407,7 +381,6 @@ export const getUserPost = /* GraphQL */ `
         name
         picture
         identityId
-        expoPushToken
       }
     }
   }
@@ -537,7 +510,6 @@ export const getFollowingPostsDetails = /* GraphQL */ `
           name
           picture
           identityId
-          expoPushToken
         }
       }
       nextToken
@@ -586,7 +558,6 @@ export const batchGetUserPosts = /* GraphQL */ `
         name
         picture
         identityId
-        expoPushToken
       }
       timestamp
     }
@@ -806,7 +777,6 @@ export const getUserAllSavedPosts = /* GraphQL */ `
           name
           picture
           identityId
-          expoPushToken
         }
         updatedAt
       }
