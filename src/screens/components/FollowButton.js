@@ -53,11 +53,14 @@ const FollowButton = ({
 }) => {
   // Destructure current user (profile user is viewing) object
   const {
-    PK, SK, uid, name, username, identityId, expoPushToken,
+    PK, SK, uid, name, username, identityId,
   } = currentUser;
-  let picture = null;
+  let picture = null; let expoPushToken = null;
   if (currentUser.picture) {
     picture = currentUser.picture;
+  }
+  if (currentUser.expoPushToken) {
+    expoPushToken = currentUser.expoPushToken;
   }
 
   const [{ bannedUsers }, dispatch] = useContext(Context);
