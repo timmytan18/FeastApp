@@ -1,11 +1,11 @@
 import React, {
-  useState, useEffect, useContext, useRef,
+  useState, useEffect, useContext, useRef, useCallback,
 } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity, FlatList, Image,
 } from 'react-native';
 import { BallIndicator } from 'react-native-indicators';
-import { useScrollToTop } from '@react-navigation/native';
+import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import { Storage } from 'aws-amplify';
 import {
   getUserYumsReceivedByTimeQuery,
@@ -100,13 +100,12 @@ const YumNotifItem = ({ item, openUserProfile, openPost }) => {
   );
 };
 
-const Inbox = ({ navigation }) => {
+const Inbox = ({ navigation, route }) => {
   // Set necessary data
   const [
     {
       user, bannedUsers, reloadProfileTrigger, reloadMapTrigger,
     },
-    dispatch,
   ] = useContext(Context);
 
   const [notifications, setNotifications] = useState(null);
@@ -117,6 +116,16 @@ const Inbox = ({ navigation }) => {
 
   const flatlistRef = useRef(null);
   useScrollToTop(flatlistRef);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params && route.params.shouldReload) {
+        numRefresh.current += 1;
+        setRefreshing(true);
+        route.params.shouldReload = false;
+      }
+    }, [route.params]),
+  );
 
   useEffect(() => {
     mounted.current = true;

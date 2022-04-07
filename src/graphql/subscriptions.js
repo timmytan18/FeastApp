@@ -16,6 +16,7 @@ export const onCreateFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -63,6 +64,7 @@ export const onCreateFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -89,6 +91,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -136,6 +139,7 @@ export const onUpdateFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
@@ -162,6 +166,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
       name
       uid
       identityId
+      expoPushToken
       phone
       email
       picture
@@ -209,6 +214,7 @@ export const onDeleteFeastItem = /* GraphQL */ `
         name
         picture
         identityId
+        expoPushToken
       }
       dish
       rating
