@@ -152,9 +152,10 @@ const Inbox = ({ navigation, route }) => {
       ({ promise, getValue, errorMsg } = getUserYumsReceivedByTimeQuery({
         uid: user.uid, timestamp: oneWeekAgo,
       }));
-      const yums = await fulfillPromise(promise, getValue, errorMsg);
-      yums.forEach((item) => {
+      let yums = await fulfillPromise(promise, getValue, errorMsg);
+      yums = yums.filter((item) => {
         item.type = YUM;
+        return (item.uid !== user.uid);
       });
       const notifs = follows.concat(yums);
       notifs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); // sort by most recent
