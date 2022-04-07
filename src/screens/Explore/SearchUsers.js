@@ -93,7 +93,7 @@ const SearchUsers = ({ navigation }) => {
     );
   };
 
-  const renderSearchItem = ({ item }) => (
+  const renderSearchItem = ({ item }) => (item && (
     <TouchableOpacity
       style={styles.userItemContainer}
       activeOpacity={0.5}
@@ -128,7 +128,7 @@ const SearchUsers = ({ navigation }) => {
           && <Text style={styles.userCityText}>{item.city}</Text>}
       </View>
     </TouchableOpacity>
-  );
+  ));
 
   const changeTab = ({ toLeft }) => {
     setSearchList(toLeft ? suggestedUsers.current : []);
@@ -186,7 +186,7 @@ const SearchUsers = ({ navigation }) => {
                 data={searchList}
                 extraData={searchList}
                 renderItem={renderSearchItem}
-                keyExtractor={(item) => item.uid || item.placeId}
+                keyExtractor={(item) => item && (item.uid || item.placeId)}
                 showsVerticalScrollIndicator
                 onScrollBeginDrag={Keyboard.dismiss}
                 keyboardShouldPersistTaps="handled"

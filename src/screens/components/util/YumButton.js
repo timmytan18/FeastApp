@@ -3,14 +3,15 @@ import {
   StyleSheet, View, TouchableOpacity, Text,
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
-import { getPostYumsQuery, fulfillPromise } from '../../../api/functions/queryFunctions';
+import { getPostYumsQuery, getUserExpoPushTokenQuery, fulfillPromise } from '../../../api/functions/queryFunctions';
 import { createFeastItem, deleteFeastItem } from '../../../api/graphql/mutations';
+import { sendYumNotif } from '../../../api/functions/Notifications';
 import Yum from './icons/Yum';
 import YumNoFill from './icons/YumNoFill';
 import { colors, sizes, wp } from '../../../constants/theme';
 
 const YumButton = ({
-  size, uid, timestamp, placeId, myUID, myPK, myName, myPicture,
+  size, uid, timestamp, placeId, expoPushToken, myUID, myPK, myName, myPicture, myExpoPushToken,
   picture, showYummedUsersModal, stopBarAnimation, light, small, openYums, refresh,
 }) => {
   const [pressed, setPressed] = useState(false);
@@ -92,6 +93,16 @@ const YumButton = ({
           createFeastItem,
           { input },
         ));
+        if (!expoPushToken) {
+          const {
+            promise, getValue, errorMsg,
+          } = getUserExpoPushTokenQuery({ uid });
+          expoPushToken = await fulfillPromise(promise, getValue, errorMsg);
+        }
+        if (expoPushToken !== myExpoPushToken) {
+          // send yum push notification
+          sendYumNotif({ yummer: myName, expoPushToken });
+        }
       } catch (err) {
         console.warn('Error creating yum: ', err);
         fetchYums();
