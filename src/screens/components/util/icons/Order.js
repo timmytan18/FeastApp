@@ -5,7 +5,7 @@ import Svg, {
 import { wp } from '../../../../constants/theme';
 
 const Order = (props) => {
-  const { size } = props;
+  const { size, hideLogo } = props;
 
   return (
     <Svg
@@ -15,27 +15,29 @@ const Order = (props) => {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <Defs>
-        <LinearGradient x1="50%" y1="0%" x2="50%" y2="98.725%" id="prefix__b">
-          <Stop stopColor="#F2C94C" offset="0%" />
-          <Stop stopColor="#F2994A" offset="100%" />
-        </LinearGradient>
-        <LinearGradient
-          x1="104.243%"
-          y1="-3.278%"
-          x2="10.796%"
-          y2="129.583%"
-          id="prefix__c"
-        >
-          <Stop stopColor="#FFC529" offset="0%" />
-          <Stop stopColor="#F2C64C" offset="44.053%" />
-          <Stop stopColor="#FE724C" offset="100%" />
-        </LinearGradient>
-        <LinearGradient x1="50%" y1="0%" x2="50%" y2="98.623%" id="prefix__d">
-          <Stop stopColor="#666" offset="0%" />
-          <Stop stopColor="#272D2F" offset="99.908%" />
-        </LinearGradient>
-      </Defs>
+      {!hideLogo && (
+        <Defs>
+          <LinearGradient x1="50%" y1="0%" x2="50%" y2="98.725%" id="prefix__b">
+            <Stop stopColor="#F2C94C" offset="0%" />
+            <Stop stopColor="#F2994A" offset="100%" />
+          </LinearGradient>
+          <LinearGradient
+            x1="104.243%"
+            y1="-3.278%"
+            x2="10.796%"
+            y2="129.583%"
+            id="prefix__c"
+          >
+            <Stop stopColor="#FFC529" offset="0%" />
+            <Stop stopColor="#F2C64C" offset="44.053%" />
+            <Stop stopColor="#FE724C" offset="100%" />
+          </LinearGradient>
+          <LinearGradient x1="50%" y1="0%" x2="50%" y2="98.623%" id="prefix__d">
+            <Stop stopColor="#666" offset="0%" />
+            <Stop stopColor="#272D2F" offset="99.908%" />
+          </LinearGradient>
+        </Defs>
+      )}
       <G fill="none" fillRule="evenodd">
         <Path fill="#AF6CFF" d="M0 6h31v27H0z" />
         <G transform="translate(5 8)" filter="url(#prefix__a)">

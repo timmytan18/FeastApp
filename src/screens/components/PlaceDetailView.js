@@ -34,6 +34,7 @@ import Postmates from './util/icons/delivery/Postmates';
 import Grubhub from './util/icons/delivery/Grubhub';
 import Doordash from './util/icons/delivery/Doordash';
 import Chownow from './util/icons/delivery/Chownow';
+import Toast from './util/icons/delivery/Toast';
 import BackArrow from './util/icons/BackArrow';
 import Toggle from './util/Toggle';
 import Pagination from './util/Pagination';
@@ -90,8 +91,10 @@ const getDeliveryIcon = (type) => {
     return <Doordash />;
   } if (type === 'chownow') {
     return <Chownow />;
+  } if (type === 'toast') {
+    return <Toast />;
   }
-  return <Order size={wp(6.5)} />;
+  return <Order size={wp(6.5)} hideLogo />;
 };
 
 const NoImageContainer = () => (

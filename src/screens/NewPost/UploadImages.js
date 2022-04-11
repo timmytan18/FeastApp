@@ -198,13 +198,27 @@ const UploadImages = ({ navigation, route }) => {
     if (picture.height >= picture.width) {
       width = picture.width;
       height = picture.width / aspectRatio;
-      originX = 0;
-      originY = (picture.height - height) / 2;
+      if (height > picture.height) {
+        height = picture.height;
+        width = picture.height * aspectRatio;
+        originX = (picture.width - width) / 2;
+        originY = 0;
+      } else {
+        originX = 0;
+        originY = (picture.height - height) / 2;
+      }
     } else {
       width = picture.height * aspectRatio;
       height = picture.height;
-      originX = (picture.width - width) / 2;
-      originY = 0;
+      if (width > picture.width) {
+        width = picture.width;
+        height = picture.width / aspectRatio;
+        originX = 0;
+        originY = (picture.height - height) / 2;
+      } else {
+        originX = (picture.width - width) / 2;
+        originY = 0;
+      }
     }
     const manipResult = await manipulateAsync(
       picture.localUri || picture.uri,

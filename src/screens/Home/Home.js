@@ -79,19 +79,6 @@ const Home = ({ navigation }) => {
   const flatlistRef = useRef(null);
   useScrollToTop(flatlistRef);
   useEffect(() => {
-    const headerLogo = () => (
-      <TouchableOpacity
-        style={styles.header}
-        activeOpacity={0.6}
-        onPress={() => {
-          if (flatlistRef.current) {
-            flatlistRef.current.scrollToIndex({ index: 0, animated: true });
-          }
-        }}
-      >
-        <Logo />
-      </TouchableOpacity>
-    );
     const blurredHeader = () => (
       <BlurView tint="light" intensity="100" style={StyleSheet.absoluteFill} />
     );
@@ -104,13 +91,31 @@ const Home = ({ navigation }) => {
       />
     );
     navigation.setOptions({
-      headerTitle: headerLogo,
       headerRight: headerSearch,
       headerTransparent: true,
       headerBackground: blurredHeader,
       animationEnabled: false,
     });
   }, []);
+
+  useEffect(() => {
+    const headerLogo = () => (
+      <TouchableOpacity
+        style={styles.header}
+        activeOpacity={0.6}
+        onPress={() => {
+          if (flatlistRef.current && posts.length > 0) {
+            flatlistRef.current.scrollToIndex({ index: 0, animated: true });
+          }
+        }}
+      >
+        <Logo />
+      </TouchableOpacity>
+    );
+    navigation.setOptions({
+      headerTitle: headerLogo,
+    });
+  }, [posts]);
 
   useEffect(() => {
     (async () => {
