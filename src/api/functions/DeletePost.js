@@ -160,6 +160,7 @@ const deletePost = async ({
 
   // Update app state to trigger map re-render
   dispatch({ type: 'SET_RELOAD_MAP' });
+  dispatch({ type: 'SET_RELOAD_PROFILE' });
   setLoading(false);
 
   if (onComplete) onComplete();

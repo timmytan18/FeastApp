@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Platform, StatusBar, View,
 } from 'react-native';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
 import { Asset } from 'expo-asset';
-import * as SplashScreen from 'expo-splash-screen';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Store from './src/Store';

@@ -17,16 +17,18 @@ import {
 } from '../../api/functions/queryFunctions';
 import deletePostConfirmation from '../../api/functions/DeletePost';
 import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
+import savePost from '../../api/functions/SavePost';
 import PostItem from '../components/PostItem';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
 import ReportModal from '../components/ReportModal';
+import Save from '../components/util/icons/Save';
 import X from '../components/util/icons/X';
 import Logo from '../components/util/icons/Logo';
 import SearchButton from '../components/util/SearchButton';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
-import { DEFAULT_COORDINATES, NOTIF_TYPES } from '../../constants/constants';
+import { DEFAULT_COORDINATES, NOTIF_TYPES, GET_SAVED_POST_ID } from '../../constants/constants';
 import {
   colors, isPad, sizes, wp, wpFull,
 } from '../../constants/theme';
@@ -237,7 +239,19 @@ const Home = ({ navigation }) => {
     }
   };
 
+  const notSavedMoreItem = {
+    onPress: () => { },
+    icon: <Save size={wp(7.2)} color="rgba(176, 187, 199, 0.6)" />,
+    label: 'Save Post',
+  };
+
+  const isSavedMoreItem = {
+    icon: <Save size={wp(7.2)} color={colors.accent} />,
+    label: 'Unsave Post',
+  };
+
   const moreItemsMe = [
+    notSavedMoreItem,
     {
       onPress: () => deletePostConfirmation({
         posterUID: currPost.current.placeUserInfo.uid,
@@ -260,6 +274,7 @@ const Home = ({ navigation }) => {
   ];
 
   const moreItemsOther = [
+    notSavedMoreItem,
     {
       onPress: reportPost,
       icon: <X size={wp(7.2)} color={colors.black} />,
@@ -271,6 +286,21 @@ const Home = ({ navigation }) => {
     currPost.current = item;
     const isMe = item.placeUserInfo.uid === myUID;
     moreItems.current = isMe ? moreItemsMe : moreItemsOther;
+    const currIsSaved = savedPosts.has(GET_SAVED_POST_ID({
+      uid: item.placeUserInfo.uid, timestamp: item.timestamp,
+    }));
+    if (currIsSaved) moreItems.current[0] = isSavedMoreItem;
+    const saveParams = {
+      isSaved: currIsSaved,
+      dispatch,
+      post: item,
+      place: {
+        geo: item.geo,
+        placeInfo: { categories: item.categories, imgUrl: item.imgUrl },
+      },
+      myUID,
+    };
+    moreItems.current[0].onPress = () => savePost(saveParams);
     setMorePressed(true);
   };
 

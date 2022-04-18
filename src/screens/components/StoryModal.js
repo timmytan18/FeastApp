@@ -32,8 +32,10 @@ import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
 import StarsRating from './util/StarsRating';
+import Save from './util/icons/Save';
 import X from './util/icons/X';
 import CenterSpinner from './util/CenterSpinner';
+import savePost from '../../api/functions/SavePost';
 import { mergeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { GET_SAVED_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
@@ -346,6 +348,8 @@ const StoryModal = ({ navigation, route }) => {
 
   const scrollRef = useRef();
 
+  const moreItems = useRef([]);
+
   let uid; let placeId; let name; let picture;
   let dish; let rating; let review; let timestamp;
   let userName; let userPic; let expoPushToken;
@@ -508,8 +512,9 @@ const StoryModal = ({ navigation, route }) => {
       }
     }
 
-    // Update app state to trigger map re-render
+    // Update app state to trigger map & profile re-render
     dispatch({ type: 'SET_RELOAD_MAP' });
+    dispatch({ type: 'SET_RELOAD_PROFILE' });
   };
 
   const reportPost = async () => {
@@ -523,20 +528,53 @@ const StoryModal = ({ navigation, route }) => {
     }
   };
 
-  const moreItems = isMe
-    ? [
-      {
-        onPress: deletePostConfirmation,
-        icon: <X size={wp(7.2)} color="red" />,
-        label: 'Delete Post',
+  const notSavedMoreItem = {
+    onPress: () => { },
+    icon: <Save size={wp(7.2)} color="rgba(176, 187, 199, 0.6)" />,
+    label: 'Save Post',
+  };
+
+  const isSavedMoreItem = {
+    icon: <Save size={wp(7.2)} color={colors.accent} />,
+    label: 'Unsave Post',
+  };
+
+  const moreItemsMe = [
+    notSavedMoreItem,
+    {
+      onPress: deletePostConfirmation,
+      icon: <X size={wp(7.2)} color="red" />,
+      label: 'Delete Post',
+    },
+  ];
+
+  const moreItemsOther = [
+    notSavedMoreItem,
+    {
+      onPress: reportPost,
+      icon: <X size={wp(7.2)} color={colors.black} />,
+      label: 'Report Post',
+    },
+  ];
+
+  const onMorePressed = () => {
+    stopBarAnimation();
+    const item = stories[index.current];
+    moreItems.current = isMe ? moreItemsMe : moreItemsOther;
+    if (isSaved) moreItems.current[0] = isSavedMoreItem;
+    const saveParams = {
+      isSaved,
+      dispatch,
+      post: item,
+      place: {
+        geo: item.geo,
+        placeInfo: { categories: item.categories, imgUrl: item.imgUrl },
       },
-    ] : [
-      {
-        onPress: reportPost,
-        icon: <X size={wp(7.2)} color={colors.black} />,
-        label: 'Report Post',
-      },
-    ];
+      myUID,
+    };
+    moreItems.current[0].onPress = () => savePost(saveParams);
+    setMorePressed(true);
+  };
 
   const fetchUser = async ({ fetchUID }) => {
     const currUser = await fetchCurrentUserUID({ fetchUID, myUID });
@@ -592,7 +630,7 @@ const StoryModal = ({ navigation, route }) => {
       >
         <StatusBar animated barStyle="light-content" />
         <MoreView
-          items={moreItems}
+          items={moreItems.current}
           morePressed={morePressed}
           setMorePressed={setMorePressed}
           onDismiss={() => continueBarAnimation()}
@@ -707,10 +745,7 @@ const StoryModal = ({ navigation, route }) => {
               </View>
             </View>
             <TouchableOpacity
-              onPress={() => {
-                setMorePressed(true);
-                stopBarAnimation();
-              }}
+              onPress={onMorePressed}
               style={styles.moreContainer}
             >
               <ThreeDots rotated size={wp(5)} />
