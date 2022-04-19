@@ -38,7 +38,7 @@ import { InboxIcon, InboxFilledIcon } from './icons/Inbox';
 import { ProfileIcon, ProfileFilledIcon } from './icons/Profile';
 import BackArrow from '../screens/components/util/icons/BackArrow';
 import getBannedUsers from '../api/functions/GetBannedUsers';
-import { GET_SAVED_POST_ID } from '../constants/constants';
+import { GET_POST_ID } from '../constants/constants';
 import { secureSave, getSecureValue, keys } from '../api/functions/SecureStore';
 import { getLocalData, localDataKeys } from '../api/functions/LocalStorage';
 import { Context } from '../Store';
@@ -469,7 +469,7 @@ const AppNavigator = () => {
       ({ promise, getValue, errorMsg } = getUserAllSavedPostsQuery({ PK: myPK, noDetails: true }));
       const savedPosts = await fulfillPromise(promise, getValue, errorMsg);
       const savedPostsIds = savedPosts.map(
-        ({ placeUserInfo: { uid }, timestamp }) => GET_SAVED_POST_ID({ uid, timestamp }),
+        ({ placeUserInfo: { uid }, timestamp }) => GET_POST_ID({ uid, timestamp }),
       );
       dispatch({
         type: 'SET_SAVED_POSTS',

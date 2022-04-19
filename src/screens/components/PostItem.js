@@ -9,14 +9,14 @@ import { Storage } from 'aws-amplify';
 import MaskedView from '@react-native-community/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import ProfilePic from './ProfilePic';
-import SaveButton from './util/SaveButton';
 import YumButton from './util/YumButton';
+import CommentButton from './util/CommentButton';
 import ThreeDots from './util/icons/ThreeDots';
 import StarsRating from './util/StarsRating';
 import MapMarker from './util/icons/MapMarker';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
 import { Context } from '../../Store';
-import { POST_IMAGE_ASPECT, GET_SAVED_POST_ID } from '../../constants/constants';
+import { POST_IMAGE_ASPECT, GET_POST_ID } from '../../constants/constants';
 import {
   colors, wp, sizes, gradients,
 } from '../../constants/theme';
@@ -24,7 +24,7 @@ import {
 const NUM_COLLAPSED_LINES = 2;
 
 const PostItem = ({
-  item, fetchUser, onMorePressed, showYummedUsersModal, me, savedPosts, openPlace, refresh,
+  item, fetchUser, onMorePressed, showYummedUsersModal, openComments, me, savedPosts, openPlace, refresh,
 }) => {
   const [{ bannedUsers }, dispatch] = useContext(Context);
   let uid; let identityId; let placeId; let name; let geo; let categories;
@@ -62,7 +62,7 @@ const PostItem = ({
     PK: myPK, uid: myUID, name: myName, picture: myPicture, expoPushToken: myExpoPushToken,
   } = me;
 
-  const isSaved = savedPosts.has(GET_SAVED_POST_ID({
+  const isSaved = savedPosts.has(GET_POST_ID({
     uid, timestamp,
   }));
 
@@ -189,19 +189,20 @@ const PostItem = ({
               <View style={styles.middleContainer}>
                 <View style={styles.middleButtonsContainer}>
                   <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-                    <SaveButton
-                      isSaved={isSaved}
+                    <CommentButton
+                      openComments={openComments}
+                      uid={uid}
+                      expoPushToken={expoPushToken}
+                      timestamp={timestamp}
+                      placeId={placeId}
+                      imgUrl={picture}
+                      refresh={refresh}
                       dispatch={dispatch}
-                      size={wp(10)}
-                      post={item}
-                      place={{ geo, placeInfo: { categories, imgUrl } }}
-                      myUID={myUID}
-                      light
                     />
                   </View>
                   <View style={[styles.sideButtonsContainer, { alignItems: 'flex-end' }]}>
                     <YumButton
-                      size={wp(10)}
+                      size={wp(9.2)}
                       uid={uid}
                       placeId={placeId}
                       timestamp={timestamp}
@@ -230,13 +231,15 @@ const PostItem = ({
             ]}
             >
               <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-                <SaveButton
-                  isSaved={isSaved}
+                <CommentButton
+                  openComments={openComments}
+                  uid={uid}
+                  expoPushToken={expoPushToken}
+                  timestamp={timestamp}
+                  placeId={placeId}
+                  imgUrl={picture}
+                  refresh={refresh}
                   dispatch={dispatch}
-                  size={wp(8)}
-                  post={item}
-                  place={{ geo, placeInfo: { categories, imgUrl } }}
-                  myUID={myUID}
                   light
                   small
                 />
@@ -270,10 +273,10 @@ const PostItem = ({
 
 function areEqual(prevProps, nextProps) {
   // // Rerender if isSaved or refresh changes
-  const prevIsSaved = prevProps.savedPosts.has(GET_SAVED_POST_ID({
+  const prevIsSaved = prevProps.savedPosts.has(GET_POST_ID({
     uid: prevProps.item.placeUserInfo.uid, timestamp: prevProps.item.timestamp,
   }));
-  const nextIsSaved = nextProps.savedPosts.has(GET_SAVED_POST_ID({
+  const nextIsSaved = nextProps.savedPosts.has(GET_POST_ID({
     uid: nextProps.item.placeUserInfo.uid, timestamp: nextProps.item.timestamp,
   }));
   return prevIsSaved === nextIsSaved && prevProps.refresh === nextProps.refresh;

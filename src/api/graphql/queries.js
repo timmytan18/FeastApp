@@ -1000,6 +1000,111 @@ export const batchGetPlaceRatings = /* GraphQL */ `
   }
 `;
 
+export const getPostNumComments = /* GraphQL */ `
+  query GetFeastItem($PK: String!, $SK: String!) {
+    getFeastItem(PK: $PK, SK: $SK) {
+      count
+    }
+  }
+`;
+
+export const getPostComments = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        comment
+        placeId
+        timestamp
+        actionTimestamp
+        uid
+        name
+        picture
+        imgUrl
+        placeUserInfo {
+          uid
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getUserCommentsReceivedByTime = /* GraphQL */ `
+  query ItemsByGsi1(
+    $GSI1: String
+    $SK: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI1(
+      GSI1: $GSI1
+      SK: $SK
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        comment
+        placeId
+        timestamp
+        actionTimestamp
+        uid
+        name
+        picture
+        imgUrl
+        placeUserInfo {
+          uid
+        }
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+
+export const getPostCommentsNoDetails = /* GraphQL */ `
+  query ListFeastItems(
+    $PK: String
+    $SK: ModelStringKeyConditionInput
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+    $sortDirection: ModelSortDirection
+  ) {
+    listFeastItems(
+      PK: $PK
+      SK: $SK
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+      sortDirection: $sortDirection
+    ) {
+      items {
+        PK
+        SK
+      }
+      nextToken
+    }
+  }
+`;
+
 export const getBannedUsers = /* GraphQL */ `
   query ItemsByGsi1(
     $GSI1: String

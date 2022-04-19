@@ -72,6 +72,8 @@ export const batchGetFeastItems = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -148,6 +150,8 @@ export const getFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -235,6 +239,8 @@ export const listFeastItems = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -324,6 +330,8 @@ export const itemsByGSI1 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -413,6 +421,8 @@ export const itemsByGSI2 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -502,6 +512,8 @@ export const itemsByLSI1 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -591,6 +603,8 @@ export const itemsByLSI2 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -680,6 +694,8 @@ export const itemsByLSI3 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -769,6 +785,8 @@ export const itemsByLSI4 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }
@@ -858,6 +876,8 @@ export const itemsByLSI5 = /* GraphQL */ `
         review
         count
         sum
+        comment
+        actionTimestamp
         updatedAt
         createdAt
       }

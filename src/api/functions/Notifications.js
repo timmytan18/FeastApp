@@ -24,6 +24,18 @@ const sendYumNotif = ({ yummer, expoPushToken }) => {
   sendPushNotification(message);
 };
 
+const sendCommentNotif = ({ commenter, comment, expoPushToken }) => {
+  if (!commenter || !expoPushToken) return;
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: `Comment from ${commenter}`,
+    body: `"${comment}"`,
+    data: { type: NOTIF_TYPES.YUM },
+  };
+  sendPushNotification(message);
+};
+
 const sendPushNotification = async (message) => {
   await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
@@ -36,4 +48,4 @@ const sendPushNotification = async (message) => {
   });
 };
 
-export { sendFollowNotif, sendYumNotif };
+export { sendFollowNotif, sendYumNotif, sendCommentNotif };

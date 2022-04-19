@@ -44,6 +44,11 @@ const Reducer = (state, action) => {
         ...state,
         reloadProfileTrigger: !state.reloadProfileTrigger,
       };
+    case 'SET_RELOAD_NUM_COMMENTS':
+      return {
+        ...state,
+        reloadNumCommentsId: action.payload,
+      };
     default:
       return state;
   }

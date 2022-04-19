@@ -4,7 +4,7 @@ import MapView, { Marker } from 'react-native-maps';
 import LocationMapMarker from './util/LocationMapMarker';
 import AnimatedModal from './util/AnimatedModal';
 import {
-  colors, gradients, shadows, sizes, wp, hp,
+  colors, gradients, shadows, sizes, wp,
 } from '../../constants/theme';
 
 const MapModal = ({

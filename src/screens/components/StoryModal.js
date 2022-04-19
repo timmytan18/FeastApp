@@ -19,6 +19,7 @@ import {
   getFollowersQuery,
   getAllSavedPostItemsQuery,
   getPostYumsQuery,
+  getPostNumCommentsQuery,
   fulfillPromise,
 } from '../../api/functions/queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts, incrementFeastItem } from '../../api/graphql/mutations';
@@ -27,7 +28,8 @@ import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import ProfilePic from './ProfilePic';
 import MapMarker from './util/icons/MapMarker';
 import YumButton from './util/YumButton';
-import SaveButton from './util/SaveButton';
+import CommentsModal from './CommentsModal';
+import CommentButton from './util/CommentButton';
 import SwipeUpArrow from './util/icons/SwipeUpArrow';
 import BackArrow from './util/icons/BackArrow';
 import ThreeDots from './util/icons/ThreeDots';
@@ -37,7 +39,7 @@ import X from './util/icons/X';
 import CenterSpinner from './util/CenterSpinner';
 import savePost from '../../api/functions/SavePost';
 import { mergeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
-import { GET_SAVED_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
+import { GET_POST_ID, POST_IMAGE_ASPECT } from '../../constants/constants';
 import { Context } from '../../Store';
 import {
   colors, shadows, gradients, sizes, wp, isPad, wpFull,
@@ -52,6 +54,7 @@ const StoryModal = ({ navigation, route }) => {
     places,
     firstImg,
     openYums,
+    openComments: initialOpenComments,
     postOnly,
   } = route.params;
 
@@ -140,6 +143,14 @@ const StoryModal = ({ navigation, route }) => {
         }
       }
       seenStories.current[stories[index.current].SK] = timeLocal;
+
+      if (initialOpenComments) {
+        (async () => {
+          const { promise, getValue, errorMsg } = getPostNumCommentsQuery({ uid, timestamp });
+          const numComments = await fulfillPromise(promise, getValue, errorMsg);
+          openComments({ numComments });
+        })();
+      }
     })();
   }, [indexState]);
 
@@ -364,7 +375,7 @@ const StoryModal = ({ navigation, route }) => {
 
   place.current = places[placeId];
   const elapsedTime = getElapsedTime(timestamp);
-  const savedPostId = GET_SAVED_POST_ID({ uid, timestamp });
+  const savedPostId = GET_POST_ID({ uid, timestamp });
   const isSaved = savedPosts.has(savedPostId);
 
   const [loading, setLoading] = useState(false);
@@ -374,6 +385,22 @@ const StoryModal = ({ navigation, route }) => {
 
   const isMe = uid === myUID;
   const [morePressed, setMorePressed] = useState(false);
+
+  const [showComments, setShowComments] = useState(false);
+  const commentDetailsRef = useRef({ uid: null, timestamp: null, numComments: 0 });
+  const currentComment = useRef({ uid: null, timestamp: null, comment: '' });
+  const openComments = ({ numComments }) => {
+    stopBarAnimation();
+    // clear saved unposted comment if different post
+    if (currentComment.current.uid !== uid || currentComment.current.timestamp !== timestamp) {
+      currentComment.current = { uid: null, timestamp: null, comment: '' };
+    }
+    // set comment fetch details
+    commentDetailsRef.current = {
+      uid, timestamp, numComments, placeId, imgUrl: picture,
+    };
+    setShowComments(true);
+  };
 
   const deletePostConfirmation = () => {
     TwoButtonAlert({
@@ -657,6 +684,23 @@ const StoryModal = ({ navigation, route }) => {
           }}
           type="user post"
         />
+        <CommentsModal
+          visible={showComments}
+          setVisible={setShowComments}
+          numComments={commentDetailsRef.current.numComments}
+          timestamp={commentDetailsRef.current.timestamp}
+          uid={commentDetailsRef.current.uid}
+          placeId={commentDetailsRef.current.placeId}
+          imgUrl={commentDetailsRef.current.imgUrl}
+          navigation={navigation}
+          dispatch={dispatch}
+          currentComment={currentComment}
+          myUID={myUID}
+          myName={myName}
+          myPicture={myPicture}
+          startBarAnimation={startBarAnimation}
+          myExpoPushToken={myExpoPushToken}
+        />
         {loading
           && (
             <View style={{
@@ -814,15 +858,16 @@ const StoryModal = ({ navigation, route }) => {
         <View style={styles.middleContainer}>
           <View style={styles.middleButtonsContainer}>
             <View style={[styles.sideButtonsContainer, { alignItems: 'flex-start' }]}>
-              <SaveButton
-                isSaved={isSaved}
+              <CommentButton
+                openComments={openComments}
+                uid={uid}
+                expoPushToken={expoPushToken}
+                timestamp={timestamp}
+                placeId={placeId}
+                imgUrl={picture}
                 dispatch={dispatch}
-                size={wp(10)}
-                post={stories[index.current]}
-                place={place.current}
-                myUID={myUID}
+                size={wp(11)}
                 stopBarAnimation={stopBarAnimation}
-                startBarAnimation={startBarAnimation}
               />
             </View>
             {!postOnly && (

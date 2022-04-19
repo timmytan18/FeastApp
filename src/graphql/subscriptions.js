@@ -72,6 +72,8 @@ export const onCreateFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -148,6 +150,8 @@ export const onUpdateFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -224,6 +228,8 @@ export const onDeleteFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }

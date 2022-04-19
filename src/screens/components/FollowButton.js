@@ -175,23 +175,43 @@ const FollowButton = ({
       return;
     }
 
-    // Increment/decrement follower and following counts
+    // Increment/decrement follower count
     const one = currFollow ? -1 : 1;
     try {
       await API.graphql(graphqlOperation(
         incrementFeastItem,
         { input: { PK, SK, numFollowers: one } },
       ));
+    } catch (err) {
+      try {
+        await API.graphql(graphqlOperation(
+          incrementFeastItem,
+          { input: { PK, SK, numFollowers: one } },
+        ));
+      } catch (err2) {
+        console.warn('Error updating follower counts: ', err2);
+      }
+    }
+    // Increment/decrement following count
+    try {
       await API.graphql(graphqlOperation(
         incrementFeastItem,
         { input: { PK: myPK, SK: mySK, numFollowing: one } },
       ));
-      // Update app state to trigger map & profile re-render
-      dispatch({ type: 'SET_RELOAD_MAP' });
-      dispatch({ type: 'SET_RELOAD_PROFILE' });
     } catch (err) {
-      console.warn('Error update follower/following counts: ', err);
+      try {
+        await API.graphql(graphqlOperation(
+          incrementFeastItem,
+          { input: { PK: myPK, SK: mySK, numFollowing: one } },
+        ));
+      } catch (err2) {
+        console.warn('Error updating following counts: ', err2);
+      }
     }
+
+    // Update app state to trigger map & profile re-render
+    dispatch({ type: 'SET_RELOAD_MAP' });
+    dispatch({ type: 'SET_RELOAD_PROFILE' });
 
     // Send push notification to user
     if (!currFollow) {

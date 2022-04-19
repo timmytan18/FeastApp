@@ -8,8 +8,9 @@ import { BallIndicator } from 'react-native-indicators';
 import { useScrollToTop, useFocusEffect } from '@react-navigation/native';
 import { Storage } from 'aws-amplify';
 import {
-  getUserYumsReceivedByTimeQuery,
   getFollowersByTimeQuery,
+  getUserYumsReceivedByTimeQuery,
+  getUserCommentsReceivedByTimeQuery,
   getFollowingQuery,
   getUserPostQuery,
   getPlaceDetailsQuery,
@@ -20,6 +21,7 @@ import getElapsedTime from '../../api/functions/GetElapsedTime';
 import ProfilePic from '../components/ProfilePic';
 import FollowButton from '../components/FollowButton';
 import Yum from '../components/util/icons/Yum';
+import Comment from '../components/util/icons/Comment';
 import { storeLocalData, localDataKeys } from '../../api/functions/LocalStorage';
 import { Context } from '../../Store';
 import {
@@ -37,6 +39,7 @@ const isToday = (updatedAt) => {
 const NUM_DAYS_TO_FETCH = 8;
 const FOLLOW = 'follow';
 const YUM = 'yum';
+const COMMENT = 'comment';
 
 const YumNotifItem = ({ item, openUserProfile, openPost }) => {
   const [postPic, setPostPic] = useState(null);
@@ -53,7 +56,9 @@ const YumNotifItem = ({ item, openUserProfile, openPost }) => {
       <TouchableOpacity
         style={styles.userInfoContainer}
         activeOpacity={0.7}
-        onPress={() => openPost({ placeId: item.placeId, timestamp: item.timestamp })}
+        onPress={() => openPost({
+          placeId: item.placeId, timestamp: item.timestamp, type: item.type,
+        })}
       >
         <View style={{ flexDirection: 'row' }}>
           <TouchableOpacity
@@ -93,6 +98,72 @@ const YumNotifItem = ({ item, openUserProfile, openPost }) => {
           />
           <View style={{ position: 'absolute', right: 4, bottom: 4 }}>
             <Yum size={wp(4.5)} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const CommentNotifItem = ({ item, openUserProfile, openPost }) => {
+  const [postPic, setPostPic] = useState(null);
+  useEffect(() => {
+    (async () => {
+      if (item.imgUrl) {
+        const img = await Storage.get(item.imgUrl);
+        setPostPic(img);
+      }
+    })();
+  }, [item.picture]);
+  return (
+    <View style={styles.userItemContainer}>
+      <TouchableOpacity
+        style={styles.userInfoContainer}
+        activeOpacity={0.7}
+        onPress={() => openPost({
+          placeId: item.placeId, timestamp: item.timestamp, type: item.type,
+        })}
+      >
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => openUserProfile({ fetchUID: item.uid })}
+          >
+            <ProfilePic
+              uid={item.uid}
+              extUrl={item.picture}
+              size={userPicSize}
+              style={{ marginRight: sizes.margin }}
+            />
+          </TouchableOpacity>
+          <View style={styles.infoContainer}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => openUserProfile({ fetchUID: item.uid })}
+            >
+              <Text style={styles.userNameText}>{item.name}</Text>
+            </TouchableOpacity>
+            <Text style={styles.subtitleText} numberOfLines={2}>
+              commented:
+              {' '}
+              {item.comment.slice(0, 45)}
+              <Text style={styles.elapsedTimeText}>
+                {' '}
+                ·
+                {' '}
+                {getElapsedTime(item.updatedAt)}
+              </Text>
+            </Text>
+          </View>
+        </View>
+        <View>
+          <Image
+            resizeMode="stretch"
+            style={styles.postImage}
+            source={{ uri: postPic }}
+          />
+          <View style={{ position: 'absolute', right: 4, bottom: 4 }}>
+            <Comment size={wp(4.5)} />
           </View>
         </View>
       </TouchableOpacity>
@@ -157,7 +228,16 @@ const Inbox = ({ navigation, route }) => {
         item.type = YUM;
         return (item.uid !== user.uid);
       });
-      const notifs = follows.concat(yums);
+      // Get new comments
+      ({ promise, getValue, errorMsg } = getUserCommentsReceivedByTimeQuery({
+        uid: user.uid, timestamp: oneWeekAgo,
+      }));
+      let comments = await fulfillPromise(promise, getValue, errorMsg);
+      comments = comments.filter((item) => {
+        item.type = COMMENT;
+        return (item.uid !== user.uid);
+      });
+      const notifs = follows.concat(yums.concat(comments));
       notifs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)); // sort by most recent
       if (notifs && notifs.length) {
         await storeLocalData(localDataKeys.LATEST_NOTIFICATION, notifs[0].updatedAt);
@@ -180,7 +260,7 @@ const Inbox = ({ navigation, route }) => {
     );
   };
 
-  const openPost = async ({ placeId, timestamp }) => {
+  const openPost = async ({ placeId, timestamp, type }) => {
     let promise; let getValue; let errorMsg;
     // Get post details
     ({ promise, getValue, errorMsg } = getUserPostQuery({ uid: user.uid, timestamp }));
@@ -194,7 +274,8 @@ const Inbox = ({ navigation, route }) => {
       params: {
         stories: [post],
         places: { [place.placeId]: place },
-        openYums: true,
+        openYums: type === YUM,
+        openComments: type === COMMENT,
       },
     });
   };
@@ -266,9 +347,26 @@ const Inbox = ({ navigation, route }) => {
     const currUID = item.type === FOLLOW ? item.follower.uid : item.uid;
     if (bannedUsers.has(currUID)) return null;
     if (index === 0) todayNotifs.current = true;
-    const notifItem = item.type === FOLLOW
-      ? renderFollowerItem({ item: item.follower, updatedAt: item.updatedAt })
-      : <YumNotifItem item={item} openUserProfile={openUserProfile} openPost={openPost} />;
+    let notifItem;
+    if (item.type === FOLLOW) {
+      notifItem = renderFollowerItem({ item: item.follower, updatedAt: item.updatedAt });
+    } else if (item.type === YUM) {
+      notifItem = (
+        <YumNotifItem
+          item={item}
+          openUserProfile={openUserProfile}
+          openPost={openPost}
+        />
+      );
+    } else {
+      notifItem = (
+        <CommentNotifItem
+          item={item}
+          openUserProfile={openUserProfile}
+          openPost={openPost}
+        />
+      );
+    }
     if (index === 0 && isToday(item.updatedAt)) {
       return listHeaderComponent({ child: notifItem, title: 'Today' });
     } if (!isToday(item.updatedAt) && todayNotifs.current) {
@@ -393,6 +491,7 @@ const styles = StyleSheet.create({
     color: colors.black,
     marginTop: -2,
     lineHeight: sizes.b0,
+    width: wp(60),
   },
   followingText: {
     fontFamily: 'BookItalic',

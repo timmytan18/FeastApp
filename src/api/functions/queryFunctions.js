@@ -10,7 +10,8 @@ import {
   getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
   getUserYumsReceivedByTime, getPostYumsNoDetails, getUserEmail, getPlaceRating,
-  batchGetPlaceRatings, getBannedUsers,
+  batchGetPlaceRatings, getPostNumComments, getPostComments, getUserCommentsReceivedByTime,
+  getPostCommentsNoDetails, getBannedUsers,
 } from '../graphql/queries';
 
 async function fulfillPromise(promise, getValue, errorMsg) {
@@ -490,6 +491,75 @@ function batchGetPlaceRatingsQuery({ batch }) {
   return { promise, getValue, errorMsg };
 }
 
+// Fetch number of comments for a post
+function getPostNumCommentsQuery({ uid, timestamp }) {
+  const PK = `POST#${timestamp}#${uid}`;
+  const SK = '#NUMCOMMENTS';
+  const promise = API.graphql(graphqlOperation(
+    getPostNumComments,
+    { PK, SK },
+  ));
+  const getValue = (res) => (res.data.getFeastItem ? res.data.getFeastItem.count : null);
+  const errorMsg = 'Error fetching post num comments: ';
+  return { promise, getValue, errorMsg };
+}
+
+// Fetch comments for a post
+function getPostCommentsQuery({
+  uid, timestamp, limit, currNextToken,
+}) {
+  const PK = `POST#${timestamp}#${uid}`;
+  const SK = '#COMMENT#';
+  const promise = API.graphql(graphqlOperation(
+    getPostComments,
+    {
+      PK,
+      SK: { beginsWith: SK },
+      sortDirection: 'DESC',
+      // limit: limit || 20,
+      nextToken: currNextToken,
+    },
+  ));
+  const getValue = (res) => {
+    const postComments = res.data.listFeastItems.items;
+    const { nextToken } = res.data.listFeastItems;
+    return { postComments, nextToken };
+  };
+  const errorMsg = 'Error getting comments: ';
+  return { promise, getValue, errorMsg };
+}
+
+// Fetch comments received for a user by time
+function getUserCommentsReceivedByTimeQuery({ uid, timestamp, limit }) {
+  const date = new Date();
+  const timeLocal = date.toISOString();
+  const promise = API.graphql(graphqlOperation(
+    getUserCommentsReceivedByTime,
+    {
+      GSI1: `COMMENT#${uid}`,
+      SK: { between: [`#COMMENT#${timestamp}`, `#COMMENT#${timeLocal}`] },
+      limit: limit || 200,
+      sortDirection: 'DESC',
+    },
+  ));
+  const getValue = (res) => res.data.itemsByGSI1.items;
+  const errorMsg = 'Error fetching recent comments: ';
+  return { promise, getValue, errorMsg };
+}
+
+// Fetch all comment items for a specific post
+function getPostCommentsNoDetailsQuery({ uid, timestamp }) {
+  const PK = `POST#${timestamp}#${uid}`;
+  const SK = '#COMMENT#';
+  const promise = API.graphql(graphqlOperation(
+    getPostCommentsNoDetails,
+    { PK, SK: { beginsWith: SK } },
+  ));
+  const getValue = (res) => res.data.listFeastItems.items;
+  const errorMsg = 'Error getting no details comments: ';
+  return { promise, getValue, errorMsg };
+}
+
 // Fetch all banned users
 function getBannedUsersQuery() {
   const promise = API.graphql(graphqlOperation(
@@ -497,7 +567,7 @@ function getBannedUsersQuery() {
     { GSI1: 'BANNEDUSER#', SK: { beginsWith: '#BAN#' }, limit: 200 },
   ));
   const getValue = (res) => res.data.itemsByGSI1.items;
-  const errorMsg = 'Error fetch all banned users: ';
+  const errorMsg = 'Error fetching all banned users: ';
   return { promise, getValue, errorMsg };
 }
 
@@ -510,5 +580,6 @@ export {
   getPlaceDetailsQuery, batchGetPlaceDetailsQuery, getPlaceFollowingUserReviewsQuery,
   getPlaceAllUserReviewsQuery, getUserAllSavedPostsQuery, getAllSavedPostItemsQuery,
   getPostYumsQuery, getUserYumsReceivedQuery, getUserYumsReceivedByTimeQuery, getUserEmailQuery,
-  getPlaceRatingQuery, batchGetPlaceRatingsQuery, getBannedUsersQuery,
+  getPlaceRatingQuery, batchGetPlaceRatingsQuery, getPostNumCommentsQuery, getPostCommentsQuery,
+  getUserCommentsReceivedByTimeQuery, getPostCommentsNoDetailsQuery, getBannedUsersQuery,
 };

@@ -14,7 +14,7 @@ const AnimatedModal = memo(
     modalCardPosition,
     useNativeDriver,
     duration,
-    ...rest
+    ...props
   }) => {
     const visibility = useMemo(() => new Animated.Value(visible ? 1 : 0), [
       visible,
@@ -47,7 +47,7 @@ const AnimatedModal = memo(
       [visibility],
     );
 
-    const varticalFlipAnimation = useMemo(
+    const verticalFlipAnimation = useMemo(
       () => ({
         opacity: visibility.interpolate({
           inputRange: [0, 1],
@@ -110,7 +110,7 @@ const AnimatedModal = memo(
     const containerStyle = useMemo(() => {
       switch (animationType) {
         case 'vertical':
-          return varticalFlipAnimation;
+          return verticalFlipAnimation;
         case 'horizontal':
           return horizontalFlipAnimation;
         case 'flipAndScale':
@@ -120,7 +120,7 @@ const AnimatedModal = memo(
       }
     }, [
       animationType,
-      varticalFlipAnimation,
+      verticalFlipAnimation,
       horizontalFlipAnimation,
       flipAndScaleAnimation,
       defaultAnimationStyle,
@@ -152,7 +152,7 @@ const AnimatedModal = memo(
       >
         <Animated.View
           style={[visible ? combinedStyle : containerStyle, positionStyle]}
-          {...rest}
+          {...props}
         >
           {visible ? children : null}
         </Animated.View>

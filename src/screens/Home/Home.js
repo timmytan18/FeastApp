@@ -18,6 +18,7 @@ import {
 import deletePostConfirmation from '../../api/functions/DeletePost';
 import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import savePost from '../../api/functions/SavePost';
+import CommentsModal from '../components/CommentsModal';
 import PostItem from '../components/PostItem';
 import ProfilePic from '../components/ProfilePic';
 import MoreView from '../components/MoreView';
@@ -28,7 +29,7 @@ import Logo from '../components/util/icons/Logo';
 import SearchButton from '../components/util/SearchButton';
 import CenterSpinner from '../components/util/CenterSpinner';
 import { Context } from '../../Store';
-import { DEFAULT_COORDINATES, NOTIF_TYPES, GET_SAVED_POST_ID } from '../../constants/constants';
+import { DEFAULT_COORDINATES, NOTIF_TYPES, GET_POST_ID } from '../../constants/constants';
 import {
   colors, isPad, sizes, wp, wpFull,
 } from '../../constants/theme';
@@ -39,7 +40,11 @@ const ALL_POSTS_FETCHED = 'allPostsFetched';
 
 const Home = ({ navigation }) => {
   const [state, dispatch] = useContext(Context);
-  const { user: { uid: myUID, PK: myPK, name: myName }, savedPosts } = state;
+  const {
+    user: {
+      uid: myUID, PK: myPK, name: myName, picture: myPicture, expoPushToken: myExpoPushToken,
+    }, savedPosts,
+  } = state;
 
   const [posts, setPosts] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,7 +70,9 @@ const Home = ({ navigation }) => {
     // (works when app is foregrounded, backgrounded, or killed)
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
       const notifData = response.notification.request.content.data;
-      if (notifData.type === NOTIF_TYPES.FOLLOW || notifData.type === NOTIF_TYPES.YUM) {
+      if (notifData.type === NOTIF_TYPES.FOLLOW
+        || notifData.type === NOTIF_TYPES.YUM
+        || notifData.type === NOTIF_TYPES.COMMENT) {
         navigation.navigate('InboxTab', {
           screen: 'Inbox', params: { shouldReload: true },
         });
@@ -286,7 +293,7 @@ const Home = ({ navigation }) => {
     currPost.current = item;
     const isMe = item.placeUserInfo.uid === myUID;
     moreItems.current = isMe ? moreItemsMe : moreItemsOther;
-    const currIsSaved = savedPosts.has(GET_SAVED_POST_ID({
+    const currIsSaved = savedPosts.has(GET_POST_ID({
       uid: item.placeUserInfo.uid, timestamp: item.timestamp,
     }));
     if (currIsSaved) moreItems.current[0] = isSavedMoreItem;
@@ -302,6 +309,25 @@ const Home = ({ navigation }) => {
     };
     moreItems.current[0].onPress = () => savePost(saveParams);
     setMorePressed(true);
+  };
+
+  const [showComments, setShowComments] = useState(false);
+  const commentDetailsRef = useRef({
+    uid: null, expoPushToken: null, timestamp: null, numComments: 0,
+  });
+  const currentComment = useRef({ uid: null, timestamp: null, comment: '' });
+  const openComments = ({
+    uid, expoPushToken, timestamp, numComments, placeId, imgUrl,
+  }) => {
+    // clear saved unposted comment if different post
+    if (currentComment.current.uid !== uid || currentComment.current.timestamp !== timestamp) {
+      currentComment.current = { uid: null, timestamp: null, comment: '' };
+    }
+    // set comment fetch details
+    commentDetailsRef.current = {
+      uid, expoPushToken, timestamp, numComments, placeId, imgUrl,
+    };
+    setShowComments(true);
   };
 
   const listFooterComponent = () => {
@@ -374,6 +400,23 @@ const Home = ({ navigation }) => {
           } : null}
           type="user post"
         />
+        <CommentsModal
+          visible={showComments}
+          setVisible={setShowComments}
+          numComments={commentDetailsRef.current.numComments}
+          timestamp={commentDetailsRef.current.timestamp}
+          uid={commentDetailsRef.current.uid}
+          expoPushToken={commentDetailsRef.current.expoPushToken}
+          placeId={commentDetailsRef.current.placeId}
+          imgUrl={commentDetailsRef.current.imgUrl}
+          navigation={navigation}
+          dispatch={dispatch}
+          currentComment={currentComment}
+          myUID={myUID}
+          myName={myName}
+          myPicture={myPicture}
+          myExpoPushToken={myExpoPushToken}
+        />
         <FlatList
           data={posts}
           refreshing={refreshing}
@@ -384,6 +427,7 @@ const Home = ({ navigation }) => {
               fetchUser={fetchUser}
               onMorePressed={onMorePressed}
               showYummedUsersModal={showYummedUsersModal}
+              openComments={openComments}
               me={state.user}
               savedPosts={savedPosts}
               openPlace={openPlace}

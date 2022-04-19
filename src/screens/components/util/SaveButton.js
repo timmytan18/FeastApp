@@ -5,7 +5,7 @@ import {
 import { API, graphqlOperation } from 'aws-amplify';
 import { getUserAllSavedPostsQuery, fulfillPromise } from '../../../api/functions/queryFunctions';
 import { createFeastItem, updateFeastItem, deleteFeastItem } from '../../../graphql/mutations';
-import { GET_SAVED_POST_ID } from '../../../constants/constants';
+import { GET_POST_ID } from '../../../constants/constants';
 import Save from './icons/Save';
 import { colors, sizes, wp } from '../../../constants/theme';
 
@@ -116,7 +116,7 @@ const SaveButton = ({
       ({
         placeUserInfo: { uid },
         timestamp: currTimeStamp,
-      }) => GET_SAVED_POST_ID({ uid, timestamp: currTimeStamp }),
+      }) => GET_POST_ID({ uid, timestamp: currTimeStamp }),
     );
     dispatch({
       type: 'SET_SAVED_POSTS',

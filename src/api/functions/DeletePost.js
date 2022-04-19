@@ -6,6 +6,7 @@ import {
   getFollowersQuery,
   getPostYumsQuery,
   getAllSavedPostItemsQuery,
+  getPostCommentsNoDetailsQuery,
   fulfillPromise,
 } from './queryFunctions';
 import { deleteFeastItem, batchDeleteFollowingPosts, incrementFeastItem } from '../graphql/mutations';
@@ -139,6 +140,36 @@ const deletePost = async ({
     } catch (err) {
       console.warn('Error removing all saved post items for post', err);
     }
+  }
+
+  // Delete comment items for post
+  const {
+    promise: commentPromise, getValue: getCommentValue, errorMsg: commentErrorMsg,
+  } = getPostCommentsNoDetailsQuery({
+    uid: myUID, timestamp: currTimestamp,
+  });
+  const commentItemsToDelete = await fulfillPromise(commentPromise, getCommentValue, commentErrorMsg);
+  for (i = 0, j = commentItemsToDelete.length; i < j; i += BATCH_NUM) {
+    const batch = commentItemsToDelete.slice(i, i + BATCH_NUM);
+    try {
+      await API.graphql(graphqlOperation(
+        batchDeleteFollowingPosts,
+        { input: { posts: batch } },
+      ));
+    } catch (err) {
+      console.warn('Error deleting all comment items for post', err);
+    }
+  }
+
+  // Delete num comment count for post
+  const numCommentsInput = { PK: `POST#${currTimestamp}#${myUID}`, SK: '#NUMCOMMENTS' };
+  try {
+    await API.graphql(graphqlOperation(
+      deleteFeastItem,
+      { input: numCommentsInput },
+    ));
+  } catch (err) {
+    console.warn('Error deleting post comment count:', err);
   }
 
   // Delete yum items for post

@@ -9,16 +9,16 @@ const GEOHASH_PRECISION_AREAS = [
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const GET_SAVED_POST_ID = ({ uid, timestamp }) => `${uid}_${timestamp}`;
+const GET_POST_ID = ({ uid, timestamp }) => `${timestamp}_${uid}`;
 
 const ADMIN_UIDS = new Set(['934304ca-c0bf-4cfd-83e3-7f1f5d7501f1', 'a8d8331f-6e6a-422b-bd20-65b4a8b3eec3']);
 
 const ADMIN_PASSWORD = 'ILOVEFOOD';
 
-const NOTIF_TYPES = { FOLLOW: 'FOLLOW', YUM: 'YUM' };
+const NOTIF_TYPES = { FOLLOW: 'FOLLOW', YUM: 'YUM', COMMENT: 'COMMENT' };
 
 export {
   POST_IMAGE_ASPECT, GEOHASH_PRECISION_AREAS, MONTHS,
-  GET_SAVED_POST_ID, DEFAULT_COORDINATES, ADMIN_UIDS,
+  GET_POST_ID, DEFAULT_COORDINATES, ADMIN_UIDS,
   ADMIN_PASSWORD, NOTIF_TYPES,
 };

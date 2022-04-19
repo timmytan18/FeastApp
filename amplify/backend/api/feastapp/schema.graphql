@@ -42,6 +42,8 @@ type FeastItem
   review: String
   count: Int
   sum: Float
+  comment: String
+  actionTimestamp: String
   updatedAt: String
 }
 

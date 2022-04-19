@@ -72,6 +72,8 @@ export const incrementFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -148,6 +150,8 @@ export const batchCreateFollowingPosts = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -224,6 +228,8 @@ export const batchDeleteFollowingPosts = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -303,6 +309,8 @@ export const createFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -382,6 +390,8 @@ export const updateFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }
@@ -461,6 +471,8 @@ export const deleteFeastItem = /* GraphQL */ `
       review
       count
       sum
+      comment
+      actionTimestamp
       updatedAt
       createdAt
     }

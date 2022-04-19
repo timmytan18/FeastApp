@@ -14,6 +14,7 @@ const initialState = {
   deviceHeight: null,
   reloadMapTrigger: false,
   reloadProfileTrigger: false,
+  reloadNumCommentsId: null,
 };
 
 const Store = ({ children }) => {
