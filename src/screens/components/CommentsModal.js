@@ -63,10 +63,6 @@ const CommentItem = ({ item, fetchUser, onMorePressed }) => {
         </View>
         <Text
           style={styles.commentText}
-        // numberOfLines={textExpanded ? null : NUM_COLLAPSED_LINES}
-        // onPress={() => {
-        //   setTextExpanded(!textExpanded);
-        // }}
         >
           {comment}
         </Text>
@@ -214,11 +210,12 @@ const CommentsModal = ({
       }
     }
 
-    dispatch({ type: 'SET_RELOAD_NUM_COMMENTS', payload: GET_POST_ID({ uid, timestamp }) });
     if (expoPushToken !== myExpoPushToken) {
-      // send yum push notification
+      // send comment push notification
       sendCommentNotif({ commenter: myName, comment: commentToPost, expoPushToken });
     }
+
+    dispatch({ type: 'SET_RELOAD_NUM_COMMENTS', payload: GET_POST_ID({ uid, timestamp }) });
   };
 
   const closeModalRef = useRef(() => { });

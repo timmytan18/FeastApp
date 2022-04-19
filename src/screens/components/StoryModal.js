@@ -397,7 +397,7 @@ const StoryModal = ({ navigation, route }) => {
     }
     // set comment fetch details
     commentDetailsRef.current = {
-      uid, timestamp, numComments, placeId, imgUrl: picture,
+      uid, timestamp, numComments, placeId, expoPushToken, imgUrl: picture,
     };
     setShowComments(true);
   };
@@ -690,6 +690,7 @@ const StoryModal = ({ navigation, route }) => {
           numComments={commentDetailsRef.current.numComments}
           timestamp={commentDetailsRef.current.timestamp}
           uid={commentDetailsRef.current.uid}
+          expoPushToken={commentDetailsRef.current.expoPushToken}
           placeId={commentDetailsRef.current.placeId}
           imgUrl={commentDetailsRef.current.imgUrl}
           navigation={navigation}

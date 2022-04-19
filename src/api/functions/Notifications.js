@@ -29,8 +29,8 @@ const sendCommentNotif = ({ commenter, comment, expoPushToken }) => {
   const message = {
     to: expoPushToken,
     sound: 'default',
-    title: `Comment from ${commenter}`,
-    body: `"${comment}"`,
+    title: 'New Comment',
+    body: `${commenter}: "${comment}"`,
     data: { type: NOTIF_TYPES.YUM },
   };
   sendPushNotification(message);
