@@ -23,8 +23,8 @@ const CommentButton = ({
   const getNumComments = async () => {
     const { promise, getValue, errorMsg } = getPostNumCommentsQuery({ uid, timestamp });
     const currNumComments = await fulfillPromise(promise, getValue, errorMsg);
-    if (currNumComments !== null && mounted.current) {
-      setNumComments(currNumComments);
+    if (mounted.current) {
+      setNumComments(currNumComments || 0);
     }
   };
 

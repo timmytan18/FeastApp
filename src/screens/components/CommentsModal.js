@@ -2,7 +2,7 @@ import React, {
   useState, useRef, useEffect, useContext,
 } from 'react';
 import {
-  StyleSheet, View, Text, TextInput, Animated, FlatList, Alert, TouchableOpacity, ActionSheetIOS,
+  StyleSheet, View, Text, TextInput, Animated, FlatList, Alert, TouchableOpacity, ActionSheetIOS, Keyboard,
 } from 'react-native';
 import { API, graphqlOperation } from 'aws-amplify';
 import { getPostCommentsQuery, fulfillPromise } from '../../api/functions/queryFunctions';
@@ -13,6 +13,7 @@ import SwipeDownModal from './util/SwipeDownModal';
 import ProfilePic from './ProfilePic';
 import getElapsedTime from '../../api/functions/GetElapsedTime';
 import CenterSpinner from './util/CenterSpinner';
+import DismissKeyboardView from './util/DismissKeyboard';
 import { fetchCurrentUserUID } from '../../api/functions/FetchUserProfile';
 import deleteCommentConfirmation from '../../api/functions/DeleteComment';
 import { sendCommentNotif } from '../../api/functions/Notifications';
@@ -278,7 +279,7 @@ const CommentsModal = ({
         position: 'absolute', left: 0, right: 0, bottom: 0,
       }}
       ContentModal={(
-        <View style={styles.container}>
+        <DismissKeyboardView style={styles.container}>
           <View style={styles.topTextContainer}>
             <Text style={styles.topText}>
               {numComments || 0}
@@ -338,9 +339,10 @@ const CommentsModal = ({
               />
             </View>
           </Animated.View>
-        </View>
+        </DismissKeyboardView>
       )}
       onClose={() => {
+        inputAnim.setValue(0);
         if (comment !== null) currentComment.current = { uid, timestamp, comment };
         if (startBarAnimation) startBarAnimation();
         setVisible(false);
