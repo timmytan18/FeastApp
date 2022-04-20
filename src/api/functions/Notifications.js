@@ -18,7 +18,7 @@ const sendYumNotif = ({ yummer, expoPushToken }) => {
     to: expoPushToken,
     sound: 'default',
     title: 'Yum!',
-    body: `${yummer} just yummed your post 😋`,
+    body: `${yummer} yummed your post 😋`,
     data: { type: NOTIF_TYPES.YUM },
   };
   sendPushNotification(message);

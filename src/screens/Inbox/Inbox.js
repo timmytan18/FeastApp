@@ -115,6 +115,8 @@ const CommentNotifItem = ({ item, openUserProfile, openPost }) => {
       }
     })();
   }, [item.picture]);
+  const trimmedComment = item.comment.trim();
+  const slicedComment = `${trimmedComment.slice(0, 45).trim()}${trimmedComment.length > 45 && '...'}`;
   return (
     <View style={styles.userItemContainer}>
       <TouchableOpacity
@@ -143,10 +145,10 @@ const CommentNotifItem = ({ item, openUserProfile, openPost }) => {
             >
               <Text style={styles.userNameText}>{item.name}</Text>
             </TouchableOpacity>
-            <Text style={styles.subtitleText} numberOfLines={2}>
+            <Text style={[styles.subtitleText, { width: wp(60) }]} numberOfLines={2}>
               commented:
               {' '}
-              {item.comment.slice(0, 45)}
+              {slicedComment}
               <Text style={styles.elapsedTimeText}>
                 {' '}
                 ·
@@ -491,7 +493,6 @@ const styles = StyleSheet.create({
     color: colors.black,
     marginTop: -2,
     lineHeight: sizes.b0,
-    width: wp(60),
   },
   followingText: {
     fontFamily: 'BookItalic',
