@@ -1,5 +1,5 @@
 import React, {
-  useEffect, useState, useRef, useContext,
+  useEffect, useState, useContext,
 } from 'react';
 import { View, Image, Platform } from 'react-native';
 

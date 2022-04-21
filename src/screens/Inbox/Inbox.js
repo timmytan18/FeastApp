@@ -116,7 +116,7 @@ const CommentNotifItem = ({ item, openUserProfile, openPost }) => {
     })();
   }, [item.picture]);
   const trimmedComment = item.comment.trim();
-  const slicedComment = `${trimmedComment.slice(0, 45).trim()}${trimmedComment.length > 45 && '...'}`;
+  const slicedComment = `${trimmedComment.slice(0, 45).trim()}${trimmedComment.length > 45 ? '...' : ''}`;
   return (
     <View style={styles.userItemContainer}>
       <TouchableOpacity
