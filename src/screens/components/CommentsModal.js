@@ -120,7 +120,7 @@ const CommentsModal = ({
     return () => {
       mounted.current = false;
     };
-  }, [timestamp, uid]);
+  }, [timestamp, uid, numComments]);
 
   const flatlistRef = useRef(null);
 

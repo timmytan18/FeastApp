@@ -515,7 +515,7 @@ function getPostCommentsQuery({
     {
       PK,
       SK: { beginsWith: SK },
-      sortDirection: 'DESC',
+      // sortDirection: 'DESC',
       // limit: limit || 20,
       nextToken: currNextToken,
     },
