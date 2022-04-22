@@ -98,7 +98,7 @@ const PostListItem = ({
               {item.categories[0]}
             </Text>
           )}
-        {item.avgRating && (
+        {item.avgRating !== null && (
           <StarsRating
             rating={Math.round(item.avgRating * 2) / 2}
             spacing={wp(0.6)}

@@ -12,7 +12,7 @@ const EditStarsRating = ({
 
   const getRatingInput = (x) => {
     const ratingInput = Math.round((x / containerWidth) * 5 * 2) / 2;
-    return Math.max(0, Math.min(5, ratingInput));
+    return Math.max(0.5, Math.min(5, ratingInput));
   };
 
   const panResponder = useRef(

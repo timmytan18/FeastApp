@@ -831,7 +831,7 @@ const StoryModal = ({ navigation, route }) => {
             <Text style={styles.reviewTitleText}>
               Review:
             </Text>
-            {rating && (
+            {rating !== null && (
               <StarsRating
                 rating={rating}
                 spacing={wp(0.6)}
