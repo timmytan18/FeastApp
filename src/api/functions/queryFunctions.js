@@ -3,10 +3,10 @@
 import { API, graphqlOperation } from 'aws-amplify';
 import {
   getUserProfile, getUserExpoPushToken, getUserPosts, getUserPostsWithUserInfo, getUserPost,
-  getFollowing, getFollowingPK, searchUsers, searchPlaces, getIsFollowing, getPlaceInDB,
-  getPlaceInDBWithCategoriesAndPicture, getFollowers, getFollowersByTime, getNumFollows,
-  getFollowingPosts, getFollowingPostsDetails, getFollowingPostsByUser, getFollowersPK,
-  batchGetUserPosts, getAllPosts, getPlaceDetails, batchGetPlaceDetails,
+  getFollowing, getFollowingPK, searchUsers, searchPlaces, searchPlacesUpload, getIsFollowing,
+  getPlaceInDB, getPlaceInDBWithCategoriesAndPicture, getFollowers, getFollowersByTime,
+  getNumFollows, getFollowingPosts, getFollowingPostsDetails, getFollowingPostsByUser,
+  getFollowersPK, batchGetUserPosts, getAllPosts, getPlaceDetails, batchGetPlaceDetails,
   getPlaceFollowingUserReviews, getPlaceAllUserReviews, getUserAllSavedPosts,
   getUserAllSavedPostsNoDetails, getAllSavedPostItems, getPostYums, getUserYumsReceived,
   getUserYumsReceivedByTime, getPostYumsNoDetails, getUserEmail, getPlaceRating,
@@ -177,11 +177,11 @@ function searchUsersQuery({ name }) {
 }
 
 // Search for places by name
-function searchPlacesQuery({ name }) {
+function searchPlacesQuery({ name, isUpload }) {
   const GSI2 = 'PLACE#';
   const LSI1 = `#NAME#${name}`;
   const promise = API.graphql(graphqlOperation(
-    searchPlaces,
+    isUpload ? searchPlacesUpload : searchPlaces,
     { GSI2, LSI1: { beginsWith: LSI1 }, limit: 100 },
   ));
   const getValue = (res) => res.data.itemsByGSI2.items;

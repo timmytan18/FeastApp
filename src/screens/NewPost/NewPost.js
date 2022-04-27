@@ -11,13 +11,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MapModal from '../components/MapModal';
 import coordinateDistance from '../../api/functions/CoordinateDistance';
 import filterFSItems from '../../api/functions/FilterFSItems';
-import { Context } from '../../Store';
+// import {
+//   searchPlacesQuery,
+//   getPlaceDetailsQuery,
+//   fulfillPromise,
+// } from '../../api/functions/queryFunctions';
 import DismissKeyboardView from '../components/util/DismissKeyboard';
 import SearchBox from '../components/SearchBox';
 import NextArrow from '../components/util/icons/NextArrow';
 import Redirect from '../components/util/icons/Redirect';
 import MapMarker from '../components/util/icons/MapMarker';
 import { getSecureValue, keys } from '../../api/functions/SecureStore';
+import { Context } from '../../Store';
 import {
   colors, gradients, shadows, sizes, wp, wpFull,
 } from '../../constants/theme';
@@ -104,6 +109,15 @@ const NewPost = ({ navigation }) => {
     }
     return items || [];
   }
+
+  // async function searchInDB(query) {
+  //   const { promise, getValue, errorMsg } = searchPlacesQuery({ query, isUpload: true });
+  //   const results = await fulfillPromise(promise, getValue, errorMsg);
+  //   if (mounted.current) {
+  //     setPlaceList(results);
+  //   }
+  //   return results;
+  // }
 
   const getNearbyAbortControllerRef = useRef(new AbortController());
   const searchAbortControllerRef = useRef(new AbortController());
@@ -199,6 +213,9 @@ const NewPost = ({ navigation }) => {
         isSearch.current = true;
         const items = data.resourceSets[0].resources;
         const searchResults = await filterSetResults(items);
+        // if (!searchResults || searchResults.length === 0) {
+        //   searchResults = searchInDB(query);
+        // }
         setPlaceList(searchResults);
         setLoading(false);
         // Run scraper test

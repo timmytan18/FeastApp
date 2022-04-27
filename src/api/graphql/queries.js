@@ -59,6 +59,37 @@ export const searchPlaces = /* GraphQL */ `
   }
 `;
 
+export const searchPlacesUpload = /* GraphQL */ `
+  query ItemsByGSI2(
+    $GSI2: String
+    $LSI1: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelFeastItemFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    itemsByGSI2(
+      GSI2: $GSI2
+      LSI1: $LSI1
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        name
+        placeId
+        geo
+        placeInfo {
+          address
+          placeUrl
+        }
+      }
+      nextToken
+    }
+  }
+`;
+
 export const getUserProfile = /* GraphQL */ `
   query ListFeastItems(
     $PK: String
