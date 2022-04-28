@@ -899,6 +899,7 @@ const Profile = ({ navigation, route }) => {
         deviceHeight={state.deviceHeight}
       />
       <FlatList
+        initialNumToRender={posts.current.length}
         pointerEvents={mapOpen ? 'none' : 'auto'}
         scrollEnabled={!mapOpen}
         data={posts.current}
