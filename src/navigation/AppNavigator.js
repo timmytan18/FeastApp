@@ -5,6 +5,7 @@ import {
   Text, StyleSheet, TouchableOpacity, SafeAreaView, View,
 } from 'react-native';
 import { API, Storage } from 'aws-amplify';
+import * as NavigationBar from 'expo-navigation-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -28,7 +29,7 @@ import SavedPosts from '../screens/Profile/SavedPosts';
 import PlaceDetail from '../screens/Profile/PlaceDetail';
 import Settings from '../screens/Profile/Settings';
 import UploadImages from '../screens/NewPost/UploadImages';
-import CropModal from '../screens/NewPost/CropModal';
+// import CropModal from '../screens/NewPost/CropModal';
 import PostDetails from '../screens/NewPost/PostDetails';
 import TabIcon from './TabIcon';
 import { HomeIcon, HomeFilledIcon } from './icons/Home';
@@ -235,11 +236,11 @@ function NewPostStackScreen() {
           headerLeft: renderBackArrow,
         }}
       />
-      <NewPostStack.Screen
+      {/* <NewPostStack.Screen
         name="CropModal"
         component={CropModal}
         options={{ headerShown: false }}
-      />
+      /> */}
       <NewPostStack.Screen
         name="PostDetails"
         component={PostDetails}
@@ -348,6 +349,8 @@ const newPostTransition = ({ height }) => ({
 const MyTabBar = ({
   state, descriptors, navigation, picture, showBadge, setShowBadge,
 }) => {
+  NavigationBar.setBackgroundColorAsync('#F9F9F9');
+
   const focusedOptions = descriptors[state.routes[state.index].key].options;
 
   if (focusedOptions.tabBarVisible === false) {

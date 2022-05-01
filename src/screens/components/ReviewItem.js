@@ -86,9 +86,10 @@ const ReviewItem = ({
           <Tooltip
             isVisible={tooltipActive}
             content={(
-              <TouchableOpacity onPress={() => openPost({
-                uid, timestamp, navigation, setTooltipActive,
-              })}
+              <TouchableOpacity
+                onPress={() => openPost({
+                  uid, timestamp, navigation, setTooltipActive,
+                })}
               >
                 <Text style={styles.tooltipText}>View Post</Text>
               </TouchableOpacity>
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     marginTop: wp(0.25),
   },
   tooltipContainer: {
-    ...shadows.darker,
+    ...shadows.base,
   },
   tooltipText: {
     fontSize: sizes.b3,

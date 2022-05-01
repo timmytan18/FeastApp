@@ -4,7 +4,6 @@ import React, {
 import {
   StyleSheet, View, FlatList, TouchableOpacity, Text,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { BlurView } from 'expo-blur';
 import * as Notifications from 'expo-notifications';
@@ -88,22 +87,16 @@ const Home = ({ navigation }) => {
   const flatlistRef = useRef(null);
   useScrollToTop(flatlistRef);
   useEffect(() => {
-    const blurredHeader = () => (
-      <BlurView tint="light" intensity="100" style={StyleSheet.absoluteFill} />
-    );
     const headerSearch = () => (
       <SearchButton
         color={colors.black}
         size={wp(5.7)}
-        style={styles.searchBtn}
         pressed={() => navigation.navigate('SearchUsers')}
       />
     );
     navigation.setOptions({
       headerRight: headerSearch,
-      headerTransparent: true,
-      headerBackground: blurredHeader,
-      animationEnabled: false,
+      headerLeft: () => (<></>),
     });
   }, []);
 
@@ -340,18 +333,12 @@ const Home = ({ navigation }) => {
     return null;
   };
 
-  const insets = useSafeAreaInsets();
-
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.rootContainer,
-        { marginTop: insets.top },
         isPad && { paddingTop: wpFull(3) },
-        loading && { opacity: 0.6, backgroundColor: colors.gray },
       ]}
-      pointerEvents={loading ? 'none' : 'auto'}
-      edges={['top']}
     >
       {loading
         && (
@@ -456,7 +443,7 @@ const Home = ({ navigation }) => {
             </Text>
           </View>
         )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -500,6 +487,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    alignSelf: 'center',
     paddingHorizontal: sizes.margin,
     paddingBottom: 9,
   },

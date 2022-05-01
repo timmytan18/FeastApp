@@ -831,7 +831,6 @@ const Profile = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
-      <StatusBar animated barStyle="dark-content" />
       <MoreView
         items={getMoreItems()}
         morePressed={morePressed}

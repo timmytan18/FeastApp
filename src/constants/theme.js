@@ -28,19 +28,19 @@ const colors = {
 
 const shadows = {
   base: {
-    shadowColor: '#c2c2c2', shadowOpacity: 0.5, shadowRadius: 3, shadowOffset: { width: -0.5, height: 2 },
+    shadowColor: '#c2c2c2', elevation: 2,
   },
   baseEven: {
-    shadowColor: '#c2c2c2', shadowOpacity: 0.5, shadowRadius: 3, shadowOffset: { width: 0, height: 0 },
+    shadowColor: '#c2c2c2', elevation: 2,
   },
   darker: {
-    shadowColor: '#272D2F', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { height: 2 },
+    shadowColor: '#272D2F', elevation: 3,
   },
   lighter: {
-    shadowColor: '#B3C0CE', shadowOpacity: 0.3, shadowRadius: 3, shadowOffset: { width: -0.5, height: 2 },
+    shadowColor: '#B3C0CE', elevation: 1,
   },
   even: {
-    shadowColor: '#B3C0CE', shadowOpacity: 0.25, shadowRadius: 1.5, shadowOffset: { width: 0, height: 0 },
+    shadowColor: '#B3C0CE', elevation: 2,
   },
 };
 
@@ -76,7 +76,9 @@ const sizes = {
 };
 
 const header = {
-  title: { fontFamily: 'Semi', fontSize: sizes.h3, color: colors.black },
+  title: {
+    fontFamily: 'Semi', fontSize: sizes.h3, color: colors.black, alignSelf: 'center', flex: 1,
+  },
 };
 
 export {

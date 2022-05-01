@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   StyleSheet, View, Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIndicator } from 'react-native-indicators';
+import { Marker } from 'react-native-maps';
 import ProfilePic from './ProfilePic';
 import {
   sizes, gradients, wp,
@@ -24,13 +25,31 @@ const defaultProps = {
   category: null,
 };
 
-const MapMarker = ({
-  name, placeId, lat, lng, uid, userPic, category,
-  loadingStories, visible, numOtherMarkers, isNew, onlyHasOld,
+function areEqual(prevProps, nextProps) {
+  // Rerender if marker is currently loading or if marker was previously loading and now is not
+  // Rerender if marker is currently visible and was previously not or vice versa
+  // Rerender if number of other markers in grid changed
+  // Rerender if region changed
+  if ((nextProps.placeId === nextProps.loadingStories)
+    || (prevProps.placeId === prevProps.loadingStories
+      && nextProps.loadingStories === 'none')
+    || (nextProps.visible !== prevProps.visible)
+    // || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
+    || (nextProps.isNew !== prevProps.isNew)
+    || (prevProps.regionUpdate !== nextProps.regionUpdate)) {
+    return false;
+  }
+  return true;
+}
+
+const MapMarkerView = React.memo(({
+  name, placeId, uid, userPic, category,
+  loadingStories, visible, isNew,
 }) => {
   const visibilityStyle = visible ? {} : { width: 0 };
   const borderGradient = isNew ? gradients.purple : gradients.gray;
   // const numIconGradient = onlyHasOld ? gradients.gray : gradients.purple;
+
   return (
     <View style={styles.container}>
       {/* {visible && numOtherMarkers > 0 && (
@@ -53,7 +72,6 @@ const MapMarker = ({
         start={borderGradient.start}
         end={borderGradient.end}
         style={styles.gradientContainer}
-      // style={[styles.gradientContainer, visibilityStyle]}
       >
         {loadingStories && loadingStories === placeId && (
           <MaterialIndicator
@@ -93,21 +111,51 @@ const MapMarker = ({
       )}
     </View>
   );
+}, areEqual);
+
+const MapMarker = ({
+  key, index, name, placeId, fetchPostDetails, lat, lng, uid, userPic, category,
+  loadingStories, visible, numOtherMarkers, isNew, onlyHasOld, regionUpdate,
+}) => {
+  // const [tracksViewChanges, setTracksViewChanges] = useState(false);
+
+  const markerRef = useRef(null);
+  useEffect(() => {
+    // console.log(tracksViewChanges);
+    // setTracksViewChanges(true);
+    // setTracksViewChanges(false);
+    // return () => { setTracksViewChanges(false); };
+    markerRef.current.redraw();
+  }, [regionUpdate]);
+
+  console.log('MapMarker rerender');
+
+  return (
+    <Marker
+      ref={markerRef}
+      key={`${key}${Date.now()}`}
+      identifier={key}
+      coordinate={{ latitude: lat, longitude: lng }}
+      onPress={() => fetchPostDetails({ placeId })}
+      tracksViewChanges={false}
+    >
+      <MapMarkerView
+        name={name}
+        placeId={placeId}
+        uid={uid}
+        userPic={userPic}
+        category={category}
+        loadingStories={loadingStories}
+        visible={visible}
+        isNew={isNew}
+      />
+    </Marker>
+  );
 };
 
-function areEqual(prevProps, nextProps) {
-  // Rerender if marker is currently loading or if marker was previously loading and now is not
-  // Rerender if marker is currently visible and was previously not or vice versa
-  // Rerender if number of other markers in grid changed
-  if ((nextProps.placeId === nextProps.loadingStories)
-    || (prevProps.placeId === prevProps.loadingStories
-      && nextProps.loadingStories === 'none')
-    || (nextProps.visible !== prevProps.visible)
-    // || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
-    || (nextProps.isNew !== prevProps.isNew)) {
-    return false;
-  }
-  return true;
+function isSameRegion(prevProps, nextProps) {
+  // Update if region changed
+  return prevProps.regionUpdate === nextProps.regionUpdate;
 }
 
 MapMarker.propTypes = propTypes;
@@ -192,4 +240,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(MapMarker, areEqual);
+export default React.memo(MapMarker, isSameRegion);

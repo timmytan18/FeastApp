@@ -7,7 +7,7 @@ import {
 import { Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
   getFollowingQuery,
@@ -172,6 +172,8 @@ const Explore = ({ navigation }) => {
   // Keep track of places that have been grouped together, ordered
   // const storiesGroups = useRef({}); // obj of placeId: [placeId]
 
+  const [regionUpdate, setRegionUpdate] = useState(false);
+
   // Show / hide markers when region changed based on zoom level & geohash
   const onRegionChanged = async ({ markersCopy, firstLoad }) => {
     const {
@@ -222,6 +224,8 @@ const Explore = ({ navigation }) => {
     if (didAlterMarkers || firstLoad) {
       setMarkers(markersCopy);
     }
+
+    setRegionUpdate(!regionUpdate);
     // if (!leftSelected && !firstLoad && redoSearchVisible === false) {
     //   setRedoSearchVisible(true);
     // } else if (firstLoad && !redoSearchVisible) {
@@ -474,34 +478,31 @@ const Explore = ({ navigation }) => {
         userInterfaceStyle="light"
         ref={mapRef}
         onRegionChangeComplete={() => onRegionChanged({ markersCopy: { ...markers } })}
-      // provider={PROVIDER_GOOGLE}
-      // customMapStyle={mapLessLandmarksStyle}
+        provider={PROVIDER_GOOGLE}
+        customMapStyle={mapLessLandmarksStyle}
       >
         {markers && Object.entries(markers).map(([placeKey, {
           name, placeId, lat, lng, uid, userName, userPic,
           category, visible, numOtherMarkers, isNew, onlyHasOld,
-        }]) => (
-          <Marker
+        }], index) => (
+          <MapMarker
             key={placeKey}
-            identifier={placeKey}
-            coordinate={{ latitude: lat, longitude: lng }}
-            onPress={() => fetchPostDetails({ placeId })}
-          >
-            <MapMarker
-              name={name}
-              placeId={placeId}
-              uid={uid}
-              lat={lat}
-              lng={lng}
-              userPic={userPic}
-              category={category}
-              loadingStories={loadingStories}
-              visible={visible}
-              numOtherMarkers={numOtherMarkers}
-              isNew={isNew}
-              onlyHasOld={onlyHasOld}
-            />
-          </Marker>
+            index={index}
+            name={name}
+            placeId={placeId}
+            fetchPostDetails={fetchPostDetails}
+            uid={uid}
+            lat={lat}
+            lng={lng}
+            userPic={userPic}
+            category={category}
+            loadingStories={loadingStories}
+            visible={visible}
+            numOtherMarkers={numOtherMarkers}
+            isNew={isNew}
+            onlyHasOld={onlyHasOld}
+            regionUpdate={regionUpdate}
+          />
         ))}
         <Marker
           key={`${latitude}${longitude}`}

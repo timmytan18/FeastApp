@@ -10,7 +10,10 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
+    "production": {},
+    "android": {
+      "releaseChannel": "production-android"
+    }
   },
   "submit": {
     "production": {

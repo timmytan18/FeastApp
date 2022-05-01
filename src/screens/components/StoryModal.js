@@ -1026,7 +1026,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flex: 0.85,
-    marginTop: wp(12),
     borderRadius: wp(5),
     backgroundColor: '#fff',
     paddingHorizontal: sizes.margin,
@@ -1035,6 +1034,8 @@ const styles = StyleSheet.create({
     height: wp(9),
     alignItems: 'center',
     flexDirection: 'row',
+    marginTop: 0,
+    paddingTop: 0,
   },
   progressBar: {
     height: wp(0.7),

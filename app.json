@@ -12,7 +12,9 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
       "buildNumber": "5",
@@ -36,6 +38,10 @@
       "favicon": "./assets/icon.png"
     },
     "scheme": "feast",
-    "plugins": ["react-native-compressor", "expo-notifications"]
+    "plugins": [
+      "react-native-compressor",
+      "expo-notifications",
+      "expo-navigation-bar"
+    ]
   }
 }

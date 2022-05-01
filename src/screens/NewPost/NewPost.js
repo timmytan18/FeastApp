@@ -389,10 +389,6 @@ const NewPost = ({ navigation }) => {
             )}
         </View>
         <View style={[styles.optionsContainer, { flexDirection: loading ? 'row' : 'column' }]}>
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.32)']}
-            style={styles.fade}
-          />
           {loading
             && (
               <BallIndicator

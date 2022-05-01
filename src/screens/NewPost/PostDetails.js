@@ -17,7 +17,7 @@ import MapMarker from '../components/util/icons/MapMarker';
 import ProfilePic from '../components/ProfilePic';
 import BackArrow from '../components/util/icons/BackArrow';
 import Cam from '../components/util/icons/Cam';
-import EditStarsRating from '../components/EditStarsRating';
+// import EditStarsRating from '../components/EditStarsRating';
 import CenterSpinner from '../components/util/CenterSpinner';
 import getBannedUsers from '../../api/functions/GetBannedUsers';
 import { POST_IMAGE_ASPECT } from '../../constants/constants';
