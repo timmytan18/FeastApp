@@ -123,7 +123,7 @@ const PostItem = ({
                     colors={gradients.purple.colors}
                     start={[-0.2, 1]}
                     end={[1.2, 0]}
-                    style={{ width: name.length * wp(5), height: sizes.h4 + wp(1.5) }}
+                    style={{ width: name.length * wp(5.45), height: sizes.h4 + wp(1.5) }}
                   />
                 </MaskedView>
               </TouchableOpacity>
