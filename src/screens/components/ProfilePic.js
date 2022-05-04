@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { StyleSheet, View, Image } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Image } from 'react-native-expo-image-cache';
 import NoProfile from './util/icons/NoProfile';
 import awsmobile from '../../aws-exports';
 import { Context } from '../../Store';
@@ -38,14 +39,24 @@ const ProfilePic = ({
         />
       )}
       {(isMe || (extUrl && url !== extUrl)) && !banned && (
+        // <Image
+        //   source={{ uri: isLocal ? extUrl : `${extUrl}?${new Date()}` }}
+        //   resizeMode="cover"
+        //   style={[
+        //     styles.iconImage,
+        //     iconStyle,
+        //     { zIndex: 1 },
+        //   ]}
+        // />
         <Image
-          source={{ uri: isLocal ? extUrl : `${extUrl}?${new Date()}` }}
-          resizeMode="cover"
           style={[
             styles.iconImage,
             iconStyle,
             { zIndex: 1 },
           ]}
+          // preview={{ uri: image }}
+          uri={isLocal ? extUrl : `${extUrl}?${new Date()}`}
+          cacheKey={uid}
         />
       )}
       <View

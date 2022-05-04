@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   StyleSheet, View, Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIndicator } from 'react-native-indicators';
-import { Marker } from 'react-native-maps';
 import ProfilePic from './ProfilePic';
 import {
   sizes, gradients, wp,
@@ -25,137 +25,105 @@ const defaultProps = {
   category: null,
 };
 
-function areEqual(prevProps, nextProps) {
-  // Rerender if marker is currently loading or if marker was previously loading and now is not
-  // Rerender if marker is currently visible and was previously not or vice versa
-  // Rerender if number of other markers in grid changed
-  // Rerender if region changed
-  if ((nextProps.placeId === nextProps.loadingStories)
-    || (prevProps.placeId === prevProps.loadingStories
-      && nextProps.loadingStories === 'none')
-    || (nextProps.visible !== prevProps.visible)
-    // || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
-    || (nextProps.isNew !== prevProps.isNew)
-    || (prevProps.regionUpdate !== nextProps.regionUpdate)) {
-    return false;
-  }
-  return true;
-}
-
-const MapMarkerView = React.memo(({
-  name, placeId, uid, userPic, category,
-  loadingStories, visible, isNew,
-}) => {
-  const visibilityStyle = visible ? {} : { width: 0 };
-  const borderGradient = isNew ? gradients.purple : gradients.gray;
-  // const numIconGradient = onlyHasOld ? gradients.gray : gradients.purple;
-
-  return (
-    <View style={styles.container}>
-      {/* {visible && numOtherMarkers > 0 && (
-        <View style={styles.badgeContainer}>
-          <LinearGradient
-            colors={numIconGradient.colors}
-            start={numIconGradient.start}
-            end={numIconGradient.end}
-            style={styles.badgeInnerContainer}
-          >
-            <Text style={styles.badgeText}>
-              +
-              {numOtherMarkers}
-            </Text>
-          </LinearGradient>
-        </View>
-      )} */}
-      <LinearGradient
-        colors={borderGradient.colors}
-        start={borderGradient.start}
-        end={borderGradient.end}
-        style={styles.gradientContainer}
-      >
-        {loadingStories && loadingStories === placeId && (
-          <MaterialIndicator
-            style={{
-              position: 'absolute', zIndex: 1,
-            }}
-            size={markerWithGradientSize}
-            color="#fff"
-            trackWidth={gradientSize}
-          />
-        )}
-        <View style={styles.markerContainer}>
-          <ProfilePic
-            extUrl={userPic}
-            uid={uid}
-            size={imageSize}
-            style={styles.imageContainer}
-          />
-        </View>
-      </LinearGradient>
-      <View>
-        <Text
-          style={[styles.nameText, styles.textWithShadow, visibilityStyle]}
-          numberOfLines={1}
-        >
-          {name}
-        </Text>
-      </View>
-      {category && (
-        <View>
-          <Text
-            style={[styles.categoryText, styles.textWithShadow, visibilityStyle]}
-          >
-            {category}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}, areEqual);
-
 const MapMarker = ({
-  key, index, name, placeId, fetchPostDetails, lat, lng, uid, userPic, category,
+  name, placeId, key, lat, lng, uid, userPic, category, fetchPostDetails,
   loadingStories, visible, numOtherMarkers, isNew, onlyHasOld, regionUpdate,
 }) => {
-  // const [tracksViewChanges, setTracksViewChanges] = useState(false);
-
   const markerRef = useRef(null);
   useEffect(() => {
-    // console.log(tracksViewChanges);
-    // setTracksViewChanges(true);
-    // setTracksViewChanges(false);
-    // return () => { setTracksViewChanges(false); };
+    console.log('redraw');
     markerRef.current.redraw();
   }, [regionUpdate]);
 
-  console.log('MapMarker rerender');
+  const visibilityStyle = visible ? {} : { width: 0 };
+  const borderGradient = isNew ? gradients.purple : gradients.gray;
+  const numIconGradient = onlyHasOld ? gradients.gray : gradients.purple;
 
   return (
     <Marker
       ref={markerRef}
-      key={`${key}${Date.now()}`}
+      key={key}
       identifier={key}
       coordinate={{ latitude: lat, longitude: lng }}
       onPress={() => fetchPostDetails({ placeId })}
       tracksViewChanges={false}
     >
-      <MapMarkerView
-        name={name}
-        placeId={placeId}
-        uid={uid}
-        userPic={userPic}
-        category={category}
-        loadingStories={loadingStories}
-        visible={visible}
-        isNew={isNew}
-      />
+      <View style={styles.container}>
+        {visible && numOtherMarkers > 0 && (
+          <View style={styles.badgeContainer}>
+            <LinearGradient
+              colors={numIconGradient.colors}
+              start={numIconGradient.start}
+              end={numIconGradient.end}
+              style={styles.badgeInnerContainer}
+            >
+              <Text style={styles.badgeText}>
+                {numOtherMarkers + 1}
+              </Text>
+            </LinearGradient>
+          </View>
+        )}
+        <LinearGradient
+          colors={borderGradient.colors}
+          start={borderGradient.start}
+          end={borderGradient.end}
+          style={[styles.gradientContainer, visibilityStyle]}
+        >
+          {loadingStories && loadingStories === placeId && (
+            <MaterialIndicator
+              style={{
+                position: 'absolute', zIndex: 1,
+              }}
+              size={markerWithGradientSize}
+              color="#fff"
+              trackWidth={gradientSize}
+            />
+          )}
+          <View style={styles.markerContainer}>
+            <ProfilePic
+              extUrl={userPic}
+              uid={uid}
+              size={imageSize}
+              style={styles.imageContainer}
+            />
+          </View>
+        </LinearGradient>
+        <View>
+          <Text
+            style={[styles.nameText, styles.textWithShadow, visibilityStyle]}
+            numberOfLines={1}
+          >
+            {name}
+          </Text>
+        </View>
+        {category && (
+          <View>
+            <Text
+              style={[styles.categoryText, styles.textWithShadow, visibilityStyle]}
+            >
+              {category}
+            </Text>
+          </View>
+        )}
+      </View>
     </Marker>
   );
 };
 
-function isSameRegion(prevProps, nextProps) {
-  // Update if region changed
-  return prevProps.regionUpdate === nextProps.regionUpdate;
+function areEqual(prevProps, nextProps) {
+  // Rerender if marker is currently loading or if marker was previously loading and now is not
+  // Rerender if marker is currently visible and was previously not or vice versa
+  // Rerender if number of other markers in grid changed
+  if ((nextProps.placeId === nextProps.loadingStories)
+    || (prevProps.placeId === prevProps.loadingStories
+      && nextProps.loadingStories === 'none')
+    || (nextProps.visible !== prevProps.visible)
+    || (nextProps.numOtherMarkers !== prevProps.numOtherMarkers)
+    || (nextProps.regionUpdate !== prevProps.regionUpdate)
+    || (nextProps.isNew !== prevProps.isNew)) {
+    return false;
+  }
+  return true;
 }
 
 MapMarker.propTypes = propTypes;
@@ -240,4 +208,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(MapMarker, isSameRegion);
+export default React.memo(MapMarker, areEqual);

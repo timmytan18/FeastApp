@@ -7,7 +7,7 @@ import {
 import { Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import geohash from 'ngeohash';
 import {
   getFollowingQuery,
@@ -169,10 +169,10 @@ const Explore = ({ navigation }) => {
   const placePosts = useRef({}); // obj of placeId: [posts]
   const placeIdGeo = useRef({}); // obj of placeId: geo
 
-  // Keep track of places that have been grouped together, ordered
-  // const storiesGroups = useRef({}); // obj of placeId: [placeId]
-
   const [regionUpdate, setRegionUpdate] = useState(false);
+
+  // Keep track of places that have been grouped together, ordered
+  const storiesGroups = useRef({}); // obj of placeId: [placeId]
 
   // Show / hide markers when region changed based on zoom level & geohash
   const onRegionChanged = async ({ markersCopy, firstLoad }) => {
@@ -206,7 +206,7 @@ const Explore = ({ navigation }) => {
             markersCopy[geoBoxTaken[hash]].isNew = true;
             markersCopy[geoBoxTaken[hash]].onlyHasOld = false;
           }
-          // storiesGroups.current[geoBoxTaken[hash]].push(placeKey);
+          storiesGroups.current[geoBoxTaken[hash]].push(placeKey);
         } else { // if marker in grid with no other markers
           if (!markersCopy[placeKey].visible) { // if marker not already visible, set visible
             markersCopy[placeKey].visible = true;
@@ -214,7 +214,7 @@ const Explore = ({ navigation }) => {
           }
           markersCopy[placeKey].numOtherMarkers = 0;
           geoBoxTaken[hash] = placeKey;
-          // storiesGroups.current[placeKey] = [placeKey];
+          storiesGroups.current[placeKey] = [placeKey];
         }
       }
     });
@@ -260,6 +260,14 @@ const Explore = ({ navigation }) => {
       });
     })();
   }, []);
+
+  // const [tracksViewChanges, setTracksViewChanges] = useState(false);
+
+  // useEffect(() => {
+  //   setTracksViewChanges(true);
+  //   setTracksViewChanges(false);
+  //   return () => { setTracksViewChanges(false); };
+  // }, [markers]);
 
   useEffect(() => {
     (async () => {
@@ -362,25 +370,25 @@ const Explore = ({ navigation }) => {
 
     // Create batch for all stories in group
     const storiesBatch = [];
-    // storiesGroups.current[placeId].forEach((placeKey) => {
-    //   storiesBatch.push(...placePosts.current[placeKey]);
-    //   // Add place for fetch place details if not already fetched
-    //   if (!(placeKey in placeDetails.current)) {
-    //     placeDetailsBatch.push({
-    //       PK: `PLACE#${placeKey}`,
-    //       SK: `#INFO#${placeIdGeo.current[placeKey]}`,
-    //     });
-    //   }
-    // });
+    storiesGroups.current[placeId].forEach((placeKey) => {
+      storiesBatch.push(...placePosts.current[placeKey]);
+      // Add place for fetch place details if not already fetched
+      if (!(placeKey in placeDetails.current)) {
+        placeDetailsBatch.push({
+          PK: `PLACE#${placeKey}`,
+          SK: `#INFO#${placeIdGeo.current[placeKey]}`,
+        });
+      }
+    });
 
-    storiesBatch.push(...placePosts.current[placeId]);
-    // Add place for fetch place details if not already fetched
-    if (!(placeId in placeDetails.current)) {
-      placeDetailsBatch.push({
-        PK: `PLACE#${placeId}`,
-        SK: `#INFO#${placeIdGeo.current[placeId]}`,
-      });
-    }
+    // storiesBatch.push(...placePosts.current[placeId]);
+    // // Add place for fetch place details if not already fetched
+    // if (!(placeId in placeDetails.current)) {
+    //   placeDetailsBatch.push({
+    //     PK: `PLACE#${placeId}`,
+    //     SK: `#INFO#${placeIdGeo.current[placeId]}`,
+    //   });
+    // }
 
     // Batch fetch stories for group
     const { promise, getValue, errorMsg } = batchGetUserPostsQuery(
@@ -478,16 +486,15 @@ const Explore = ({ navigation }) => {
         userInterfaceStyle="light"
         ref={mapRef}
         onRegionChangeComplete={() => onRegionChanged({ markersCopy: { ...markers } })}
-        provider={PROVIDER_GOOGLE}
-        customMapStyle={mapLessLandmarksStyle}
+      // provider={PROVIDER_GOOGLE}
+      // customMapStyle={mapLessLandmarksStyle}
       >
         {markers && Object.entries(markers).map(([placeKey, {
           name, placeId, lat, lng, uid, userName, userPic,
           category, visible, numOtherMarkers, isNew, onlyHasOld,
-        }], index) => (
+        }]) => (
           <MapMarker
             key={placeKey}
-            index={index}
             name={name}
             placeId={placeId}
             fetchPostDetails={fetchPostDetails}
