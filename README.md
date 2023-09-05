@@ -1,5 +1,5 @@
 # Feast 🥘
-Feast is a mobile platform for discovering restaurants with friends and sharing photos and reviews of delicious eats.
+Feast is a mobile app for discovering restaurants and sharing food reviews with friends
 
 www.feastapp.io
 
